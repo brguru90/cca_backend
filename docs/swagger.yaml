@@ -1,0 +1,455 @@
+definitions:
+  database.ActiveSessionsModel:
+    properties:
+      _id:
+        type: string
+      createdAt:
+        type: string
+      exp:
+        type: integer
+      ip:
+        type: string
+      status:
+        type: string
+      token_id:
+        type: string
+      ua:
+        type: string
+      updatedAt:
+        type: string
+      user_id:
+        type: string
+    type: object
+  database.UsersModel:
+    properties:
+      auth_provider:
+        type: string
+      email:
+        type: string
+      mobile:
+        type: string
+      password:
+        type: string
+      uid:
+        type: string
+      username:
+        type: string
+    required:
+    - email
+    - mobile
+    - password
+    - username
+    type: object
+  my_modules.ResponseFormat:
+    properties:
+      data: {}
+      msg:
+        type: string
+      status:
+        type: string
+    required:
+    - data
+    - msg
+    - status
+    type: object
+  user_views.SocialAuth:
+    properties:
+      idToken:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+    required:
+    - idToken
+    type: object
+  user_views.UserCredential:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  user_views.UserMobileCredential:
+    properties:
+      mobile:
+        type: string
+      password:
+        type: string
+    required:
+    - mobile
+    - password
+    type: object
+info:
+  contact: {}
+paths:
+  /admin/upload_streaming_video/:
+    post:
+      consumes:
+      - multipart/form-data
+      description: allow people to update their user profile data
+      parameters:
+      - description: File
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: video upload
+      tags:
+      - Video upload
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: allow people to login into their account
+      parameters:
+      - description: Add user
+        in: body
+        name: existing_user
+        required: true
+        schema:
+          $ref: '#/definitions/user_views.UserCredential'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: url to login
+      tags:
+      - Login
+  /login_mobile:
+    post:
+      consumes:
+      - application/json
+      description: allow people to login into their account
+      parameters:
+      - description: Add user
+        in: body
+        name: existing_user
+        required: true
+        schema:
+          $ref: '#/definitions/user_views.UserMobileCredential'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: url to login with mobile number
+      tags:
+      - Mobile Login
+  /login_status:
+    post:
+      consumes:
+      - application/json
+      description: api used to validate user login session
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      tags:
+      - Login status
+  /sign_up:
+    post:
+      consumes:
+      - application/json
+      description: allow people to create new to user account
+      parameters:
+      - description: Add user
+        in: body
+        name: new_user
+        required: true
+        schema:
+          $ref: '#/definitions/database.UsersModel'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: url to signup
+      tags:
+      - SignUp
+  /user/:
+    delete:
+      consumes:
+      - application/json
+      description: allow people to delete their account
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: url to delete user account
+      tags:
+      - Delete user account
+    get:
+      consumes:
+      - application/json
+      description: allow people to view their user profile data
+      parameters:
+      - description: page
+        in: query
+        name: page
+        type: string
+      - description: limit
+        in: query
+        name: limit
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: url to view user data
+      tags:
+      - View user data
+    put:
+      consumes:
+      - application/json
+      description: allow people to update their user profile data
+      parameters:
+      - description: Add user
+        in: body
+        name: new_user
+        required: true
+        schema:
+          $ref: '#/definitions/database.UsersModel'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: url to update user data
+      tags:
+      - Update user data
+  /user/active_sessions/:
+    get:
+      consumes:
+      - application/json
+      description: return the active user session/token across all browser
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: get active user login session
+      tags:
+      - Get Active sessions
+  /user/block_token/:
+    post:
+      consumes:
+      - application/json
+      description: Adds the token of user to block list based on provided token id
+      parameters:
+      - description: block token
+        in: body
+        name: block_active_session
+        required: true
+        schema:
+          $ref: '#/definitions/database.ActiveSessionsModel'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: block specified session
+      tags:
+      - Block sessions
+  /user/logout/:
+    get:
+      consumes:
+      - application/json
+      description: API allow user to logout, which delete the cookie which stores
+        token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: allow user to logout
+      tags:
+      - Logout
+  /verify_social_auth:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Add user
+        in: body
+        name: new_or_existing_user
+        required: true
+        schema:
+          $ref: '#/definitions/user_views.SocialAuth'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: url to signup/login with social authentication
+      tags:
+      - VerifySocialAuth
+swagger: "2.0"

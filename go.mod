@@ -1,4 +1,4 @@
-module travel_planner
+module cca
 
 go 1.18
 

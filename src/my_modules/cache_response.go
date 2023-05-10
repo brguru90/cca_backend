@@ -2,13 +2,13 @@ package my_modules
 
 import (
 	"bytes"
+	"cca/src/configs"
+	"cca/src/database"
 	"crypto/sha1"
 	"fmt"
 	"math"
 	"strings"
 	"time"
-	"travel_planner/src/configs"
-	"travel_planner/src/database"
 
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"

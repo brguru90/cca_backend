@@ -1,7 +1,7 @@
 package my_modules
 
 import (
-	"travel_planner/src/configs"
+	"cca/src/configs"
 
 	log "github.com/sirupsen/logrus"
 )

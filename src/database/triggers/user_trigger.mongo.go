@@ -1,8 +1,8 @@
 package triggers
 
 import (
+	"cca/src/database"
 	"context"
-	"travel_planner/src/database"
 
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"

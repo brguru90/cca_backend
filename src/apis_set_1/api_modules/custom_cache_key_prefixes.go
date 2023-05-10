@@ -1,8 +1,8 @@
 package api_modules
 
 import (
+	"cca/src/my_modules"
 	"time"
-	"travel_planner/src/my_modules"
 
 	"github.com/gin-gonic/gin"
 )

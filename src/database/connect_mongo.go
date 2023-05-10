@@ -1,11 +1,11 @@
 package database
 
 import (
+	"cca/src/configs"
 	"context"
 	"fmt"
 	"strings"
 	"time"
-	"travel_planner/src/configs"
 
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"

@@ -1,8 +1,8 @@
 package middlewares
 
 import (
-	"travel_planner/src/configs"
-	"travel_planner/src/my_modules"
+	"cca/src/configs"
+	"cca/src/my_modules"
 
 	"github.com/gin-gonic/gin"
 	// log "github.com/sirupsen/logrus"

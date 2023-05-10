@@ -1,13 +1,13 @@
 package apis_set_1
 
 import (
+	"cca/src/apis_set_1/api_modules"
+	"cca/src/apis_set_1/views/admin_views"
+	"cca/src/apis_set_1/views/user_views"
+	"cca/src/configs"
+	"cca/src/middlewares"
+	"cca/src/my_modules"
 	"time"
-	"travel_planner/src/apis_set_1/api_modules"
-	"travel_planner/src/apis_set_1/views/admin_views"
-	"travel_planner/src/apis_set_1/views/user_views"
-	"travel_planner/src/configs"
-	"travel_planner/src/middlewares"
-	"travel_planner/src/my_modules"
 
 	"github.com/gin-gonic/gin"
 )

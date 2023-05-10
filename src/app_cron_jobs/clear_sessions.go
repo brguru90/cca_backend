@@ -1,9 +1,9 @@
 package app_cron_jobs
 
 import (
+	"cca/src/database"
 	"context"
 	"time"
-	"travel_planner/src/database"
 
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"

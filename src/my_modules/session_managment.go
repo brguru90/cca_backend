@@ -1,8 +1,8 @@
 package my_modules
 
 import (
+	"cca/src/database"
 	"time"
-	"travel_planner/src/database"
 )
 
 // Usage:

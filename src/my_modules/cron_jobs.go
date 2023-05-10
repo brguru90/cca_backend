@@ -1,7 +1,7 @@
 package my_modules
 
 import (
-	"travel_planner/src/app_cron_jobs"
+	"cca/src/app_cron_jobs"
 
 	"github.com/robfig/cron/v3"
 )

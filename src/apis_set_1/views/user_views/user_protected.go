@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"time"
 
-	"travel_planner/src/database"
-	"travel_planner/src/my_modules"
+	"cca/src/database"
+	"cca/src/my_modules"
 
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"

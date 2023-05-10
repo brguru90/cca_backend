@@ -1,12 +1,12 @@
 package user_views
 
 import (
+	"cca/src/database"
+	"cca/src/my_modules"
 	"context"
 	"net/http"
 	"strings"
 	"time"
-	"travel_planner/src/database"
-	"travel_planner/src/my_modules"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"

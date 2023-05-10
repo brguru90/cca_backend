@@ -1,6 +1,8 @@
 package my_modules
 
 import (
+	"cca/src/configs"
+	"cca/src/database"
 	"context"
 	"crypto/aes"
 	"crypto/cipher"
@@ -11,8 +13,6 @@ import (
 	"net/url"
 	"strconv"
 	"time"
-	"travel_planner/src/configs"
-	"travel_planner/src/database"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"

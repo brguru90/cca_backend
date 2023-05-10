@@ -1,5 +1,5 @@
 {
-  "name": "travel_planner",
+  "name": "cca",
   "version": "1.0.0",
   "main": "index.js",
   "author": "Guruprasad BR",
@@ -13,7 +13,7 @@
   },
   "scripts": {
     "clean": "rm go.mod go.sum",
-    "go_init": "go mod init travel_planner",
+    "go_init": "go mod init cca",
     "resolve_dependencies": "go mod tidy",
     "resolve_dependencies_116": " go mod tidy -e -go=1.16",
     "resolve_dependencies_117": " go mod tidy -e -go=1.17",

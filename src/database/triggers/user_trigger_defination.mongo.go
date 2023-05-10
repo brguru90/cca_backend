@@ -1,10 +1,10 @@
 package triggers
 
 import (
+	"cca/src/database"
+	"cca/src/my_modules"
 	"context"
 	"time"
-	"travel_planner/src/database"
-	"travel_planner/src/my_modules"
 
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"

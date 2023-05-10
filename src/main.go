@@ -1,19 +1,19 @@
 package main
 
 import (
+	"cca/src/apis_set_1"
+	"cca/src/configs"
+	"cca/src/database"
+	"cca/src/database/triggers"
+	"cca/src/middlewares"
+	"cca/src/my_modules"
 	"fmt"
 	"net/http"
 	"time"
-	"travel_planner/src/apis_set_1"
-	"travel_planner/src/configs"
-	"travel_planner/src/database"
-	"travel_planner/src/database/triggers"
-	"travel_planner/src/middlewares"
-	"travel_planner/src/my_modules"
 
 	log "github.com/sirupsen/logrus"
 
-	docs "travel_planner/docs"
+	docs "cca/docs"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/static"

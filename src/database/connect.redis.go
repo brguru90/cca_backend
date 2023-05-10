@@ -1,11 +1,11 @@
 package database
 
 import (
+	"cca/src/configs"
 	"context"
 	"encoding/json"
 	"fmt"
 	"time"
-	"travel_planner/src/configs"
 
 	"github.com/go-redis/redis/v8"
 	redispool "github.com/gomodule/redigo/redis"

@@ -1,13 +1,13 @@
 package admin_views
 
 import (
+	"cca/src/my_modules"
 	"fmt"
 	"mime/multipart"
 	"net/http"
 	"os"
 	"strings"
 	"time"
-	"travel_planner/src/my_modules"
 
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
