@@ -1,0 +1,10 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "gennerate_swagger_doc",
+            "type": "shell",
+            "command": "~/go/bin/swag init --dir src"
+        },
+    ]
+}

@@ -1,0 +1,76 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "compounds": [
+    {
+      "name": "debug",
+      // "configurations": ["debug-go","swag"],
+      "configurations": ["debug-go"],
+      "presentation": {
+        "hidden": false,
+        "group": "",
+        "order": 1,
+      },
+      "stopAll": true,
+      "preLaunchTask": "gennerate_swagger_doc", // need to stop & restart
+    }
+  ],
+  "configurations": [
+    {
+      "name": "development",
+      "request": "launch",
+      "type": "node-terminal",
+      "command": "yarn start"
+    },
+    {
+      "name": "production",
+      "request": "launch",
+      "type": "node-terminal",
+      "command": "yarn build_and_start_prod"
+    },
+    {
+      "name": "production_as_development",
+      "request": "launch",
+      "type": "node-terminal",
+      "command": "yarn start_prod_as_dev"
+    },
+    {
+      "name": "debug-go",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "src/main.go",
+      "cwd": "${workspaceFolder}/",
+      // "preLaunchTask": "gennerate_swagger_doc",
+      "env": {
+        "SERVER_PORT": "8000",
+        "MONGO_DB_USER": "root",
+        "MONGO_DB_PASSWORD": "root",
+        "MONGO_DB_HOST": "localhost",
+        "MONGO_DATABASE": "cca",
+        "MONGO_DB_PORT": "27017",
+        "REDIS_ADDR":"localhost:6379",
+        "JWT_SECRET_KEY": "default_dev_jwt_key_1234",
+        "JWT_TOKEN_EXPIRE_IN_MINS": "60",
+        "ENABLE_REDIS_CACHE": "true",
+        "RESPONSE_CACHE_TTL_IN_SECS": "300",
+        "APP_ENV": "development",
+        "NODE_ENV": "development",
+        "GIN_MODE": "debug",
+        "DISABLE_COLOR": "false",
+        "FIREBASE_PUBLIC_API_KEY":"AIzaSyAJwqFWjDt45O1kJVqRNt2SYt7aZZZsTFI",
+        "FIREBASE_AUTH_DOMAIN":"crud-eb4cc.firebaseapp.com",
+        "FIREBASE_PROJECT_ID":"crud-eb4cc"
+      }
+    },
+    {
+      "name": "swag",
+      "request": "launch",
+      "type": "node-terminal",
+      "cwd": "${workspaceFolder}/",
+      "command": "~/go/bin/swag init --dir src"
+    },
+  ]
+}

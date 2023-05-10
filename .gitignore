@@ -1,0 +1,11 @@
+go.sum
+go_server
+myenv
+
+node_modules
+node_modules
+yarn.lock
+package-lock.json
+src/__debug_bin
+.vercel
+uploads
