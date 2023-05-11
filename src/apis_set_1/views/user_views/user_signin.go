@@ -4,6 +4,8 @@ import (
 	"cca/src/database"
 	"cca/src/my_modules"
 	"context"
+	"crypto/sha1"
+	"encoding/hex"
 	"net/http"
 	"strings"
 	"time"
@@ -20,6 +22,12 @@ type CredentialErrorPayload struct {
 	Errors_data map[string]interface{} `json:"errors,omitempty"`
 }
 
+type UserCredential struct {
+	Email    string `json:"email" binding:"required"`
+	Password string `json:"password" binding:"required"`
+	Username string `json:"username"`
+}
+
 // @BasePath /api
 // @Summary url to signup
 // @Schemes
@@ -27,7 +35,7 @@ type CredentialErrorPayload struct {
 // @Tags SignUp
 // @Accept json
 // @Produce json
-// @Param new_user body database.UsersModel true "Add user"
+// @Param new_user body UserCredential true "Add user"
 // @Success 200 {object} my_modules.ResponseFormat
 // @Failure 400 {object} my_modules.ResponseFormat
 // @Failure 500 {object} my_modules.ResponseFormat
@@ -35,7 +43,7 @@ type CredentialErrorPayload struct {
 // @Router /sign_up [post]
 func SignUp(c *gin.Context) {
 	ctx := context.Background()
-	var newUserRow database.UsersModel
+	var newUserRow UserCredential
 	// ShouldBindJSON will validate json body & convert it to structure object
 	if err := c.ShouldBindJSON(&newUserRow); err != nil {
 		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "Invalid input data format", nil)
@@ -45,10 +53,12 @@ func SignUp(c *gin.Context) {
 	var newUserData database.UsersModel
 	{
 		_time := time.Now()
+		ph := sha1.Sum([]byte(newUserRow.Password))
 		newUserData = database.UsersModel{
+			// Uid:          uuid.New().String(),
 			Email:        newUserRow.Email,
 			Username:     newUserRow.Username,
-			Password:     newUserRow.Password,
+			Password:     hex.EncodeToString(ph[:]),
 			AuthProvider: "email",
 			CreatedAt:    _time,
 			UpdatedAt:    _time,
@@ -101,11 +111,6 @@ func SignUp(c *gin.Context) {
 	my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "Registered successfully", newUserData)
 }
 
-type UserCredential struct {
-	Email    string `json:"email" binding:"required"`
-	Password string `json:"password" binding:"required"`
-}
-
 // @BasePath /api
 // @Summary url to login
 // @Schemes
@@ -149,7 +154,9 @@ func Login(c *gin.Context) {
 			my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "Error in finding user", CredentialErrorPayload{Errors_data: _errors})
 			return
 		}
-		if userData.Password != userCredential.Password {
+
+		ph := sha1.Sum([]byte(userCredential.Password))
+		if userData.Password != hex.EncodeToString(ph[:]) {
 			_errors["password"] = "Wrong password"
 			my_modules.CreateAndSendResponse(c, http.StatusForbidden, "error", "Invalid credential", CredentialErrorPayload{Errors_data: _errors})
 			return
@@ -229,7 +236,9 @@ func LoginWithMobile(c *gin.Context) {
 			my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "Error in finding user", CredentialErrorPayload{Errors_data: _errors})
 			return
 		}
-		if userData.Password != userCredential.Password {
+		ph := sha1.Sum([]byte(userCredential.Password))
+		phs := hex.EncodeToString(ph[:])
+		if userData.Password != phs {
 			_errors["password"] = "Wrong password"
 			my_modules.CreateAndSendResponse(c, http.StatusForbidden, "error", "Invalid credential", CredentialErrorPayload{Errors_data: _errors})
 			return
@@ -326,9 +335,10 @@ func VerifySocialAuth(c *gin.Context) {
 			UpdatedAt:    _time,
 		}
 		if token.Firebase.SignInProvider == "phone" {
+			ph := sha1.Sum([]byte(socialAuth.Password))
 			newUserData.Mobile = token.Claims["phone_number"].(string)
 			newUserData.Username = socialAuth.Name
-			newUserData.Password = socialAuth.Password
+			newUserData.Password = hex.EncodeToString(ph[:])
 		} else {
 			newUserData.Username = token.Claims["name"].(string)
 		}
@@ -374,9 +384,10 @@ func VerifySocialAuth(c *gin.Context) {
 		}
 
 		if token.Firebase.SignInProvider == "phone" {
+			ph := sha1.Sum([]byte(socialAuth.Password))
 			updateUserData := newUserData
 			updateUserData.Username = socialAuth.Name
-			updateUserData.Password = socialAuth.Password
+			updateUserData.Password = hex.EncodeToString(ph[:])
 			if updateWith, bsonParseErr := my_modules.StructToBsonD(updateUserData); bsonParseErr == nil {
 				updateRes, update_err := database.MONGO_COLLECTIONS.Users.UpdateOne(ctx,
 					filter,

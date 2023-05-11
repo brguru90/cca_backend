@@ -218,7 +218,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/database.UsersModel"
+                            "$ref": "#/definitions/user_views.UserCredential"
                         }
                     }
                 ],
@@ -681,6 +681,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "password": {
+                    "type": "string"
+                },
+                "username": {
                     "type": "string"
                 }
             }

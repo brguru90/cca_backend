@@ -30,6 +30,7 @@ func InitUserCollection() {
 			Keys: bson.M{
 				"email": 1,
 			},
+			// Options: options.Index().SetUnique(true),
 		},
 		{
 			// index
@@ -52,16 +53,6 @@ func InitUserCollection() {
 				},
 				{
 					Key:   "email",
-					Value: 1,
-				},
-			},
-			Options: options.Index().SetUnique(true),
-		},
-		{
-			// composite key
-			Keys: bson.D{
-				{
-					Key:   "uid",
 					Value: 1,
 				},
 				{

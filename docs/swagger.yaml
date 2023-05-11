@@ -69,6 +69,8 @@ definitions:
         type: string
       password:
         type: string
+      username:
+        type: string
     required:
     - email
     - password
@@ -216,7 +218,7 @@ paths:
         name: new_user
         required: true
         schema:
-          $ref: '#/definitions/database.UsersModel'
+          $ref: '#/definitions/user_views.UserCredential'
       produces:
       - application/json
       responses:
