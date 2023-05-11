@@ -20,7 +20,7 @@ type VideoUploadStruct struct {
 // @BasePath /api/
 // @Summary video upload
 // @Schemes
-// @Description allow people to update their user profile data
+// @Description api to upload video content for multiple adaptive bit rate streaming
 // @Tags Video upload
 // @Accept mpfd
 // @Produce json
@@ -33,8 +33,10 @@ type VideoUploadStruct struct {
 func UploadVideo(c *gin.Context) {
 	var form VideoUploadStruct
 	video_title := "tutorial_name.mp4"
-	base_path := "uploads/public/video"
-	upload_path := fmt.Sprintf("%s/original_video", base_path)
+	base_path := "uploads"
+	protected_video := fmt.Sprintf("%s/private/video", base_path)
+	unprotected_video := fmt.Sprintf("%s/public/video", base_path)
+	upload_path := fmt.Sprintf("%s/original_video", protected_video)
 	if err := os.MkdirAll(upload_path, 0755); err != nil {
 		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "Error creating directory", nil)
 		return
@@ -58,7 +60,7 @@ func UploadVideo(c *gin.Context) {
 		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "Failed to upload file", nil)
 		return
 	}
-	if err := my_modules.UploadVideoForStream(c, base_path, file_name, dst_file_path); err != nil {
+	if err := my_modules.UploadVideoForStream(c, unprotected_video, file_name, dst_file_path); err != nil {
 		log.Errorln(err)
 		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "Failed to create  multi bit rate file chunks", nil)
 		return

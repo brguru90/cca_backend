@@ -54,9 +54,8 @@ func main() {
 	// https://github.com/gin-gonic/gin
 
 	// all_router = gin.New()
-	// all_router.Use(static.Serve("/", static.LocalFile("./src/static", true)))
 	all_router.Use(static.Serve("/", static.LocalFile("../frontend/build", true)))
-	all_router.Use(static.Serve("/cdn", static.LocalFile("./uploads/public/video/multi_bitrate/", true)))
+	all_router.StaticFS("/cdn", http.Dir("./uploads/public/"))
 	if configs.EnvConfigs.GIN_MODE != "release" {
 		all_router.Use(cors.Default())
 	}

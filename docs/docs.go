@@ -18,7 +18,7 @@ const docTemplate = `{
     "paths": {
         "/admin/upload_streaming_video/": {
             "post": {
-                "description": "allow people to update their user profile data",
+                "description": "api to upload video content for multiple adaptive bit rate streaming",
                 "consumes": [
                     "multipart/form-data"
                 ],
