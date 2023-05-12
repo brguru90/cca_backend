@@ -22,6 +22,8 @@ definitions:
     type: object
   database.UsersModel:
     properties:
+      access_level:
+        type: integer
       auth_provider:
         type: string
       email:
@@ -35,6 +37,7 @@ definitions:
       username:
         type: string
     required:
+    - access_level
     - email
     - mobile
     - password

@@ -62,6 +62,7 @@ func SignUp(c *gin.Context) {
 			AuthProvider: "email",
 			CreatedAt:    _time,
 			UpdatedAt:    _time,
+			AccessLevel:  string(my_modules.AccessLevel.CUSTOMER),
 		}
 		ins_res, ins_err := database.MONGO_COLLECTIONS.Users.InsertOne(ctx, newUserData)
 		if ins_err != nil {
@@ -87,7 +88,7 @@ func SignUp(c *gin.Context) {
 		}
 	}
 	newUserData.Password = ""
-	access_token_payload := my_modules.Authenticate(c, newUserData)
+	access_token_payload := my_modules.Authenticate(c, newUserData, "some safe data", false)
 	{
 		_time := time.Now()
 		_, ins_err := database.MONGO_COLLECTIONS.ActiveSessions.InsertOne(ctx, database.ActiveSessionsModel{
@@ -164,7 +165,7 @@ func Login(c *gin.Context) {
 	}
 	userData.Password = ""
 	userData.AuthProvider = "email"
-	access_token_payload := my_modules.Authenticate(c, userData)
+	access_token_payload := my_modules.Authenticate(c, userData, "some safe data", false)
 	{
 		_time := time.Now()
 		_, ins_err := database.MONGO_COLLECTIONS.ActiveSessions.InsertOne(ctx, database.ActiveSessionsModel{
@@ -246,7 +247,7 @@ func LoginWithMobile(c *gin.Context) {
 	}
 	userData.Password = ""
 	userData.AuthProvider = "phone"
-	access_token_payload := my_modules.Authenticate(c, userData)
+	access_token_payload := my_modules.Authenticate(c, userData, "some safe data", false)
 	{
 		_time := time.Now()
 		_, ins_err := database.MONGO_COLLECTIONS.ActiveSessions.InsertOne(ctx, database.ActiveSessionsModel{
@@ -331,6 +332,7 @@ func VerifySocialAuth(c *gin.Context) {
 		newUserData = database.UsersModel{
 			Uid:          token.UID,
 			AuthProvider: token.Firebase.SignInProvider,
+			AccessLevel:  string(my_modules.AccessLevel.CUSTOMER),
 			CreatedAt:    _time,
 			UpdatedAt:    _time,
 		}
@@ -385,7 +387,11 @@ func VerifySocialAuth(c *gin.Context) {
 
 		if token.Firebase.SignInProvider == "phone" {
 			ph := sha1.Sum([]byte(socialAuth.Password))
-			updateUserData := newUserData
+			var updateUserData database.UsersModel
+			// updateUserData := newUserData
+			updateUserData.Uid = newUserData.Uid
+			updateUserData.AuthProvider = newUserData.AuthProvider
+			updateUserData.Mobile = newUserData.Mobile
 			updateUserData.Username = socialAuth.Name
 			updateUserData.Password = hex.EncodeToString(ph[:])
 			if updateWith, bsonParseErr := my_modules.StructToBsonD(updateUserData); bsonParseErr == nil {
@@ -430,7 +436,7 @@ func VerifySocialAuth(c *gin.Context) {
 	// 	"UsersModel": loginData.UsersModel,
 	// }).Infoln()
 
-	access_token_payload := my_modules.Authenticate(c, loginData.UsersModel)
+	access_token_payload := my_modules.Authenticate(c, loginData.UsersModel, "some safe data", false)
 	{
 		_time := time.Now()
 		_, ins_err := database.MONGO_COLLECTIONS.ActiveSessions.InsertOne(ctx, database.ActiveSessionsModel{

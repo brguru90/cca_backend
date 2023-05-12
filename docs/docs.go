@@ -610,12 +610,16 @@ const docTemplate = `{
         "database.UsersModel": {
             "type": "object",
             "required": [
+                "access_level",
                 "email",
                 "mobile",
                 "password",
                 "username"
             ],
             "properties": {
+                "access_level": {
+                    "type": "integer"
+                },
                 "auth_provider": {
                     "type": "string"
                 },

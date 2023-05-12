@@ -4,8 +4,6 @@ import (
 	"cca/src/configs"
 	"cca/src/database"
 	"context"
-	"crypto/aes"
-	"crypto/cipher"
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
@@ -13,6 +11,9 @@ import (
 	"net/url"
 	"strconv"
 	"time"
+
+	"crypto/aes"
+	"crypto/cipher"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
@@ -29,6 +30,7 @@ type TokenPayload struct {
 	ID           string `json:"_id" binding:"required"`
 	UID          string `json:"uid"`
 	Username     string `json:"username"`
+	AccessLevel  string `json:"access_level"`
 	AuthProvider string `json:"auth_provider" binding:"required"`
 }
 type AccessToken struct {
@@ -97,7 +99,7 @@ func DecryptAES(key string, text string) string {
 	return string(plainText)
 }
 
-func GenerateAccessToken(uname string, csrf_token string, data TokenPayload) (string, AccessTokenClaims) {
+func GenerateAccessToken(uname string, csrf_token string, data TokenPayload, encrypted_data string) (string, AccessTokenClaims) {
 	time_now := time.Now().UnixMilli()
 	token_id := ""
 
@@ -105,14 +107,12 @@ func GenerateAccessToken(uname string, csrf_token string, data TokenPayload) (st
 		token_id = data.ID + "_" + base64.StdEncoding.EncodeToString(_rand) + "_" + strconv.FormatInt(int64(time_now), 10)
 	}
 
-	data_to_encrypt := "some data"
-
 	var accessTokenPayload AccessTokenClaims = AccessTokenClaims{
 		AccessToken: AccessToken{
 			Uname:         uname,
 			Token_id:      token_id,
 			Data:          data,
-			EncryptedData: EncryptAES(EncryptionKey, data_to_encrypt),
+			EncryptedData: encrypted_data,
 			IssuedAtTime:  time_now,
 			Exp:           time_now + configs.EnvConfigs.JWT_TOKEN_EXPIRE_IN_MINS*60*1000,
 			Csrf_token:    EncryptAES(EncryptionKey, csrf_token),
@@ -178,20 +178,33 @@ func EnsureCsrfToken(c *gin.Context) string {
 	return csrf_token
 }
 
-func Authenticate(c *gin.Context, newUserRow database.UsersModel) AccessToken {
+func Authenticate(c *gin.Context, newUserRow database.UsersModel, data_to_encrypt string, already_encrypted bool) AccessToken {
 	token_payload := TokenPayload{
 		Email:        newUserRow.Email,
 		Mobile:       newUserRow.Mobile,
 		ID:           newUserRow.ID.Hex(),
 		UID:          newUserRow.Uid,
 		Username:     newUserRow.Username,
+		AccessLevel:  newUserRow.AccessLevel,
 		AuthProvider: newUserRow.AuthProvider,
 	}
-	access_token, access_token_payload := GenerateAccessToken(
-		newUserRow.Username,
-		EnsureCsrfToken(c),
-		token_payload,
-	)
+	var access_token string
+	var access_token_payload AccessTokenClaims
+	if already_encrypted {
+		access_token, access_token_payload = GenerateAccessToken(
+			newUserRow.Email,
+			EnsureCsrfToken(c),
+			token_payload,
+			data_to_encrypt,
+		)
+	} else {
+		access_token, access_token_payload = GenerateAccessToken(
+			newUserRow.Email,
+			EnsureCsrfToken(c),
+			token_payload,
+			EncryptAES(EncryptionKey, data_to_encrypt),
+		)
+	}
 	newUserRow_json, _ := json.Marshal(newUserRow)
 	SetCookie(c, "access_token", access_token, access_token_payload.Exp, true)
 	SetCookie(c, "user_data", string(newUserRow_json), access_token_payload.Exp, false)
@@ -207,7 +220,8 @@ func RenewAuthentication(c *gin.Context, token_payload AccessToken) AccessToken 
 		Uid:          token_payload.Data.UID,
 		Username:     token_payload.Uname,
 		AuthProvider: token_payload.Data.AuthProvider,
-	})
+		AccessLevel:  token_payload.Data.AccessLevel,
+	}, token_payload.EncryptedData, true)
 }
 
 func LoginStatus(c *gin.Context, enforce_csrf_check bool) (AccessToken, string, int, bool) {
@@ -232,7 +246,7 @@ func LoginStatus(c *gin.Context, enforce_csrf_check bool) (AccessToken, string, 
 	if err != nil {
 		e, ok := err.(*jwt.ValidationError)
 		if err == jwt.ErrSignatureInvalid {
-			return AccessToken{}, "Invalid token signature", http.StatusUnauthorized, false
+			return AccessToken{}, "Invalid token signature", http.StatusForbidden, false
 		}
 		log.WithFields(log.Fields{
 			"Error":        err,
@@ -244,16 +258,16 @@ func LoginStatus(c *gin.Context, enforce_csrf_check bool) (AccessToken, string, 
 		return AccessToken{}, "Unknown error in Decrypting token", http.StatusInternalServerError, false
 	}
 	if !token.Valid {
-		return AccessToken{}, "unAuthorized", http.StatusUnauthorized, false
+		return AccessToken{}, "unAuthorized", http.StatusForbidden, false
 	}
 
 	if time.Now().UnixMilli() > token_claims.AccessToken.Exp {
-		return AccessToken{}, "tokenExpired", http.StatusUnauthorized, false
+		return AccessToken{}, "tokenExpired", http.StatusForbidden, false
 	}
 
 	_, r_err := database.REDIS_DB_CONNECTION.Get(context.Background(), token_claims.AccessToken.Token_id).Result()
 	if r_err == nil {
-		return token_claims.AccessToken, "Session blocked", http.StatusUnauthorized, false
+		return token_claims.AccessToken, "Session blocked", http.StatusForbidden, false
 	}
 
 	csrf_token := c.Request.Header.Get("csrf_token")
@@ -266,9 +280,10 @@ func LoginStatus(c *gin.Context, enforce_csrf_check bool) (AccessToken, string, 
 			Uid:          token_claims.AccessToken.Data.UID,
 			Username:     token_claims.Uname,
 			AuthProvider: token_claims.Data.AuthProvider,
-		})
+			AccessLevel:  token_claims.Data.AccessLevel,
+		}, token_claims.AccessToken.EncryptedData, true)
 		if enforce_csrf_check {
-			return AccessToken{}, "missing csrf token", http.StatusBadRequest, false
+			return AccessToken{}, "missing csrf token", http.StatusForbidden, false
 		}
 	} else {
 		if DecryptAES(EncryptionKey, token_claims.AccessToken.Csrf_token) != csrf_token {
@@ -280,13 +295,15 @@ func LoginStatus(c *gin.Context, enforce_csrf_check bool) (AccessToken, string, 
 				Uid:          token_claims.AccessToken.Data.UID,
 				Username:     token_claims.Uname,
 				AuthProvider: token_claims.Data.AuthProvider,
-			})
+				AccessLevel:  token_claims.Data.AccessLevel,
+			}, token_claims.AccessToken.EncryptedData, true)
 			if enforce_csrf_check {
-				return AccessToken{}, "invalid csrf token", http.StatusUnauthorized, false
+				return AccessToken{}, "invalid csrf token", http.StatusForbidden, false
 			}
 		}
 	}
 	token_claims.AccessToken.EncryptedData = DecryptAES(EncryptionKey, token_claims.AccessToken.EncryptedData)
+
 	return token_claims.AccessToken, "", http.StatusOK, true
 }
 

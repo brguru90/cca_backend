@@ -19,6 +19,7 @@ type UsersModel struct {
 	Mobile       string             `json:"mobile,omitempty" binding:"required" bson:"mobile,omitempty"`
 	Password     string             `json:"password,omitempty" binding:"required" bson:"password,omitempty"`
 	Username     string             `json:"username,omitempty" binding:"required" bson:"username,omitempty"`
+	AccessLevel  string             `json:"access_level,omitempty" binding:"required" bson:"access_level,omitempty"`
 	CreatedAt    time.Time          `json:"createdAt,omitempty" swaggerignore:"true"`
 	UpdatedAt    time.Time          `json:"updatedAt,omitempty" swaggerignore:"true"`
 }
