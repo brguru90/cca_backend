@@ -2,15 +2,14 @@
 
 
 ** playlist **
-ID | Title | Description | Price | isLive
+ID | Title | Description | Price | isLive | [VideosIds]
 
 
 
 
 ** Video Content **
-ID | PlayListID | Title | Description | Duration | CreatedByUser | UploadedByUser | isLive | linkToriginalVideo | linkToVideoStream | VideoDecryptionKey | LinkToVideoPreviewImage
+ID | Title | Description | Duration | CreatedByUser | UploadedByUser | isLive | linkToriginalVideo | linkToVideoStream | VideoDecryptionKey | LinkToVideoPreviewImage
 
-* PlayListID -> can be empty & could be be set later
 * linkToriginalVideo & LinkToVideoPreviewImage -> video will be uploaded instantly & path updated to column
 * linkToVideoStream -> /cdn/video/multi_bitrate/video_id/playlist.m3u8
 * linkToVideoStream & VideoDecryptionKey -> will be updated in cron job
@@ -32,5 +31,5 @@ ID | PlayListID | Title | Description | Duration | CreatedByUser | UploadedByUse
 ** Subscription **
 ID | UserID | PlayListID | IntialSubscriptionDate | ExpireOn | enabled | [subscribedOn] | [amountPaid]
 
-* subscribedOn & amountPaid --> is the array of subsequent renew of course
+* subscribedOn & amountPaid --> is the array of subsequent renew of subscription
 * if ExpireOn==nil, means life time subscription

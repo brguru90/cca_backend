@@ -13,7 +13,6 @@ import (
 
 type VideoUploadModal struct {
 	ID                      primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty" swaggerignore:"true"`
-	PlayListID              primitive.ObjectID `json:"playlist_id,omitempty" bson:"playlist_id,omitempty"`
 	Title                   string             `json:"title"  binding:"required" bson:"title"`
 	Description             string             `json:"description,omitempty" bson:"description,omitempty"`
 	Duration                int64              `json:"duration,omitempty"  binding:"required" bson:"duration,omitempty"`

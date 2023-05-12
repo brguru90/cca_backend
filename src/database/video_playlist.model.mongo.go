@@ -12,11 +12,12 @@ import (
 )
 
 type VideoPlayListModal struct {
-	ID          primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty" swaggerignore:"true"`
-	Title       string             `json:"title"  binding:"required" bson:"title"`
-	Description string             `json:"description,omitempty" bson:"description,omitempty"`
-	Price       int64              `json:"price,omitempty"  binding:"required" bson:"price,omitempty"`
-	IsLive      bool               `json:"is_live,omitempty" binding:"required" bson:"is_live"`
+	ID          primitive.ObjectID   `json:"_id,omitempty" bson:"_id,omitempty" swaggerignore:"true"`
+	Title       string               `json:"title"  binding:"required" bson:"title"`
+	Description string               `json:"description,omitempty" bson:"description,omitempty"`
+	Price       int64                `json:"price,omitempty"  binding:"required" bson:"price,omitempty"`
+	IsLive      bool                 `json:"is_live,omitempty" binding:"required" bson:"is_live"`
+	VideosIDs   []primitive.ObjectID `json:"playlist_id,omitempty" binding:"required"  bson:"playlist_id,omitempty"`
 }
 
 func InitVideoPlayListCollection() {
