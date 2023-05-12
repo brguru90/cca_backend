@@ -1,0 +1,36 @@
+    *** tables ***
+
+
+** playlist **
+ID | Title | Description | Price | isLive
+
+
+
+
+** Video Content **
+ID | PlayListID | Title | Description | Duration | CreatedByUser | UploadedByUser | isLive | linkToriginalVideo | linkToVideoStream | VideoDecryptionKey | LinkToVideoPreviewImage
+
+* PlayListID -> can be empty & could be be set later
+* linkToriginalVideo & LinkToVideoPreviewImage -> video will be uploaded instantly & path updated to column
+* linkToVideoStream -> /cdn/video/multi_bitrate/video_id/playlist.m3u8
+* linkToVideoStream & VideoDecryptionKey -> will be updated in cron job
+* original video will be in protected directory
+* VideoDecryptionKey can only be accessed if its permitted,
+* the hls format of video stored in public CDN location
+    hls key_information file contains,
+    -- sameDir/keyInfo.txt --
+    """
+        http://host/api/get_video_key?video_id=10         // responds with binary file(protected API)
+        cur_dir/temp_file.key                       // temporary local path to key, on successfull  video processing key content will be uploaded to DB & file on local will be deleted
+
+    """
+
+
+
+
+
+** Subscription **
+ID | UserID | PlayListID | IntialSubscriptionDate | ExpireOn | enabled | [subscribedOn] | [amountPaid]
+
+* subscribedOn & amountPaid --> is the array of subsequent renew of course
+* if ExpireOn==nil, means life time subscription

@@ -19,6 +19,7 @@ var MONGO_DATABASE *mongo.Database
 type MongoCollections struct {
 	Users          *mongo.Collection
 	ActiveSessions *mongo.Collection
+	VideoPlayList  *mongo.Collection
 }
 
 var MONGO_COLLECTIONS MongoCollections
@@ -55,6 +56,7 @@ func InitMongoDB() {
 	MONGO_DATABASE = MONGO_DB_CONNECTION.Database(DATABASE)
 	MONGO_COLLECTIONS.Users = MONGO_DATABASE.Collection("users")
 	MONGO_COLLECTIONS.ActiveSessions = MONGO_DATABASE.Collection("active_sessions")
+	MONGO_COLLECTIONS.VideoPlayList = MONGO_DATABASE.Collection("video_playlist")
 
 	InitUserCollection()
 	InitActiveSessionCollection()

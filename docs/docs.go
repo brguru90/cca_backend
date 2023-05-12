@@ -618,7 +618,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "access_level": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "auth_provider": {
                     "type": "string"
