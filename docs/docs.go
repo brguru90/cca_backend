@@ -159,7 +159,7 @@ const docTemplate = `{
             }
         },
         "/login_status": {
-            "post": {
+            "get": {
                 "description": "api used to validate user login session",
                 "consumes": [
                     "application/json"

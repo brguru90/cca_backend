@@ -477,7 +477,7 @@ type LoginStatusPayload struct {
 // @Failure 400 {object} my_modules.ResponseFormat
 // @Failure 403 {object} my_modules.ResponseFormat
 // @Failure 500 {object} my_modules.ResponseFormat
-// @Router /login_status [post]
+// @Router /login_status [get]
 func LoginStatus(c *gin.Context) {
 	var loginStatusPayload LoginStatusPayload
 

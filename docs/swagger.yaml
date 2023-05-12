@@ -185,7 +185,7 @@ paths:
       tags:
       - Mobile Login
   /login_status:
-    post:
+    get:
       consumes:
       - application/json
       description: api used to validate user login session

@@ -26,7 +26,7 @@ func InitApiTest(router *gin.RouterGroup) {
 	router.POST("login/", user_views.Login)
 	router.POST("login_mobile/", user_views.LoginWithMobile)
 	router.POST("verify_social_auth/", user_views.VerifySocialAuth)
-	router.POST("login_status/", user_views.LoginStatus)
+	router.GET("login_status/", user_views.LoginStatus)
 	router.GET("all_users/", user_views.GetAllUserData)
 
 	{
