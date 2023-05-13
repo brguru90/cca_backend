@@ -32,8 +32,32 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "file",
-                        "description": "File",
-                        "name": "file",
+                        "description": "Video file",
+                        "name": "video_file",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Preview image file",
+                        "name": "preview_image_file",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "created_by",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "description",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "name": "title",
                         "in": "formData",
                         "required": true
                     }
@@ -88,6 +112,13 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/user_views.UserCredential"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "default": "customer",
+                        "description": "Possible values: customer,admin,super_admin",
+                        "name": "access_level",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -611,6 +642,7 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "access_level",
+                "access_level_weight",
                 "email",
                 "mobile",
                 "password",
@@ -619,6 +651,9 @@ const docTemplate = `{
             "properties": {
                 "access_level": {
                     "type": "string"
+                },
+                "access_level_weight": {
+                    "type": "integer"
                 },
                 "auth_provider": {
                     "type": "string"

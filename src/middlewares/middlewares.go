@@ -48,9 +48,9 @@ func ApiSpecificMiddleware() gin.HandlerFunc {
 	}
 }
 
-func ValidateToken() gin.HandlerFunc {
+func ValidateToken(access_level my_modules.AccessLevelType) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		decoded_token, err, http_status, ok := my_modules.LoginStatus(c, configs.EnvConfigs.APP_ENV == "production")
+		decoded_token, err, http_status, ok := my_modules.LoginStatus(c, access_level, configs.EnvConfigs.APP_ENV == "production")
 		if http_status <= 0 || http_status != 200 {
 			my_modules.CreateAndSendResponse(c, http_status, "error", err, nil)
 			c.Abort()

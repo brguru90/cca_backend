@@ -57,7 +57,7 @@ func CreateHLS(inputFile string, outputDir string, segmentDuration int) error {
 	ffmpegCmd := exec.Command(
 		"ffmpeg",
 		"-i", inputFile,
-		"-filter_complex", `[0:v]split=4[v1][v2][v3][v4]; [v1]copy[v1out]; [v2]scale=w=1280:h=720:force_original_aspect_ratio=decrease[v2out]; [v3]scale=w=640:h=360:force_original_aspect_ratio=decrease[v3out]; [v4]scale=w=360:h=128:force_original_aspect_ratio=decrease[v4out]`,
+		"-filter_complex", `[0:v]split=4[v1][v2][v3][v4]; [v1]copy[v1out]; [v2]scale=w=1920:h=1024:force_original_aspect_ratio=decrease[v2out]; [v3]scale=w=640:h=360:force_original_aspect_ratio=decrease[v3out]; [v4]scale=w=360:h=128:force_original_aspect_ratio=decrease[v4out]`,
 		"-map", "[v1out]", "-c:v:0", "libx264", "-b:v:0", "10M", "-maxrate:v:0", "10M", "-bufsize:v:0", "15M", "-preset", "medium", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
 		"-map", "[v2out]", "-c:v:1", "libx264", "-b:v:1", "3M", "-maxrate:v:1", "3M", "-bufsize:v:1", "3M", "-preset", "medium", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
 		"-map", "[v3out]", "-c:v:2", "libx264", "-b:v:2", "1M", "-maxrate:v:2", "1M", "-bufsize:v:2", "1M", "-preset", "medium", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
@@ -75,10 +75,19 @@ func CreateHLS(inputFile string, outputDir string, segmentDuration int) error {
 	)
 
 	{
+		// ffprobeCmd := exec.Command(
+		// 	"ffprobe",
+		// 	"-i", inputFile,
+		// 	"-show_streams",
+		// )
+		// ffmpeg -i sample.mp4  -hide_banner -c copy -t 0 -f null -
 		ffprobeCmd := exec.Command(
-			"ffprobe",
+			"ffmpeg",
 			"-i", inputFile,
-			"-show_streams",
+			"-hide_banner",
+			"-c", "copy",
+			"-t", "0",
+			"-f", "null", "-",
 		)
 		output, err := ffprobeCmd.CombinedOutput()
 
@@ -89,7 +98,7 @@ func CreateHLS(inputFile string, outputDir string, segmentDuration int) error {
 			ffmpegCmd = exec.Command(
 				"ffmpeg",
 				"-i", inputFile,
-				"-filter_complex", `[0:v]split=4[v1][v2][v3][v4]; [v1]copy[v1out]; [v2]scale=w=1280:h=720:force_original_aspect_ratio=decrease[v2out]; [v3]scale=w=640:h=360:force_original_aspect_ratio=decrease[v3out]; [v4]scale=w=360:h=128:force_original_aspect_ratio=decrease[v4out]`,
+				"-filter_complex", `[0:v]split=4[v1][v2][v3][v4]; [v1]copy[v1out]; [v2]scale=w=1920:h=1024:force_original_aspect_ratio=decrease[v2out]; [v3]scale=w=640:h=360:force_original_aspect_ratio=decrease[v3out]; [v4]scale=w=360:h=128:force_original_aspect_ratio=decrease[v4out]`,
 				"-map", "[v1out]", "-c:v:0", "libx264", "-b:v:0", "10M", "-maxrate:v:0", "10M", "-bufsize:v:0", "15M", "-preset", "medium", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
 				"-map", "[v2out]", "-c:v:1", "libx264", "-b:v:1", "3M", "-maxrate:v:1", "3M", "-bufsize:v:1", "3M", "-preset", "medium", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
 				"-map", "[v3out]", "-c:v:2", "libx264", "-b:v:2", "1M", "-maxrate:v:2", "1M", "-bufsize:v:2", "1M", "-preset", "medium", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",

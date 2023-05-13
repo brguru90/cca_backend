@@ -25,13 +25,14 @@ var EncryptionKey = "thisis32bitlongpassphraseimusing"
 var encryption_bytes_padding = []byte{35, 46, 57, 24, 85, 35, 24, 74, 87, 35, 88, 98, 66, 32, 14, 05}
 
 type TokenPayload struct {
-	Email        string `json:"email" binding:"required"`
-	Mobile       string `json:"mobile" binding:"required"`
-	ID           string `json:"_id" binding:"required"`
-	UID          string `json:"uid"`
-	Username     string `json:"username"`
-	AccessLevel  string `json:"access_level"`
-	AuthProvider string `json:"auth_provider" binding:"required"`
+	Email             string `json:"email" binding:"required"`
+	Mobile            string `json:"mobile" binding:"required"`
+	ID                string `json:"_id" binding:"required"`
+	UID               string `json:"uid"`
+	Username          string `json:"username"`
+	AccessLevel       string `json:"access_level"  binding:"required"`
+	AccessLevelWeight int    `json:"access_level_weight" binding:"required"`
+	AuthProvider      string `json:"auth_provider" binding:"required"`
 }
 type AccessToken struct {
 	Data          TokenPayload `json:"data" binding:"required"`
@@ -180,13 +181,14 @@ func EnsureCsrfToken(c *gin.Context) string {
 
 func Authenticate(c *gin.Context, newUserRow database.UsersModel, data_to_encrypt string, already_encrypted bool) AccessToken {
 	token_payload := TokenPayload{
-		Email:        newUserRow.Email,
-		Mobile:       newUserRow.Mobile,
-		ID:           newUserRow.ID.Hex(),
-		UID:          newUserRow.Uid,
-		Username:     newUserRow.Username,
-		AccessLevel:  newUserRow.AccessLevel,
-		AuthProvider: newUserRow.AuthProvider,
+		Email:             newUserRow.Email,
+		Mobile:            newUserRow.Mobile,
+		ID:                newUserRow.ID.Hex(),
+		UID:               newUserRow.Uid,
+		Username:          newUserRow.Username,
+		AccessLevel:       newUserRow.AccessLevel,
+		AccessLevelWeight: newUserRow.AccessLevelWeight,
+		AuthProvider:      newUserRow.AuthProvider,
 	}
 	var access_token string
 	var access_token_payload AccessTokenClaims
@@ -214,17 +216,18 @@ func Authenticate(c *gin.Context, newUserRow database.UsersModel, data_to_encryp
 func RenewAuthentication(c *gin.Context, token_payload AccessToken) AccessToken {
 	_id, _ := primitive.ObjectIDFromHex(token_payload.Data.ID)
 	return Authenticate(c, database.UsersModel{
-		Email:        token_payload.Data.Email,
-		Mobile:       token_payload.Data.Mobile,
-		ID:           _id,
-		Uid:          token_payload.Data.UID,
-		Username:     token_payload.Uname,
-		AuthProvider: token_payload.Data.AuthProvider,
-		AccessLevel:  token_payload.Data.AccessLevel,
+		Email:             token_payload.Data.Email,
+		Mobile:            token_payload.Data.Mobile,
+		ID:                _id,
+		Uid:               token_payload.Data.UID,
+		Username:          token_payload.Uname,
+		AuthProvider:      token_payload.Data.AuthProvider,
+		AccessLevel:       token_payload.Data.AccessLevel,
+		AccessLevelWeight: token_payload.Data.AccessLevelWeight,
 	}, token_payload.EncryptedData, true)
 }
 
-func LoginStatus(c *gin.Context, enforce_csrf_check bool) (AccessToken, string, int, bool) {
+func LoginStatus(c *gin.Context, access_level interface{}, enforce_csrf_check bool) (AccessToken, string, int, bool) {
 	var token_claims AccessTokenClaims
 	access_token, err := c.Cookie("access_token")
 
@@ -274,13 +277,14 @@ func LoginStatus(c *gin.Context, enforce_csrf_check bool) (AccessToken, string, 
 	if csrf_token == "" {
 		_id, _ := primitive.ObjectIDFromHex(token_claims.AccessToken.Data.ID)
 		token_claims.AccessToken = Authenticate(c, database.UsersModel{
-			Email:        token_claims.AccessToken.Data.Email,
-			Mobile:       token_claims.AccessToken.Data.Mobile,
-			ID:           _id,
-			Uid:          token_claims.AccessToken.Data.UID,
-			Username:     token_claims.Uname,
-			AuthProvider: token_claims.Data.AuthProvider,
-			AccessLevel:  token_claims.Data.AccessLevel,
+			Email:             token_claims.AccessToken.Data.Email,
+			Mobile:            token_claims.AccessToken.Data.Mobile,
+			ID:                _id,
+			Uid:               token_claims.AccessToken.Data.UID,
+			Username:          token_claims.Uname,
+			AuthProvider:      token_claims.Data.AuthProvider,
+			AccessLevel:       token_claims.Data.AccessLevel,
+			AccessLevelWeight: token_claims.Data.AccessLevelWeight,
 		}, token_claims.AccessToken.EncryptedData, true)
 		if enforce_csrf_check {
 			return AccessToken{}, "missing csrf token", http.StatusForbidden, false
@@ -289,13 +293,14 @@ func LoginStatus(c *gin.Context, enforce_csrf_check bool) (AccessToken, string, 
 		if DecryptAES(EncryptionKey, token_claims.AccessToken.Csrf_token) != csrf_token {
 			_id, _ := primitive.ObjectIDFromHex(token_claims.AccessToken.Data.ID)
 			token_claims.AccessToken = Authenticate(c, database.UsersModel{
-				Email:        token_claims.AccessToken.Data.Email,
-				Mobile:       token_claims.AccessToken.Data.Mobile,
-				ID:           _id,
-				Uid:          token_claims.AccessToken.Data.UID,
-				Username:     token_claims.Uname,
-				AuthProvider: token_claims.Data.AuthProvider,
-				AccessLevel:  token_claims.Data.AccessLevel,
+				Email:             token_claims.AccessToken.Data.Email,
+				Mobile:            token_claims.AccessToken.Data.Mobile,
+				ID:                _id,
+				Uid:               token_claims.AccessToken.Data.UID,
+				Username:          token_claims.Uname,
+				AuthProvider:      token_claims.Data.AuthProvider,
+				AccessLevel:       token_claims.Data.AccessLevel,
+				AccessLevelWeight: token_claims.Data.AccessLevelWeight,
 			}, token_claims.AccessToken.EncryptedData, true)
 			if enforce_csrf_check {
 				return AccessToken{}, "invalid csrf token", http.StatusForbidden, false
@@ -303,6 +308,13 @@ func LoginStatus(c *gin.Context, enforce_csrf_check bool) (AccessToken, string, 
 		}
 	}
 	token_claims.AccessToken.EncryptedData = DecryptAES(EncryptionKey, token_claims.AccessToken.EncryptedData)
+
+	if access_level != nil {
+		// user access level < required access level
+		if token_claims.AccessToken.Data.AccessLevelWeight < access_level.(AccessLevelType).Weight {
+			return AccessToken{}, "Unauthorized access level", http.StatusForbidden, false
+		}
+	}
 
 	return token_claims.AccessToken, "", http.StatusOK, true
 }

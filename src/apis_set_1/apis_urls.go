@@ -14,6 +14,9 @@ import (
 
 const one_sec = 1000000000
 
+var only_customer = []my_modules.AccessLevelType{my_modules.AccessLevel.CUSTOMER}
+var all_users = []my_modules.AccessLevelType{my_modules.AccessLevel.SUPER_ADMIN, my_modules.AccessLevel.ADMIN, my_modules.AccessLevel.CUSTOMER}
+
 // only the functions whose initial letter is upper case only those can be exportable from package
 func InitApiTest(router *gin.RouterGroup) {
 	var CACHE_TTL_DURATION = time.Duration(one_sec * configs.EnvConfigs.RESPONSE_CACHE_TTL_IN_SECS)
@@ -30,7 +33,7 @@ func InitApiTest(router *gin.RouterGroup) {
 	router.GET("all_users/", user_views.GetAllUserData)
 
 	{
-		protected_router := router.Group("user/", middlewares.ValidateToken())
+		protected_router := router.Group("user/", middlewares.ValidateToken(my_modules.AccessLevel.CUSTOMER))
 		protected_router.GET("", my_modules.GetCachedResponse(user_views.GetUserData, "users", CACHE_TTL_DURATION, api_modules.ForUserPagination))
 		protected_router.PUT("", user_views.UpdateUserData)
 		protected_router.DELETE("", user_views.Deleteuser)
@@ -40,7 +43,12 @@ func InitApiTest(router *gin.RouterGroup) {
 	}
 
 	{
-		admin_router := router.Group("admin/")
+		// super_admin := router.Group("super_admin/", middlewares.ValidateToken(my_modules.AccessLevel.SUPER_ADMIN))
+		// super_admin.POST("upload_streaming_video/", admin_views.UploadVideo)
+	}
+
+	{
+		admin_router := router.Group("admin/", middlewares.ValidateToken(my_modules.AccessLevel.ADMIN))
 		admin_router.POST("upload_streaming_video/", admin_views.UploadVideo)
 	}
 

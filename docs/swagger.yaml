@@ -24,6 +24,8 @@ definitions:
     properties:
       access_level:
         type: string
+      access_level_weight:
+        type: integer
       auth_provider:
         type: string
       email:
@@ -38,6 +40,7 @@ definitions:
         type: string
     required:
     - access_level
+    - access_level_weight
     - email
     - mobile
     - password
@@ -97,11 +100,27 @@ paths:
       - multipart/form-data
       description: api to upload video content for multiple adaptive bit rate streaming
       parameters:
-      - description: File
+      - description: Video file
         in: formData
-        name: file
+        name: video_file
         required: true
         type: file
+      - description: Preview image file
+        in: formData
+        name: preview_image_file
+        required: true
+        type: file
+      - in: formData
+        name: created_by
+        required: true
+        type: string
+      - in: formData
+        name: description
+        type: string
+      - in: formData
+        name: title
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -136,6 +155,11 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/user_views.UserCredential'
+      - default: customer
+        description: 'Possible values: customer,admin,super_admin'
+        in: query
+        name: access_level
+        type: string
       produces:
       - application/json
       responses:

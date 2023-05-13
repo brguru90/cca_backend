@@ -12,16 +12,17 @@ import (
 )
 
 type UsersModel struct {
-	ID           primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty" swaggerignore:"true"`
-	Uid          string             `json:"uid,omitempty" bson:"uid,omitempty"`
-	AuthProvider string             `json:"auth_provider,omitempty" bson:"auth_provider,omitempty"`
-	Email        string             `json:"email,omitempty" binding:"required" bson:"email,omitempty"`
-	Mobile       string             `json:"mobile,omitempty" binding:"required" bson:"mobile,omitempty"`
-	Password     string             `json:"password,omitempty" binding:"required" bson:"password,omitempty"`
-	Username     string             `json:"username,omitempty" binding:"required" bson:"username,omitempty"`
-	AccessLevel  string             `json:"access_level,omitempty" binding:"required" bson:"access_level,omitempty"`
-	CreatedAt    time.Time          `json:"createdAt,omitempty" swaggerignore:"true"`
-	UpdatedAt    time.Time          `json:"updatedAt,omitempty" swaggerignore:"true"`
+	ID                primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty" swaggerignore:"true"`
+	Uid               string             `json:"uid,omitempty" bson:"uid,omitempty"`
+	AuthProvider      string             `json:"auth_provider,omitempty" bson:"auth_provider,omitempty"`
+	Email             string             `json:"email,omitempty" binding:"required" bson:"email,omitempty"`
+	Mobile            string             `json:"mobile,omitempty" binding:"required" bson:"mobile,omitempty"`
+	Password          string             `json:"password,omitempty" binding:"required" bson:"password,omitempty"`
+	Username          string             `json:"username,omitempty" binding:"required" bson:"username,omitempty"`
+	AccessLevel       string             `json:"access_level,omitempty" binding:"required" bson:"access_level,omitempty"`
+	AccessLevelWeight int                `json:"access_level_weight,omitempty" binding:"required" bson:"access_level_weight,omitempty"`
+	CreatedAt         time.Time          `json:"createdAt,omitempty" swaggerignore:"true"`
+	UpdatedAt         time.Time          `json:"updatedAt,omitempty" swaggerignore:"true"`
 }
 
 func InitUserCollection() {

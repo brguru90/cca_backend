@@ -56,13 +56,14 @@ func SignUp(c *gin.Context) {
 		ph := sha1.Sum([]byte(newUserRow.Password))
 		newUserData = database.UsersModel{
 			// Uid:          uuid.New().String(),
-			Email:        newUserRow.Email,
-			Username:     newUserRow.Username,
-			Password:     hex.EncodeToString(ph[:]),
-			AuthProvider: "email",
-			CreatedAt:    _time,
-			UpdatedAt:    _time,
-			AccessLevel:  string(my_modules.AccessLevel.CUSTOMER),
+			Email:             newUserRow.Email,
+			Username:          newUserRow.Username,
+			Password:          hex.EncodeToString(ph[:]),
+			AuthProvider:      "email",
+			CreatedAt:         _time,
+			UpdatedAt:         _time,
+			AccessLevel:       my_modules.AccessLevel.CUSTOMER.Label,
+			AccessLevelWeight: my_modules.AccessLevel.CUSTOMER.Weight,
 		}
 		ins_res, ins_err := database.MONGO_COLLECTIONS.Users.InsertOne(ctx, newUserData)
 		if ins_err != nil {
@@ -120,6 +121,7 @@ func SignUp(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param existing_user body UserCredential true "Add user"
+// @Param access_level query string  false  "Possible values: customer,admin,super_admin"  default(customer)
 // @Success 200 {object} my_modules.ResponseFormat
 // @Failure 400 {object} my_modules.ResponseFormat
 // @Failure 500 {object} my_modules.ResponseFormat
@@ -134,8 +136,19 @@ func Login(c *gin.Context) {
 	}
 	var userData database.UsersModel
 	{
+		access_level, ok := c.GetQuery("access_level")
+		if !ok {
+			access_level = my_modules.AccessLevel.CUSTOMER.Label
+		} else {
+			_, ok = my_modules.AllAccessLevel[access_level]
+			if !ok {
+				access_level = my_modules.AccessLevel.CUSTOMER.Label
+			}
+		}
+
 		err := database.MONGO_COLLECTIONS.Users.FindOne(ctx, bson.M{
-			"email": userCredential.Email,
+			"email":        userCredential.Email,
+			"access_level": access_level,
 		}).Decode(&userData)
 		if err != nil {
 			if err == mongo.ErrNoDocuments {
@@ -330,11 +343,12 @@ func VerifySocialAuth(c *gin.Context) {
 	{
 		_time := time.Now()
 		newUserData = database.UsersModel{
-			Uid:          token.UID,
-			AuthProvider: token.Firebase.SignInProvider,
-			AccessLevel:  string(my_modules.AccessLevel.CUSTOMER),
-			CreatedAt:    _time,
-			UpdatedAt:    _time,
+			Uid:               token.UID,
+			AuthProvider:      token.Firebase.SignInProvider,
+			AccessLevel:       my_modules.AccessLevel.CUSTOMER.Label,
+			AccessLevelWeight: my_modules.AccessLevel.CUSTOMER.Weight,
+			CreatedAt:         _time,
+			UpdatedAt:         _time,
 		}
 		if token.Firebase.SignInProvider == "phone" {
 			ph := sha1.Sum([]byte(socialAuth.Password))
@@ -481,7 +495,7 @@ type LoginStatusPayload struct {
 func LoginStatus(c *gin.Context) {
 	var loginStatusPayload LoginStatusPayload
 
-	decoded_token, err, http_status, ok := my_modules.LoginStatus(c, false)
+	decoded_token, err, http_status, ok := my_modules.LoginStatus(c, nil, false)
 	if err != "" {
 		my_modules.CreateAndSendResponse(c, http_status, "error", err, nil)
 		return
