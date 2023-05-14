@@ -25,6 +25,7 @@ type ENV_CONFIGS struct {
 	NODE_ENV                   string
 	GIN_MODE                   string
 	DISABLE_COLOR              bool
+	VIDEO_UPLOAD_PATH          string
 }
 
 var EnvConfigs ENV_CONFIGS
@@ -52,6 +53,7 @@ func InitEnv() {
 		NODE_ENV:                   os.Getenv("NODE_ENV"),
 		GIN_MODE:                   os.Getenv("GIN_MODE"),
 		DISABLE_COLOR:              os.Getenv("DISABLE_COLOR") == "true",
+		VIDEO_UPLOAD_PATH:          os.Getenv("VIDEO_UPLOAD_PATH"),
 	}
 
 	a, _ := json.MarshalIndent(EnvConfigs, "\t", "")

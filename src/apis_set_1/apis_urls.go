@@ -50,7 +50,9 @@ func InitApiTest(router *gin.RouterGroup) {
 	{
 		admin_router := router.Group("admin/", middlewares.ValidateToken(my_modules.AccessLevel.ADMIN))
 		admin_router.POST("upload_streaming_video/", admin_views.UploadVideo)
+		admin_router.POST("generate_video_stream/", admin_views.GenerateVideoStream)
 		admin_router.GET("upload_list/", admin_views.GetAllUploadedVideos)
+		admin_router.POST("get_stream_key/", admin_views.GetStreamKey)
 	}
 
 }

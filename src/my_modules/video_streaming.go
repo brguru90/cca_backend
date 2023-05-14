@@ -8,37 +8,42 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 )
 
-func UploadVideoForStream(c *gin.Context, base_path string, video_title string, inputFile string) error {
-	return CreateHLS(inputFile, fmt.Sprintf("%s/multi_bitrate/%s", base_path, video_title), 10)
+type UploadedVideoInfoStruct struct {
+	DecryptionKey           string
+	StreamGeneratedLocation string
+	OutputDir               string
 }
 
-func CreateHLS(inputFile string, outputDir string, segmentDuration int) error {
+func UploadVideoForStream(video_id string, base_path string, video_title string, inputFile string) (UploadedVideoInfoStruct, error) {
+	return CreateHLS(video_id, inputFile, fmt.Sprintf("%s/multi_bitrate/%s", base_path, video_title), 10)
+}
+
+func CreateHLS(video_id string, inputFile string, outputDir string, segmentDuration int) (UploadedVideoInfoStruct, error) {
 	// Create the output directory if it does not exist
 	if err := os.MkdirAll(outputDir, 0755); err != nil {
-		return err
+		return UploadedVideoInfoStruct{}, err
 	}
 
 	// Create the HLS playlist and segment the video using ffmpeg
 
 	var random_string string
 	if _rand, r_err := randomBytes(16); r_err != nil {
-		return r_err
+		return UploadedVideoInfoStruct{}, r_err
 	} else {
 		random_string = hex.EncodeToString(_rand)
 	}
 
 	key_file_path := fmt.Sprintf("%s/key.txt", outputDir)
 	key_info_file_path := fmt.Sprintf("%s/key_info.txt", outputDir)
-	key_info := fmt.Sprintf("/cdn/%s\n%s", key_file_path, key_file_path)
+	key_info := fmt.Sprintf("/api/get_video_key?video_id=%s\n%s", video_id, key_file_path)
 	if err := ioutil.WriteFile(key_file_path, []byte(random_string), 0755); err != nil {
-		return err
+		return UploadedVideoInfoStruct{}, err
 	}
 	if err := ioutil.WriteFile(key_info_file_path, []byte(key_info), 0755); err != nil {
-		return err
+		return UploadedVideoInfoStruct{}, err
 	}
 
 	// ffmpegCmd := exec.Command(
@@ -58,6 +63,7 @@ func CreateHLS(inputFile string, outputDir string, segmentDuration int) error {
 	ffmpegCmd := exec.Command(
 		"ffmpeg",
 		"-i", inputFile,
+		"-hls_key_info_file", key_info_file_path,
 		"-filter_complex", `[0:v]split=4[v1][v2][v3][v4]; [v1]copy[v1out]; [v2]scale='trunc(min(1,min(1920/iw,1024/ih))*iw/2)*2':'trunc(min(1,min(1920/iw,1024/ih))*ih/2)*2'[v2out]; [v3]scale='trunc(min(1,min(640/iw,360/ih))*iw/2)*2':'trunc(min(1,min(640/iw,360/ih))*ih/2)*2'[v3out]; [v4]scale='trunc(min(1,min(360/iw,128/ih))*iw/2)*2':'trunc(min(1,min(360/iw,128/ih))*ih/2)*2'[v4out]`,
 		"-map", "[v1out]", "-c:v:0", "libx264", "-b:v:0", "10M", "-maxrate:v:0", "10M", "-bufsize:v:0", "15M", "-preset", "medium", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
 		"-map", "[v2out]", "-c:v:1", "libx264", "-b:v:1", "3M", "-maxrate:v:1", "3M", "-bufsize:v:1", "3M", "-preset", "medium", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
@@ -93,12 +99,13 @@ func CreateHLS(inputFile string, outputDir string, segmentDuration int) error {
 		output, err := ffprobeCmd.CombinedOutput()
 
 		if err != nil {
-			return err
+			return UploadedVideoInfoStruct{}, err
 		}
 		if err == nil && !strings.Contains(string(output), "Stream #0:1") {
 			ffmpegCmd = exec.Command(
 				"ffmpeg",
 				"-i", inputFile,
+				"-hls_key_info_file", key_info_file_path,
 				"-filter_complex", `[0:v]split=4[v1][v2][v3][v4]; [v1]copy[v1out]; [v2]scale='trunc(min(1,min(1920/iw,1024/ih))*iw/2)*2':'trunc(min(1,min(1920/iw,1024/ih))*ih/2)*2'[v2out]; [v3]scale='trunc(min(1,min(640/iw,360/ih))*iw/2)*2':'trunc(min(1,min(640/iw,360/ih))*ih/2)*2'[v3out]; [v4]scale='trunc(min(1,min(360/iw,128/ih))*iw/2)*2':'trunc(min(1,min(360/iw,128/ih))*ih/2)*2'[v4out]`,
 				"-map", "[v1out]", "-c:v:0", "libx264", "-b:v:0", "10M", "-maxrate:v:0", "10M", "-bufsize:v:0", "15M", "-preset", "medium", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
 				"-map", "[v2out]", "-c:v:1", "libx264", "-b:v:1", "3M", "-maxrate:v:1", "3M", "-bufsize:v:1", "3M", "-preset", "medium", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
@@ -115,6 +122,13 @@ func CreateHLS(inputFile string, outputDir string, segmentDuration int) error {
 	}
 
 	output, err := ffmpegCmd.CombinedOutput()
+	if err == nil {
+		os.Remove(key_file_path)
+	}
 	log.Debugf("failed to create HLS: %v\nOutput: %s", err, string(output))
-	return err
+	return UploadedVideoInfoStruct{
+		StreamGeneratedLocation: fmt.Sprintf("%s/manifest.m3u8", outputDir),
+		DecryptionKey:           random_string,
+		OutputDir:               outputDir,
+	}, err
 }

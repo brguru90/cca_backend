@@ -1,4 +1,20 @@
 definitions:
+  admin_views.VideoStreamKeyStruct:
+    properties:
+      video_id:
+        type: string
+    required:
+    - video_id
+    type: object
+  admin_views.VideoStreamStruct:
+    properties:
+      video_ids:
+        items:
+          type: string
+        type: array
+    required:
+    - video_ids
+    type: object
   database.ActiveSessionsModel:
     properties:
       _id:
@@ -94,6 +110,74 @@ definitions:
 info:
   contact: {}
 paths:
+  /admin/generate_video_stream/:
+    post:
+      consumes:
+      - application/json
+      description: api to get the list of all the videos uploaded by the logged user
+      parameters:
+      - description: Video IDs
+        in: body
+        name: video_ids
+        required: true
+        schema:
+          $ref: '#/definitions/admin_views.VideoStreamStruct'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: Generate video stream
+      tags:
+      - Generate video stream
+  /admin/get_stream_key/:
+    post:
+      consumes:
+      - application/json
+      description: api to get video decryption key for hls stream
+      parameters:
+      - description: Video ID
+        in: body
+        name: video_id
+        required: true
+        schema:
+          $ref: '#/definitions/admin_views.VideoStreamKeyStruct'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: get video decode key
+      tags:
+      - Video decryption key
   /admin/upload_list/:
     get:
       description: api to get the list of all the videos uploaded by the logged user

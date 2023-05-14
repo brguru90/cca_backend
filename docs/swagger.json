@@ -4,6 +4,110 @@
         "contact": {}
     },
     "paths": {
+        "/admin/generate_video_stream/": {
+            "post": {
+                "description": "api to get the list of all the videos uploaded by the logged user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Generate video stream"
+                ],
+                "summary": "Generate video stream",
+                "parameters": [
+                    {
+                        "description": "Video IDs",
+                        "name": "video_ids",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/admin_views.VideoStreamStruct"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/get_stream_key/": {
+            "post": {
+                "description": "api to get video decryption key for hls stream",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Video decryption key"
+                ],
+                "summary": "get video decode key",
+                "parameters": [
+                    {
+                        "description": "Video ID",
+                        "name": "video_id",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/admin_views.VideoStreamKeyStruct"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/upload_list/": {
             "get": {
                 "description": "api to get the list of all the videos uploaded by the logged user",
@@ -624,6 +728,31 @@
         }
     },
     "definitions": {
+        "admin_views.VideoStreamKeyStruct": {
+            "type": "object",
+            "required": [
+                "video_id"
+            ],
+            "properties": {
+                "video_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "admin_views.VideoStreamStruct": {
+            "type": "object",
+            "required": [
+                "video_ids"
+            ],
+            "properties": {
+                "video_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "database.ActiveSessionsModel": {
             "type": "object",
             "properties": {
