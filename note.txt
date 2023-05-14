@@ -26,9 +26,13 @@ ID | Title | Description | Duration | CreatedByUser | UploadedByUser | isLive | 
 
 
 
+** Subscription package **
+ID | Title | Description | [PlayListIDs] | Enabled | Price
 
 
-** Subscription **
+
+
+** User Subscription **
 ID | UserID | PlayListID | IntialSubscriptionDate | ExpireOn | enabled | [subscribedOn] | [amountPaid]
 
 * subscribedOn & amountPaid --> is the array of subsequent renew of subscription

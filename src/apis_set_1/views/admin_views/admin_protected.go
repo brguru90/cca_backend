@@ -359,7 +359,7 @@ func GetAllUploadedVideos(c *gin.Context) {
 			if err = cursor.Decode(&videoData); err != nil {
 				log.Errorln(fmt.Sprintf("Scan failed: %v\n", err))
 				// continue
-				my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Error in retriving user data", nil)
+				my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Error in retrieving user data", nil)
 				return
 			}
 			videosList = append(videosList, videoData)
@@ -369,4 +369,20 @@ func GetAllUploadedVideos(c *gin.Context) {
 			"list": videosList,
 		})
 	}
+}
+
+func CreatePlayList(c *gin.Context) {
+
+}
+
+func UpdatePlayList(c *gin.Context) {
+
+}
+
+func CreateSubscriptionPackage(c *gin.Context) {
+
+}
+
+func UpdateSubscriptionPackage(c *gin.Context) {
+
 }

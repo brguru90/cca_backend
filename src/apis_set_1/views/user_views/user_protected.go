@@ -152,7 +152,8 @@ func UpdateUserData(c *gin.Context) {
 			"$set": bson.M{
 				"email":     updateWithData.Email,
 				"username":  updateWithData.Username,
-				"updatedAt": _time}},
+				"updatedAt": _time,
+			}},
 	)
 	if err != nil {
 		log.WithFields(log.Fields{
@@ -388,4 +389,25 @@ func BlockSession(c *gin.Context) {
 	}
 
 	my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "Blocked", rows_updated)
+}
+
+func GetAvailableSubscriptionPackages(c *gin.Context) {
+
+}
+
+func EnrollToSubscriptionPackage(c *gin.Context) {
+
+}
+
+func PaymentConfirmationForSubscription(c *gin.Context) {
+
+}
+
+func GetPlaylistAvailableOnSubscription(c *gin.Context) {
+
+}
+
+func GetPlaylistVideos(c *gin.Context) {
+	// Todo, all the videos belong to specified playlist
+
 }
