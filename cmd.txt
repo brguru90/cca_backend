@@ -49,7 +49,7 @@ ffmpeg -i sample.mp4 \
 ffmpeg -i sample.mp4 \
 -filter_complex \
 "[0:v]split=4[v1][v2][v3][v4]; \
-[v1]copy[v1out]; [v2]pad=ceil(iw/2)*2:ceil(ih/2)*2,scale=w=1280:h=720[v2out]; [v3]pad=ceil(iw/2)*2:ceil(ih/2)*2,scale=w=640:h=360[v3out]; [v4]pad=ceil(iw/2)*2:ceil(ih/2)*2,scale=w=360:h=128[v4out]" \
+[v1]copy[v1out]; [v2]scale=w=1280:h=720[v2out]; [v3]scale=w=640:h=360[v3out]; [v4]scale='trunc(min(1,min(360/iw,128/ih))*iw/2)*2':'trunc(min(1,min(360/iw,128/ih))*ih/2)*2'[v4out]" \
 -map [v1out] -c:v:0 libx264 -x264-params "nal-hrd=cbr:force-cfr=1" -b:v:0 5M -maxrate:v:0 5M  -bufsize:v:0 10M -preset medium -g 48 -sc_threshold 0 -keyint_min 48 \
 -map [v2out] -c:v:1 libx264 -x264-params "nal-hrd=cbr:force-cfr=1" -b:v:1 3M -maxrate:v:1 3M  -bufsize:v:1 3M -preset medium -g 48 -sc_threshold 0 -keyint_min 48 \
 -map [v3out] -c:v:2 libx264 -x264-params "nal-hrd=cbr:force-cfr=1" -b:v:2 1M -maxrate:v:2 1M  -bufsize:v:2 1M -preset medium -g 48 -sc_threshold 0 -keyint_min 48 \

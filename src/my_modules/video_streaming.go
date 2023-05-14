@@ -58,7 +58,7 @@ func CreateHLS(inputFile string, outputDir string, segmentDuration int) error {
 	ffmpegCmd := exec.Command(
 		"ffmpeg",
 		"-i", inputFile,
-		"-filter_complex", `[0:v]split=4[v1][v2][v3][v4]; [v1]copy[v1out]; [v2]pad=width=ceil(iw/2)*2:height=ceil(ih/2)*2,scale=w=1920:h=1024[v2out]; [v3]pad=width=ceil(iw/2)*2:height=ceil(ih/2)*2,scale=w=640:h=360[v3out]; [v4]pad=width=ceil(iw/2)*2:height=ceil(ih/2)*2,scale=w=360:h=128[v4out]`,
+		"-filter_complex", `[0:v]split=4[v1][v2][v3][v4]; [v1]copy[v1out]; [v2]scale='trunc(min(1,min(1920/iw,1024/ih))*iw/2)*2':'trunc(min(1,min(1920/iw,1024/ih))*ih/2)*2'[v2out]; [v3]scale='trunc(min(1,min(640/iw,360/ih))*iw/2)*2':'trunc(min(1,min(640/iw,360/ih))*ih/2)*2'[v3out]; [v4]scale='trunc(min(1,min(360/iw,128/ih))*iw/2)*2':'trunc(min(1,min(360/iw,128/ih))*ih/2)*2'[v4out]`,
 		"-map", "[v1out]", "-c:v:0", "libx264", "-b:v:0", "10M", "-maxrate:v:0", "10M", "-bufsize:v:0", "15M", "-preset", "medium", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
 		"-map", "[v2out]", "-c:v:1", "libx264", "-b:v:1", "3M", "-maxrate:v:1", "3M", "-bufsize:v:1", "3M", "-preset", "medium", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
 		"-map", "[v3out]", "-c:v:2", "libx264", "-b:v:2", "1M", "-maxrate:v:2", "1M", "-bufsize:v:2", "1M", "-preset", "medium", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
@@ -99,7 +99,7 @@ func CreateHLS(inputFile string, outputDir string, segmentDuration int) error {
 			ffmpegCmd = exec.Command(
 				"ffmpeg",
 				"-i", inputFile,
-				"-filter_complex", `[0:v]split=4[v1][v2][v3][v4]; [v1]copy[v1out]; [v2]pad=width=ceil(iw/2)*2:height=ceil(ih/2)*2,scale=w=1920:h=1024[v2out]; [v3]pad=width=ceil(iw/2)*2:height=ceil(ih/2)*2,scale=w=640:h=360[v3out]; [v4]pad=width=ceil(iw/2)*2:height=ceil(ih/2)*2,scale=w=360:h=128[v4out]`,
+				"-filter_complex", `[0:v]split=4[v1][v2][v3][v4]; [v1]copy[v1out]; [v2]scale='trunc(min(1,min(1920/iw,1024/ih))*iw/2)*2':'trunc(min(1,min(1920/iw,1024/ih))*ih/2)*2'[v2out]; [v3]scale='trunc(min(1,min(640/iw,360/ih))*iw/2)*2':'trunc(min(1,min(640/iw,360/ih))*ih/2)*2'[v3out]; [v4]scale='trunc(min(1,min(360/iw,128/ih))*iw/2)*2':'trunc(min(1,min(360/iw,128/ih))*ih/2)*2'[v4out]`,
 				"-map", "[v1out]", "-c:v:0", "libx264", "-b:v:0", "10M", "-maxrate:v:0", "10M", "-bufsize:v:0", "15M", "-preset", "medium", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
 				"-map", "[v2out]", "-c:v:1", "libx264", "-b:v:1", "3M", "-maxrate:v:1", "3M", "-bufsize:v:1", "3M", "-preset", "medium", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
 				"-map", "[v3out]", "-c:v:2", "libx264", "-b:v:2", "1M", "-maxrate:v:2", "1M", "-bufsize:v:2", "1M", "-preset", "medium", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",

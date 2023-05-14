@@ -16,6 +16,44 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/admin/upload_list/": {
+            "get": {
+                "description": "api to get the list of all the videos uploaded by the logged user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "List of video upload"
+                ],
+                "summary": "get all uploaded videos",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/upload_streaming_video/": {
             "post": {
                 "description": "api to upload video content for multiple adaptive bit rate streaming",
@@ -53,6 +91,11 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "name": "description",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "boolean",
+                        "name": "is_live",
                         "in": "formData"
                     },
                     {
@@ -112,22 +155,9 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/user_views.UserCredential"
                         }
-                    },
-                    {
-                        "type": "string",
-                        "default": "customer",
-                        "description": "Possible values: customer,admin,super_admin",
-                        "name": "access_level",
-                        "in": "query"
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/my_modules.ResponseFormat"
-                        }
-                    },
                     "400": {
                         "description": "Bad Request",
                         "schema": {

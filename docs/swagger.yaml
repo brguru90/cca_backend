@@ -94,6 +94,31 @@ definitions:
 info:
   contact: {}
 paths:
+  /admin/upload_list/:
+    get:
+      description: api to get the list of all the videos uploaded by the logged user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: get all uploaded videos
+      tags:
+      - List of video upload
   /admin/upload_streaming_video/:
     post:
       consumes:
@@ -117,6 +142,9 @@ paths:
       - in: formData
         name: description
         type: string
+      - in: formData
+        name: is_live
+        type: boolean
       - in: formData
         name: title
         required: true
@@ -155,18 +183,9 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/user_views.UserCredential'
-      - default: customer
-        description: 'Possible values: customer,admin,super_admin'
-        in: query
-        name: access_level
-        type: string
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/my_modules.ResponseFormat'
         "400":
           description: Bad Request
           schema:

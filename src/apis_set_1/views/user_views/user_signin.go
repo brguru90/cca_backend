@@ -121,8 +121,7 @@ func SignUp(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param existing_user body UserCredential true "Add user"
-// @Param access_level query string  false  "Possible values: customer,admin,super_admin"  default(customer)
-// @Success 200 {object} my_modules.ResponseFormat
+//ignore // @Success 200 {object} my_modules.ResponseFormat
 // @Failure 400 {object} my_modules.ResponseFormat
 // @Failure 500 {object} my_modules.ResponseFormat
 // @Router /login [post]
@@ -136,19 +135,19 @@ func Login(c *gin.Context) {
 	}
 	var userData database.UsersModel
 	{
-		access_level, ok := c.GetQuery("access_level")
-		if !ok {
-			access_level = my_modules.AccessLevel.CUSTOMER.Label
-		} else {
-			_, ok = my_modules.AllAccessLevel[access_level]
-			if !ok {
-				access_level = my_modules.AccessLevel.CUSTOMER.Label
-			}
-		}
+		// access_level, ok := c.GetQuery("access_level")
+		// if !ok {
+		// 	access_level = my_modules.AccessLevel.CUSTOMER.Label
+		// } else {
+		// 	_, ok = my_modules.AllAccessLevel[access_level]
+		// 	if !ok {
+		// 		access_level = my_modules.AccessLevel.CUSTOMER.Label
+		// 	}
+		// }
 
 		err := database.MONGO_COLLECTIONS.Users.FindOne(ctx, bson.M{
-			"email":        userCredential.Email,
-			"access_level": access_level,
+			"email": userCredential.Email,
+			// "access_level": access_level,
 		}).Decode(&userData)
 		if err != nil {
 			if err == mongo.ErrNoDocuments {
