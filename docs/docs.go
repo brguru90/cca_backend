@@ -26,7 +26,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "VideoManagement"
+                    "Manage Videos"
                 ],
                 "summary": "Generate video stream",
                 "parameters": [
@@ -78,7 +78,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "VideoManagement"
+                    "Manage Videos"
                 ],
                 "summary": "get video decode key",
                 "parameters": [
@@ -137,7 +137,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                            "$ref": "#/definitions/admin_views.GetAllPlayListsRespStruct"
                         }
                     },
                     "400": {
@@ -237,7 +237,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                            "$ref": "#/definitions/admin_views.CreatePlayListRespStruct"
                         }
                     },
                     "400": {
@@ -268,14 +268,14 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "VideoManagement"
+                    "Manage Videos"
                 ],
                 "summary": "get all uploaded videos",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                            "$ref": "#/definitions/admin_views.GetAllUploadedVideosRespStruct"
                         }
                     },
                     "400": {
@@ -309,7 +309,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "VideoManagement"
+                    "Manage Videos"
                 ],
                 "summary": "video upload",
                 "parameters": [
@@ -919,6 +919,69 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "admin_views.CreatePlayListRespStruct": {
+            "type": "object",
+            "required": [
+                "data",
+                "msg",
+                "status"
+            ],
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/mongo_modals.VideoPlayListModal"
+                },
+                "msg": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "admin_views.GetAllPlayListsRespStruct": {
+            "type": "object",
+            "required": [
+                "data",
+                "msg",
+                "status"
+            ],
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/mongo_modals.VideoPlayListModal"
+                    }
+                },
+                "msg": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "admin_views.GetAllUploadedVideosRespStruct": {
+            "type": "object",
+            "required": [
+                "data",
+                "msg",
+                "status"
+            ],
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/mongo_modals.VideoUploadModal"
+                    }
+                },
+                "msg": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
         "admin_views.PlaylistVideoReqStruct": {
             "type": "object",
             "required": [
@@ -1060,6 +1123,46 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "mongo_modals.VideoUploadModal": {
+            "type": "object",
+            "required": [
+                "duration",
+                "is_live",
+                "title"
+            ],
+            "properties": {
+                "created_by_user": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "duration": {
+                    "type": "integer"
+                },
+                "is_live": {
+                    "type": "boolean"
+                },
+                "link_to_original_video": {
+                    "type": "string"
+                },
+                "link_to_video_preview_image": {
+                    "type": "string"
+                },
+                "link_to_video_stream": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "uploaded_by_user": {
+                    "type": "string"
+                },
+                "video_decryption_key": {
+                    "type": "string"
                 }
             }
         },

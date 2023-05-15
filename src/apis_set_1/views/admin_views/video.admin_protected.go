@@ -143,7 +143,7 @@ func UploadVideo(c *gin.Context) {
 	// 	my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "Failed to create  multi bit rate file chunks", nil)
 	// 	return
 	// }
-	my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "", nil)
+	my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "success", nil)
 }
 
 type VideoStreamReqStruct struct {
@@ -320,13 +320,18 @@ func GetStreamKey(c *gin.Context) {
 
 }
 
+type GetAllUploadedVideosRespStruct struct {
+	my_modules.ResponseFormat
+	Data []mongo_modals.VideoUploadModal `json:"data"`
+}
+
 // @BasePath /api/
 // @Summary get all uploaded videos
 // @Schemes
 // @Description api to get the list of all the videos uploaded by the logged user
 // @Tags Manage Videos
 // @Produce json
-// @Success 200 {object} my_modules.ResponseFormat
+// @Success 200 {object} GetAllUploadedVideosRespStruct
 // @Failure 400 {object} my_modules.ResponseFormat
 // @Failure 403 {object} my_modules.ResponseFormat
 // @Failure 500 {object} my_modules.ResponseFormat
@@ -374,10 +379,13 @@ func GetAllUploadedVideos(c *gin.Context) {
 			videosList = append(videosList, videoData)
 		}
 
-		my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "Record found", map[string]interface{}{
-			"list": videosList,
-		})
+		my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "Record found", videosList)
 	}
+}
+
+type GetAllPlayListsRespStruct struct {
+	my_modules.ResponseFormat
+	Data []mongo_modals.VideoPlayListModal `json:"data"`
 }
 
 // @BasePath /api/
@@ -387,7 +395,7 @@ func GetAllUploadedVideos(c *gin.Context) {
 // @Tags Playlist
 // @Accept json
 // @Produce json
-// @Success 200 {object} my_modules.ResponseFormat
+// @Success 200 {object} GetAllPlayListsRespStruct
 // @Failure 400 {object} my_modules.ResponseFormat
 // @Failure 403 {object} my_modules.ResponseFormat
 // @Failure 500 {object} my_modules.ResponseFormat
@@ -442,6 +450,11 @@ func GetAllPlayLists(c *gin.Context) {
 	}
 }
 
+type CreatePlayListRespStruct struct {
+	my_modules.ResponseFormat
+	Data mongo_modals.VideoPlayListModal `json:"data"`
+}
+
 // @BasePath /api/
 // @Summary Create new playlist
 // @Schemes
@@ -450,7 +463,7 @@ func GetAllPlayLists(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param new_playlist_data body mongo_modals.VideoPlayListModal true "New Playlist"
-// @Success 200 {object} my_modules.ResponseFormat
+// @Success 200 {object} CreatePlayListRespStruct
 // @Failure 400 {object} my_modules.ResponseFormat
 // @Failure 403 {object} my_modules.ResponseFormat
 // @Failure 500 {object} my_modules.ResponseFormat

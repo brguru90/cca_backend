@@ -1,4 +1,47 @@
 definitions:
+  admin_views.CreatePlayListRespStruct:
+    properties:
+      data:
+        $ref: '#/definitions/mongo_modals.VideoPlayListModal'
+      msg:
+        type: string
+      status:
+        type: string
+    required:
+    - data
+    - msg
+    - status
+    type: object
+  admin_views.GetAllPlayListsRespStruct:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/mongo_modals.VideoPlayListModal'
+        type: array
+      msg:
+        type: string
+      status:
+        type: string
+    required:
+    - data
+    - msg
+    - status
+    type: object
+  admin_views.GetAllUploadedVideosRespStruct:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/mongo_modals.VideoUploadModal'
+        type: array
+      msg:
+        type: string
+      status:
+        type: string
+    required:
+    - data
+    - msg
+    - status
+    type: object
   admin_views.PlaylistVideoReqStruct:
     properties:
       playlist_id:
@@ -96,6 +139,33 @@ definitions:
     - title
     - videos_ids
     type: object
+  mongo_modals.VideoUploadModal:
+    properties:
+      created_by_user:
+        type: string
+      description:
+        type: string
+      duration:
+        type: integer
+      is_live:
+        type: boolean
+      link_to_original_video:
+        type: string
+      link_to_video_preview_image:
+        type: string
+      link_to_video_stream:
+        type: string
+      title:
+        type: string
+      uploaded_by_user:
+        type: string
+      video_decryption_key:
+        type: string
+    required:
+    - duration
+    - is_live
+    - title
+    type: object
   my_modules.ResponseFormat:
     properties:
       data: {}
@@ -177,7 +247,7 @@ paths:
             $ref: '#/definitions/my_modules.ResponseFormat'
       summary: Generate video stream
       tags:
-      - VideoManagement
+      - Manage Videos
   /admin/get_stream_key/:
     post:
       consumes:
@@ -211,7 +281,7 @@ paths:
             $ref: '#/definitions/my_modules.ResponseFormat'
       summary: get video decode key
       tags:
-      - VideoManagement
+      - Manage Videos
   /admin/playlist/:
     get:
       consumes:
@@ -223,7 +293,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/my_modules.ResponseFormat'
+            $ref: '#/definitions/admin_views.GetAllPlayListsRespStruct'
         "400":
           description: Bad Request
           schema:
@@ -256,7 +326,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/my_modules.ResponseFormat'
+            $ref: '#/definitions/admin_views.CreatePlayListRespStruct'
         "400":
           description: Bad Request
           schema:
@@ -314,7 +384,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/my_modules.ResponseFormat'
+            $ref: '#/definitions/admin_views.GetAllUploadedVideosRespStruct'
         "400":
           description: Bad Request
           schema:
@@ -329,7 +399,7 @@ paths:
             $ref: '#/definitions/my_modules.ResponseFormat'
       summary: get all uploaded videos
       tags:
-      - VideoManagement
+      - Manage Videos
   /admin/upload_streaming_video/:
     post:
       consumes:
@@ -381,7 +451,7 @@ paths:
             $ref: '#/definitions/my_modules.ResponseFormat'
       summary: video upload
       tags:
-      - VideoManagement
+      - Manage Videos
   /login:
     post:
       consumes:
