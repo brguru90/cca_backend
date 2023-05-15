@@ -67,7 +67,7 @@ func InitVideoUploadCollection() {
 	}
 
 	opts := options.CreateIndexes().SetMaxTime(10 * time.Second)
-	_, err := MONGO_COLLECTIONS.VideoPlayList.Indexes().CreateMany(context.Background(), indexes, opts)
+	_, err := MONGO_COLLECTIONS.VideoUploads.Indexes().CreateMany(context.Background(), indexes, opts)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"err": err,

@@ -1,12 +1,12 @@
 definitions:
-  admin_views.VideoStreamKeyStruct:
+  admin_views.VideoStreamKeyReqStruct:
     properties:
       video_id:
         type: string
     required:
     - video_id
     type: object
-  admin_views.VideoStreamStruct:
+  admin_views.VideoStreamReqStruct:
     properties:
       video_ids:
         items:
@@ -62,6 +62,26 @@ definitions:
     - password
     - username
     type: object
+  database.VideoPlayListModal:
+    properties:
+      description:
+        type: string
+      is_live:
+        type: boolean
+      price:
+        type: integer
+      title:
+        type: string
+      videos_ids:
+        items:
+          type: string
+        type: array
+    required:
+    - is_live
+    - price
+    - title
+    - videos_ids
+    type: object
   my_modules.ResponseFormat:
     properties:
       data: {}
@@ -74,7 +94,7 @@ definitions:
     - msg
     - status
     type: object
-  user_views.SocialAuth:
+  user_views.SocialAuthReqStruct:
     properties:
       idToken:
         type: string
@@ -85,7 +105,7 @@ definitions:
     required:
     - idToken
     type: object
-  user_views.UserCredential:
+  user_views.UserCredentialReqStruct:
     properties:
       email:
         type: string
@@ -97,7 +117,7 @@ definitions:
     - email
     - password
     type: object
-  user_views.UserMobileCredential:
+  user_views.UserMobileCredentialReqStruct:
     properties:
       mobile:
         type: string
@@ -121,7 +141,7 @@ paths:
         name: video_ids
         required: true
         schema:
-          $ref: '#/definitions/admin_views.VideoStreamStruct'
+          $ref: '#/definitions/admin_views.VideoStreamReqStruct'
       produces:
       - application/json
       responses:
@@ -143,7 +163,7 @@ paths:
             $ref: '#/definitions/my_modules.ResponseFormat'
       summary: Generate video stream
       tags:
-      - Generate video stream
+      - VideoManagement
   /admin/get_stream_key/:
     post:
       consumes:
@@ -155,7 +175,7 @@ paths:
         name: video_id
         required: true
         schema:
-          $ref: '#/definitions/admin_views.VideoStreamKeyStruct'
+          $ref: '#/definitions/admin_views.VideoStreamKeyReqStruct'
       produces:
       - application/json
       responses:
@@ -177,7 +197,41 @@ paths:
             $ref: '#/definitions/my_modules.ResponseFormat'
       summary: get video decode key
       tags:
-      - Video decryption key
+      - VideoManagement
+  /admin/playlist/:
+    post:
+      consumes:
+      - application/json
+      description: api to create new empty playlist
+      parameters:
+      - description: New Playlist
+        in: body
+        name: new_playlist_data
+        required: true
+        schema:
+          $ref: '#/definitions/database.VideoPlayListModal'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: Create new playlist
+      tags:
+      - Playlist
   /admin/upload_list/:
     get:
       description: api to get the list of all the videos uploaded by the logged user
@@ -202,7 +256,7 @@ paths:
             $ref: '#/definitions/my_modules.ResponseFormat'
       summary: get all uploaded videos
       tags:
-      - List of video upload
+      - VideoManagement
   /admin/upload_streaming_video/:
     post:
       consumes:
@@ -254,7 +308,7 @@ paths:
             $ref: '#/definitions/my_modules.ResponseFormat'
       summary: video upload
       tags:
-      - Video upload
+      - VideoManagement
   /login:
     post:
       consumes:
@@ -266,7 +320,7 @@ paths:
         name: existing_user
         required: true
         schema:
-          $ref: '#/definitions/user_views.UserCredential'
+          $ref: '#/definitions/user_views.UserCredentialReqStruct'
       produces:
       - application/json
       responses:
@@ -280,7 +334,7 @@ paths:
             $ref: '#/definitions/my_modules.ResponseFormat'
       summary: url to login
       tags:
-      - Login
+      - Account
   /login_mobile:
     post:
       consumes:
@@ -292,7 +346,7 @@ paths:
         name: existing_user
         required: true
         schema:
-          $ref: '#/definitions/user_views.UserMobileCredential'
+          $ref: '#/definitions/user_views.UserMobileCredentialReqStruct'
       produces:
       - application/json
       responses:
@@ -310,7 +364,7 @@ paths:
             $ref: '#/definitions/my_modules.ResponseFormat'
       summary: url to login with mobile number
       tags:
-      - Mobile Login
+      - Account
   /login_status:
     get:
       consumes:
@@ -335,8 +389,9 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: Login status
       tags:
-      - Login status
+      - Account
   /sign_up:
     post:
       consumes:
@@ -348,7 +403,7 @@ paths:
         name: new_user
         required: true
         schema:
-          $ref: '#/definitions/user_views.UserCredential'
+          $ref: '#/definitions/user_views.UserCredentialReqStruct'
       produces:
       - application/json
       responses:
@@ -370,7 +425,7 @@ paths:
             $ref: '#/definitions/my_modules.ResponseFormat'
       summary: url to signup
       tags:
-      - SignUp
+      - Account
   /user/:
     delete:
       consumes:
@@ -397,7 +452,7 @@ paths:
             $ref: '#/definitions/my_modules.ResponseFormat'
       summary: url to delete user account
       tags:
-      - Delete user account
+      - Account
     get:
       consumes:
       - application/json
@@ -426,9 +481,9 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/my_modules.ResponseFormat'
-      summary: url to view user data
+      summary: View user data
       tags:
-      - View user data
+      - Account
     put:
       consumes:
       - application/json
@@ -459,9 +514,9 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/my_modules.ResponseFormat'
-      summary: url to update user data
+      summary: Update user data
       tags:
-      - Update user data
+      - Account
   /user/active_sessions/:
     get:
       consumes:
@@ -486,9 +541,9 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/my_modules.ResponseFormat'
-      summary: get active user login session
+      summary: Get active user login session
       tags:
-      - Get Active sessions
+      - Session
   /user/block_token/:
     post:
       consumes:
@@ -520,9 +575,9 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/my_modules.ResponseFormat'
-      summary: block specified session
+      summary: Block specified session
       tags:
-      - Block sessions
+      - Session
   /user/logout/:
     get:
       consumes:
@@ -550,18 +605,19 @@ paths:
             $ref: '#/definitions/my_modules.ResponseFormat'
       summary: allow user to logout
       tags:
-      - Logout
+      - Session
   /verify_social_auth:
     post:
       consumes:
       - application/json
+      description: url to signup/login with social authentication
       parameters:
       - description: Add user
         in: body
         name: new_or_existing_user
         required: true
         schema:
-          $ref: '#/definitions/user_views.SocialAuth'
+          $ref: '#/definitions/user_views.SocialAuthReqStruct'
       produces:
       - application/json
       responses:
@@ -581,7 +637,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/my_modules.ResponseFormat'
-      summary: url to signup/login with social authentication
+      summary: Verify Social Authentication
       tags:
-      - VerifySocialAuth
+      - Account
 swagger: "2.0"

@@ -20,11 +20,11 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type VideoUploadStruct struct {
+type VideoUploadReqStruct struct {
 	VideoFile        *multipart.FileHeader `form:"video_file" binding:"required"`
 	PreviewImageFile *multipart.FileHeader `form:"preview_image_file" binding:"required"`
 }
-type VideoInfoStruct struct {
+type VideoInfoReqStruct struct {
 	Title       string `form:"title" binding:"required"`
 	Description string `form:"description"`
 	CreatedBy   string `form:"created_by" binding:"required"`
@@ -35,12 +35,12 @@ type VideoInfoStruct struct {
 // @Summary video upload
 // @Schemes
 // @Description api to upload video content for multiple adaptive bit rate streaming
-// @Tags Video upload
+// @Tags VideoManagement
 // @Accept mpfd
 // @Produce json
 // @Param video_file formData file true "Video file"
 // @Param preview_image_file formData file true "Preview image file"
-// @Param form_data formData VideoInfoStruct true "Video upload"
+// @Param form_data formData VideoInfoReqStruct true "Video upload"
 // @Success 200 {object} my_modules.ResponseFormat
 // @Failure 400 {object} my_modules.ResponseFormat
 // @Failure 403 {object} my_modules.ResponseFormat
@@ -52,6 +52,7 @@ func UploadVideo(c *gin.Context) {
 	payload, ok := my_modules.ExtractTokenPayload(c)
 	if !ok {
 		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "Unable to get user info", nil)
+		return
 	}
 
 	var id string = payload.Data.ID
@@ -59,10 +60,11 @@ func UploadVideo(c *gin.Context) {
 
 	if id == "" || _id_err != nil {
 		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "UUID of user is not provided", _id_err)
+		return
 	}
 
-	var uploadForm VideoUploadStruct
-	var infoForm VideoInfoStruct
+	var uploadForm VideoUploadReqStruct
+	var infoForm VideoInfoReqStruct
 	protected_video := fmt.Sprintf("%s/private/video", configs.EnvConfigs.VIDEO_UPLOAD_PATH)
 	upload_path := fmt.Sprintf("%s/original_video", protected_video)
 	if err := os.MkdirAll(upload_path, 0755); err != nil {
@@ -123,7 +125,19 @@ func UploadVideo(c *gin.Context) {
 	})
 	if ins_err != nil {
 		os.Remove(dst_video_file_path)
-		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Failed to update", nil)
+		errStr := ins_err.Error()
+		resp_err := "Failed to update"
+		switch {
+		case strings.Contains(strings.ToLower(errStr), "index must have unique name"):
+		case strings.Contains(strings.ToLower(errStr), "duplicate"):
+			resp_err = "Already exists"
+		default:
+			log.WithFields(log.Fields{
+				"ins_err": ins_err,
+			}).Errorln("Error in inserting data to mongo users")
+		}
+		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", resp_err, nil)
+		return
 	}
 
 	// unprotected_video := fmt.Sprintf("%s/public/video", base_path)
@@ -135,7 +149,7 @@ func UploadVideo(c *gin.Context) {
 	my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "", nil)
 }
 
-type VideoStreamStruct struct {
+type VideoStreamReqStruct struct {
 	Id []string `json:"video_ids" binding:"required"`
 }
 
@@ -143,10 +157,10 @@ type VideoStreamStruct struct {
 // @Summary Generate video stream
 // @Schemes
 // @Description api to get the list of all the videos uploaded by the logged user
-// @Tags Generate video stream
+// @Tags VideoManagement
 // @Accept json
 // @Produce json
-// @Param video_ids body VideoStreamStruct true "Video IDs"
+// @Param video_ids body VideoStreamReqStruct true "Video IDs"
 // @Success 200 {object} my_modules.ResponseFormat
 // @Failure 400 {object} my_modules.ResponseFormat
 // @Failure 403 {object} my_modules.ResponseFormat
@@ -159,7 +173,7 @@ func GenerateVideoStream(c *gin.Context) {
 		return
 	}
 
-	var videoStreamInfo VideoStreamStruct
+	var videoStreamInfo VideoStreamReqStruct
 	if err := c.ShouldBind(&videoStreamInfo); err != nil {
 		log.Errorln(err)
 		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Invalid upload payload", nil)
@@ -216,8 +230,6 @@ func GenerateVideoStream(c *gin.Context) {
 				var videoData database.VideoUploadModal
 				if err = cursor.Decode(&videoData); err != nil {
 					log.Errorln(fmt.Sprintf("Scan failed: %v\n", err))
-					// continue
-					my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Error in retrieving user data", nil)
 					return
 				}
 				path_split := strings.Split(videoData.LinkToOriginalVideo, "/")
@@ -254,7 +266,7 @@ func GenerateVideoStream(c *gin.Context) {
 
 }
 
-type VideoStreamKeyStruct struct {
+type VideoStreamKeyReqStruct struct {
 	VideoId string `json:"video_id" binding:"required"`
 }
 
@@ -262,10 +274,10 @@ type VideoStreamKeyStruct struct {
 // @Summary get video decode key
 // @Schemes
 // @Description api to get video decryption key for hls stream
-// @Tags Video decryption key
+// @Tags VideoManagement
 // @Accept json
 // @Produce json
-// @Param video_id body VideoStreamKeyStruct true "Video ID"
+// @Param video_id body VideoStreamKeyReqStruct true "Video ID"
 // @Success 200 {object} my_modules.ResponseFormat
 // @Failure 400 {object} my_modules.ResponseFormat
 // @Failure 403 {object} my_modules.ResponseFormat
@@ -273,7 +285,7 @@ type VideoStreamKeyStruct struct {
 // @Router /admin/get_stream_key/ [post]
 func GetStreamKey(c *gin.Context) {
 	ctx := c.Request.Context()
-	var videoStreamInfo VideoStreamKeyStruct
+	var videoStreamInfo VideoStreamKeyReqStruct
 	if err := c.ShouldBind(&videoStreamInfo); err != nil {
 		log.Errorln(err)
 		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Invalid upload payload", nil)
@@ -315,7 +327,7 @@ func GetStreamKey(c *gin.Context) {
 // @Summary get all uploaded videos
 // @Schemes
 // @Description api to get the list of all the videos uploaded by the logged user
-// @Tags List of video upload
+// @Tags VideoManagement
 // @Produce json
 // @Success 200 {object} my_modules.ResponseFormat
 // @Failure 400 {object} my_modules.ResponseFormat
@@ -371,11 +383,52 @@ func GetAllUploadedVideos(c *gin.Context) {
 	}
 }
 
-func CreatePlayList(c *gin.Context) {
+func GetAllPlayLists(c *gin.Context) {
+	// If Admin: All playlist created by user
+	// If Super Admin: All playlist created by all user
 
 }
 
+// @BasePath /api/
+// @Summary Create new playlist
+// @Schemes
+// @Description api to create new empty playlist
+// @Tags Playlist
+// @Accept json
+// @Produce json
+// @Param new_playlist_data body database.VideoPlayListModal true "New Playlist"
+// @Success 200 {object} my_modules.ResponseFormat
+// @Failure 400 {object} my_modules.ResponseFormat
+// @Failure 403 {object} my_modules.ResponseFormat
+// @Failure 500 {object} my_modules.ResponseFormat
+// @Router /admin/playlist/ [post]
+func CreatePlayList(c *gin.Context) {
+	ctx := c.Request.Context()
+	var newVideoPlayList database.VideoPlayListModal
+	if err := c.ShouldBind(&newVideoPlayList); err != nil {
+		log.Errorln(err)
+		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Invalid playlist payload", nil)
+		return
+	}
+	_time := time.Now()
+	newVideoPlayList.CreatedAt = _time
+	newVideoPlayList.UpdatedAt = _time
+	ins_res, ins_err := database.MONGO_COLLECTIONS.VideoPlayList.InsertOne(ctx, newVideoPlayList)
+	if ins_err != nil {
+		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Failed to update", nil)
+		return
+	}
+	newVideoPlayList.ID = ins_res.InsertedID.(primitive.ObjectID)
+	my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "success", newVideoPlayList)
+}
+
 func UpdatePlayList(c *gin.Context) {
+
+}
+
+func GetAllSubscriptionPackages(c *gin.Context) {
+	// If Admin: All subscription package created by user
+	// If Super Admin: All subscription package created by all user
 
 }
 

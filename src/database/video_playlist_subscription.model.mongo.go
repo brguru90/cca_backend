@@ -20,6 +20,8 @@ type VideoPlayListSubscriptionModal struct {
 	IsEnabled               bool               `json:"is_enabled,omitempty"  binding:"required" bson:"is_enabled,omitempty"`
 	SubscribedOn            []time.Time        `json:"subscribed_on,omitempty" binding:"required" bson:"subscribed_on"`
 	AmountPaid              []int64            `json:"amount_paid,omitempty" binding:"required" bson:"amount_paid"`
+	CreatedAt               time.Time          `json:"createdAt,omitempty" swaggerignore:"true"`
+	UpdatedAt               time.Time          `json:"updatedAt,omitempty" swaggerignore:"true"`
 }
 
 func InitVideoPlayListSubscriptionCollection() {
@@ -34,7 +36,7 @@ func InitVideoPlayListSubscriptionCollection() {
 	}
 
 	opts := options.CreateIndexes().SetMaxTime(10 * time.Second)
-	_, err := MONGO_COLLECTIONS.VideoPlayList.Indexes().CreateMany(context.Background(), indexes, opts)
+	_, err := MONGO_COLLECTIONS.VideoPlayListSubscription.Indexes().CreateMany(context.Background(), indexes, opts)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"err": err,

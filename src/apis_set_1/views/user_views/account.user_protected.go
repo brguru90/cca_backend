@@ -19,10 +19,10 @@ import (
 )
 
 // @BasePath /api
-// @Summary url to view user data
+// @Summary View user data
 // @Schemes
 // @Description allow people to view their user profile data
-// @Tags View user data
+// @Tags Account
 // @Accept json
 // @Produce json
 // @Param page query string false "page"
@@ -112,10 +112,10 @@ func GetUserData(c *gin.Context) {
 }
 
 // @BasePath /api
-// @Summary url to update user data
+// @Summary Update user data
 // @Schemes
 // @Description allow people to update their user profile data
-// @Tags Update user data
+// @Tags Account
 // @Accept json
 // @Produce json
 // @Param new_user body database.UsersModel true "Add user"
@@ -170,10 +170,10 @@ func UpdateUserData(c *gin.Context) {
 }
 
 // @BasePath /api
-// @Summary get active user login session
+// @Summary Get active user login session
 // @Schemes
 // @Description return the active user session/token across all browser
-// @Tags Get Active sessions
+// @Tags Session
 // @Accept json
 // @Produce json
 // @Success 200 {object} my_modules.ResponseFormat
@@ -223,7 +223,7 @@ func GetActiveSession(c *gin.Context) {
 // @Summary url to delete user account
 // @Schemes
 // @Description allow people to delete their account
-// @Tags Delete user account
+// @Tags Account
 // @Accept json
 // @Produce json
 // @Success 200 {object} my_modules.ResponseFormat
@@ -287,7 +287,7 @@ func Deleteuser(c *gin.Context) {
 // @Summary allow user to logout
 // @Schemes
 // @Description API allow user to logout, which delete the cookie which stores token
-// @Tags Logout
+// @Tags Session
 // @Accept json
 // @Produce json
 // @Success 200 {object} my_modules.ResponseFormat
@@ -336,10 +336,10 @@ func updateActiveSession(activeSessionsRow database.ActiveSessionsModel, status 
 }
 
 // @BasePath /api
-// @Summary block specified session
+// @Summary Block specified session
 // @Schemes
 // @Description Adds the token of user to block list based on provided token id
-// @Tags Block sessions
+// @Tags Session
 // @Accept json
 // @Produce json
 // @Param block_active_session body database.ActiveSessionsModel true "block token"
@@ -389,25 +389,4 @@ func BlockSession(c *gin.Context) {
 	}
 
 	my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "Blocked", rows_updated)
-}
-
-func GetAvailableSubscriptionPackages(c *gin.Context) {
-
-}
-
-func EnrollToSubscriptionPackage(c *gin.Context) {
-
-}
-
-func PaymentConfirmationForSubscription(c *gin.Context) {
-
-}
-
-func GetPlaylistAvailableOnSubscription(c *gin.Context) {
-
-}
-
-func GetPlaylistVideos(c *gin.Context) {
-	// Todo, all the videos belong to specified playlist
-
 }

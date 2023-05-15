@@ -26,7 +26,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Generate video stream"
+                    "VideoManagement"
                 ],
                 "summary": "Generate video stream",
                 "parameters": [
@@ -36,7 +36,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/admin_views.VideoStreamStruct"
+                            "$ref": "#/definitions/admin_views.VideoStreamReqStruct"
                         }
                     }
                 ],
@@ -78,7 +78,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Video decryption key"
+                    "VideoManagement"
                 ],
                 "summary": "get video decode key",
                 "parameters": [
@@ -88,7 +88,59 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/admin_views.VideoStreamKeyStruct"
+                            "$ref": "#/definitions/admin_views.VideoStreamKeyReqStruct"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/playlist/": {
+            "post": {
+                "description": "api to create new empty playlist",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Playlist"
+                ],
+                "summary": "Create new playlist",
+                "parameters": [
+                    {
+                        "description": "New Playlist",
+                        "name": "new_playlist_data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/database.VideoPlayListModal"
                         }
                     }
                 ],
@@ -127,7 +179,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "List of video upload"
+                    "VideoManagement"
                 ],
                 "summary": "get all uploaded videos",
                 "responses": {
@@ -168,7 +220,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Video upload"
+                    "VideoManagement"
                 ],
                 "summary": "video upload",
                 "parameters": [
@@ -247,7 +299,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Login"
+                    "Account"
                 ],
                 "summary": "url to login",
                 "parameters": [
@@ -257,7 +309,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/user_views.UserCredential"
+                            "$ref": "#/definitions/user_views.UserCredentialReqStruct"
                         }
                     }
                 ],
@@ -287,7 +339,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Mobile Login"
+                    "Account"
                 ],
                 "summary": "url to login with mobile number",
                 "parameters": [
@@ -297,7 +349,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/user_views.UserMobileCredential"
+                            "$ref": "#/definitions/user_views.UserMobileCredentialReqStruct"
                         }
                     }
                 ],
@@ -333,8 +385,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Login status"
+                    "Account"
                 ],
+                "summary": "Login status",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -373,7 +426,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "SignUp"
+                    "Account"
                 ],
                 "summary": "url to signup",
                 "parameters": [
@@ -383,7 +436,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/user_views.UserCredential"
+                            "$ref": "#/definitions/user_views.UserCredentialReqStruct"
                         }
                     }
                 ],
@@ -425,9 +478,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "View user data"
+                    "Account"
                 ],
-                "summary": "url to view user data",
+                "summary": "View user data",
                 "parameters": [
                     {
                         "type": "string",
@@ -472,9 +525,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Update user data"
+                    "Account"
                 ],
-                "summary": "url to update user data",
+                "summary": "Update user data",
                 "parameters": [
                     {
                         "description": "Add user",
@@ -522,7 +575,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Delete user account"
+                    "Account"
                 ],
                 "summary": "url to delete user account",
                 "responses": {
@@ -563,9 +616,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Get Active sessions"
+                    "Session"
                 ],
-                "summary": "get active user login session",
+                "summary": "Get active user login session",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -604,9 +657,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Block sessions"
+                    "Session"
                 ],
-                "summary": "block specified session",
+                "summary": "Block specified session",
                 "parameters": [
                     {
                         "description": "block token",
@@ -656,7 +709,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Logout"
+                    "Session"
                 ],
                 "summary": "allow user to logout",
                 "responses": {
@@ -689,6 +742,7 @@ const docTemplate = `{
         },
         "/verify_social_auth": {
             "post": {
+                "description": "url to signup/login with social authentication",
                 "consumes": [
                     "application/json"
                 ],
@@ -696,9 +750,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "VerifySocialAuth"
+                    "Account"
                 ],
-                "summary": "url to signup/login with social authentication",
+                "summary": "Verify Social Authentication",
                 "parameters": [
                     {
                         "description": "Add user",
@@ -706,7 +760,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/user_views.SocialAuth"
+                            "$ref": "#/definitions/user_views.SocialAuthReqStruct"
                         }
                     }
                 ],
@@ -740,7 +794,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "admin_views.VideoStreamKeyStruct": {
+        "admin_views.VideoStreamKeyReqStruct": {
             "type": "object",
             "required": [
                 "video_id"
@@ -751,7 +805,7 @@ const docTemplate = `{
                 }
             }
         },
-        "admin_views.VideoStreamStruct": {
+        "admin_views.VideoStreamReqStruct": {
             "type": "object",
             "required": [
                 "video_ids"
@@ -834,6 +888,35 @@ const docTemplate = `{
                 }
             }
         },
+        "database.VideoPlayListModal": {
+            "type": "object",
+            "required": [
+                "is_live",
+                "price",
+                "title",
+                "videos_ids"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "is_live": {
+                    "type": "boolean"
+                },
+                "price": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "videos_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "my_modules.ResponseFormat": {
             "type": "object",
             "required": [
@@ -851,7 +934,7 @@ const docTemplate = `{
                 }
             }
         },
-        "user_views.SocialAuth": {
+        "user_views.SocialAuthReqStruct": {
             "type": "object",
             "required": [
                 "idToken"
@@ -868,7 +951,7 @@ const docTemplate = `{
                 }
             }
         },
-        "user_views.UserCredential": {
+        "user_views.UserCredentialReqStruct": {
             "type": "object",
             "required": [
                 "email",
@@ -886,7 +969,7 @@ const docTemplate = `{
                 }
             }
         },
-        "user_views.UserMobileCredential": {
+        "user_views.UserMobileCredentialReqStruct": {
             "type": "object",
             "required": [
                 "mobile",

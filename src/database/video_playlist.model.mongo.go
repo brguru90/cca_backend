@@ -17,7 +17,9 @@ type VideoPlayListModal struct {
 	Description string               `json:"description,omitempty" bson:"description,omitempty"`
 	Price       int64                `json:"price,omitempty"  binding:"required" bson:"price,omitempty"`
 	IsLive      bool                 `json:"is_live,omitempty" binding:"required" bson:"is_live"`
-	VideosIDs   []primitive.ObjectID `json:"playlist_id,omitempty" binding:"required"  bson:"playlist_id,omitempty"`
+	VideosIDs   []primitive.ObjectID `json:"videos_ids,omitempty" binding:"required"  bson:"videos_ids,omitempty"`
+	CreatedAt   time.Time            `json:"createdAt,omitempty" swaggerignore:"true"`
+	UpdatedAt   time.Time            `json:"updatedAt,omitempty" swaggerignore:"true"`
 }
 
 func InitVideoPlayListCollection() {

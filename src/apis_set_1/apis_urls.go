@@ -67,10 +67,12 @@ func InitApiTest(router *gin.RouterGroup) {
 		admin_router.POST("get_stream_key/", admin_views.GetStreamKey)
 
 		// Todo, pending APIs
-		admin_router.POST("create_playlist/", admin_views.CreatePlayList)
-		admin_router.POST("update_playlist/", admin_views.UpdatePlayList)
-		admin_router.POST("create_subscription_package/", admin_views.CreateSubscriptionPackage)
-		admin_router.POST("update_subscription_package/", admin_views.UpdateSubscriptionPackage)
+		admin_router.GET("playlist/", admin_views.GetAllPlayLists)
+		admin_router.POST("playlist/", admin_views.CreatePlayList)
+		admin_router.PUT("playlist/", admin_views.UpdatePlayList)
+		admin_router.GET("subscription_package/", admin_views.CreateSubscriptionPackage)
+		admin_router.POST("subscription_package/", admin_views.CreateSubscriptionPackage)
+		admin_router.PUT("subscription_package/", admin_views.UpdateSubscriptionPackage)
 
 	}
 

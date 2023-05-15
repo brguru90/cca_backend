@@ -64,6 +64,10 @@ func InitMongoDB() {
 
 	InitUserCollection()
 	InitActiveSessionCollection()
+	InitVideoUploadCollection()
+	InitVideoPlayListCollection()
+	InitVideoPlayListSubscriptionCollection()
+
 	createSampleCollection()
 }
 

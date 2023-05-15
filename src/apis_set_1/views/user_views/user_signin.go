@@ -22,7 +22,7 @@ type CredentialErrorPayload struct {
 	Errors_data map[string]interface{} `json:"errors,omitempty"`
 }
 
-type UserCredential struct {
+type UserCredentialReqStruct struct {
 	Email    string `json:"email" binding:"required"`
 	Password string `json:"password" binding:"required"`
 	Username string `json:"username"`
@@ -32,10 +32,10 @@ type UserCredential struct {
 // @Summary url to signup
 // @Schemes
 // @Description allow people to create new to user account
-// @Tags SignUp
+// @Tags Account
 // @Accept json
 // @Produce json
-// @Param new_user body UserCredential true "Add user"
+// @Param new_user body UserCredentialReqStruct true "Add user"
 // @Success 200 {object} my_modules.ResponseFormat
 // @Failure 400 {object} my_modules.ResponseFormat
 // @Failure 500 {object} my_modules.ResponseFormat
@@ -43,7 +43,7 @@ type UserCredential struct {
 // @Router /sign_up [post]
 func SignUp(c *gin.Context) {
 	ctx := context.Background()
-	var newUserRow UserCredential
+	var newUserRow UserCredentialReqStruct
 	// ShouldBindJSON will validate json body & convert it to structure object
 	if err := c.ShouldBindJSON(&newUserRow); err != nil {
 		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "Invalid input data format", nil)
@@ -117,10 +117,10 @@ func SignUp(c *gin.Context) {
 // @Summary url to login
 // @Schemes
 // @Description allow people to login into their account
-// @Tags Login
+// @Tags Account
 // @Accept json
 // @Produce json
-// @Param existing_user body UserCredential true "Add user"
+// @Param existing_user body UserCredentialReqStruct true "Add user"
 //ignore // @Success 200 {object} my_modules.ResponseFormat
 // @Failure 400 {object} my_modules.ResponseFormat
 // @Failure 500 {object} my_modules.ResponseFormat
@@ -128,7 +128,7 @@ func SignUp(c *gin.Context) {
 func Login(c *gin.Context) {
 	ctx := context.Background()
 	_errors := make(map[string]interface{})
-	var userCredential UserCredential
+	var userCredential UserCredentialReqStruct
 	if err := c.ShouldBindJSON(&userCredential); err != nil {
 		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "Invalid input data format", nil)
 		return
@@ -201,7 +201,7 @@ func Login(c *gin.Context) {
 	my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "Authorization success", userData)
 }
 
-type UserMobileCredential struct {
+type UserMobileCredentialReqStruct struct {
 	Mobile   string `json:"mobile" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
@@ -210,10 +210,10 @@ type UserMobileCredential struct {
 // @Summary url to login with mobile number
 // @Schemes
 // @Description allow people to login into their account
-// @Tags Mobile Login
+// @Tags Account
 // @Accept json
 // @Produce json
-// @Param existing_user body UserMobileCredential true "Add user"
+// @Param existing_user body UserMobileCredentialReqStruct true "Add user"
 // @Success 200 {object} my_modules.ResponseFormat
 // @Failure 400 {object} my_modules.ResponseFormat
 // @Failure 500 {object} my_modules.ResponseFormat
@@ -221,7 +221,7 @@ type UserMobileCredential struct {
 func LoginWithMobile(c *gin.Context) {
 	ctx := context.Background()
 	_errors := make(map[string]interface{})
-	var userCredential UserMobileCredential
+	var userCredential UserMobileCredentialReqStruct
 	if err := c.ShouldBindJSON(&userCredential); err != nil {
 		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "Invalid input data format", nil)
 		return
@@ -283,31 +283,32 @@ func LoginWithMobile(c *gin.Context) {
 	my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "Authorization success", userData)
 }
 
-type SocialAuth struct {
+type SocialAuthReqStruct struct {
 	IdToken  string `json:"idToken" binding:"required"`
 	Name     string `json:"name"`
 	Password string `json:"password"`
 }
 
-type SocialAuthLogin struct {
+type SocialAuthLoginStruct struct {
 	LoginType string `json:"login_type" binding:"required"`
 	database.UsersModel
 }
 
 // @BasePath /api
-// @Summary url to signup/login with social authentication
+// @Summary Verify Social Authentication
 // @Schemes
-// @Tags VerifySocialAuth
+// @Description  url to signup/login with social authentication
+// @Tags Account
 // @Accept json
 // @Produce json
-// @Param new_or_existing_user body SocialAuth true "Add user"
+// @Param new_or_existing_user body SocialAuthReqStruct true "Add user"
 // @Success 200 {object} my_modules.ResponseFormat
 // @Failure 400 {object} my_modules.ResponseFormat
 // @Failure 500 {object} my_modules.ResponseFormat
 // @Failure 403 {object} my_modules.ResponseFormat
 // @Router /verify_social_auth [post]
 func VerifySocialAuth(c *gin.Context) {
-	var socialAuth SocialAuth
+	var socialAuth SocialAuthReqStruct
 	if err := c.ShouldBindJSON(&socialAuth); err != nil {
 		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "Invalid input data format", nil)
 		return
@@ -436,7 +437,7 @@ func VerifySocialAuth(c *gin.Context) {
 	}
 
 	// access_token_payload := my_modules.Authenticate(c, newUserData)
-	loginData := SocialAuthLogin{
+	loginData := SocialAuthLoginStruct{
 		UsersModel: newUserData,
 		LoginType:  "login",
 	}
@@ -475,15 +476,15 @@ func VerifySocialAuth(c *gin.Context) {
 
 }
 
-type LoginStatusPayload struct {
+type LoginStatusPayloadReqStruct struct {
 	ExtendSession bool `json:"extend_session" binding:"required"`
 }
 
 // @BasePath /api
-// @Summary
+// @Summary Login status
 // @Schemes
 // @Description api used to validate user login session
-// @Tags Login status
+// @Tags Account
 // @Accept json
 // @Produce json
 // @Success 200 {object} my_modules.ResponseFormat
@@ -492,7 +493,7 @@ type LoginStatusPayload struct {
 // @Failure 500 {object} my_modules.ResponseFormat
 // @Router /login_status [get]
 func LoginStatus(c *gin.Context) {
-	var loginStatusPayload LoginStatusPayload
+	var loginStatusPayload LoginStatusPayloadReqStruct
 
 	decoded_token, err, http_status, ok := my_modules.LoginStatus(c, nil, false)
 	if err != "" {
