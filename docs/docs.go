@@ -350,11 +350,34 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/user_views.UserCredentialReqStruct"
                         }
+                    },
+                    {
+                        "enum": [
+                            "admin",
+                            "super_admin",
+                            "customer"
+                        ],
+                        "type": "string",
+                        "description": "Access level",
+                        "name": "access_level",
+                        "in": "query"
                     }
                 ],
                 "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/my_modules.ResponseFormat"
                         }
@@ -427,6 +450,19 @@ const docTemplate = `{
                     "Account"
                 ],
                 "summary": "Login status",
+                "parameters": [
+                    {
+                        "enum": [
+                            "admin",
+                            "super_admin",
+                            "customer"
+                        ],
+                        "type": "string",
+                        "description": "Access level",
+                        "name": "access_level",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",

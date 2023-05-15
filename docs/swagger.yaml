@@ -349,11 +349,27 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/user_views.UserCredentialReqStruct'
+      - description: Access level
+        enum:
+        - admin
+        - super_admin
+        - customer
+        in: query
+        name: access_level
+        type: string
       produces:
       - application/json
       responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
           schema:
             $ref: '#/definitions/my_modules.ResponseFormat'
         "500":
@@ -398,6 +414,15 @@ paths:
       consumes:
       - application/json
       description: api used to validate user login session
+      parameters:
+      - description: Access level
+        enum:
+        - admin
+        - super_admin
+        - customer
+        in: query
+        name: access_level
+        type: string
       produces:
       - application/json
       responses:

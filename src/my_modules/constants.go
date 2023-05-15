@@ -22,3 +22,9 @@ var AllAccessLevel = map[string]bool{
 	AccessLevel.ADMIN.Label:       true,
 	AccessLevel.CUSTOMER.Label:    true,
 }
+
+var AllAccessLevelReverseMap = map[string]AccessLevelType{
+	AccessLevel.SUPER_ADMIN.Label: AccessLevel.SUPER_ADMIN,
+	AccessLevel.ADMIN.Label:       AccessLevel.ADMIN,
+	AccessLevel.CUSTOMER.Label:    AccessLevel.CUSTOMER,
+}

@@ -119,9 +119,11 @@ func SignUp(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param existing_user body UserCredentialReqStruct true "Add user"
-//ignore // @Success 200 {object} my_modules.ResponseFormat
+// @Param access_level query string false "Access level" Enums(admin, super_admin, customer)
+// @Success 200 {object} my_modules.ResponseFormat
 // @Failure 400 {object} my_modules.ResponseFormat
 // @Failure 500 {object} my_modules.ResponseFormat
+// @Failure 403 {object} my_modules.ResponseFormat
 // @Router /login [post]
 func Login(c *gin.Context) {
 	ctx := context.Background()
@@ -133,19 +135,19 @@ func Login(c *gin.Context) {
 	}
 	var userData mongo_modals.UsersModel
 	{
-		// access_level, ok := c.GetQuery("access_level")
-		// if !ok {
-		// 	access_level = my_modules.AccessLevel.CUSTOMER.Label
-		// } else {
-		// 	_, ok = my_modules.AllAccessLevel[access_level]
-		// 	if !ok {
-		// 		access_level = my_modules.AccessLevel.CUSTOMER.Label
-		// 	}
-		// }
+		access_level, ok := c.GetQuery("access_level")
+		if !ok {
+			access_level = my_modules.AccessLevel.CUSTOMER.Label
+		} else {
+			_, ok = my_modules.AllAccessLevel[access_level]
+			if !ok {
+				access_level = my_modules.AccessLevel.CUSTOMER.Label
+			}
+		}
 
 		err := database_connections.MONGO_COLLECTIONS.Users.FindOne(ctx, bson.M{
-			"email": userCredential.Email,
-			// "access_level": access_level,
+			"email":        userCredential.Email,
+			"access_level": access_level,
 		}).Decode(&userData)
 		if err != nil {
 			if err == mongo.ErrNoDocuments {
@@ -485,6 +487,7 @@ type LoginStatusPayloadReqStruct struct {
 // @Tags Account
 // @Accept json
 // @Produce json
+// @Param access_level query string false "Access level" Enums(admin, super_admin, customer)
 // @Success 200 {object} my_modules.ResponseFormat
 // @Failure 400 {object} my_modules.ResponseFormat
 // @Failure 403 {object} my_modules.ResponseFormat
@@ -493,7 +496,9 @@ type LoginStatusPayloadReqStruct struct {
 func LoginStatus(c *gin.Context) {
 	var loginStatusPayload LoginStatusPayloadReqStruct
 
-	decoded_token, err, http_status, ok := my_modules.LoginStatus(c, nil, false)
+	access_level, ok := my_modules.AllAccessLevelReverseMap[c.Query("access_level")]
+
+	decoded_token, err, http_status, ok := my_modules.LoginStatus(c, access_level, false)
 	if err != "" {
 		my_modules.CreateAndSendResponse(c, http_status, "error", err, nil)
 		return
