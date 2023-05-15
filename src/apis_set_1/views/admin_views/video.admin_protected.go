@@ -497,7 +497,62 @@ func CreatePlayList(c *gin.Context) {
 	my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "success", newVideoPlayList)
 }
 
+type PlaylistVideoReqStruct struct {
+	Ids []string `form:"videos_ids" binding:"required"`
+}
+
 func UpdatePlayList(c *gin.Context) {
+	ctx := c.Request.Context()
+	var videos_info PlaylistVideoReqStruct
+	if err := c.ShouldBind(&videos_info); err != nil {
+		log.Errorln(err)
+		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Invalid playlist payload", nil)
+		return
+	}
+	payload, ok := my_modules.ExtractTokenPayload(c)
+	if !ok {
+		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "Unable to get user info", nil)
+		return
+	}
+
+	var id string = payload.Data.ID
+	_id, _id_err := primitive.ObjectIDFromHex(payload.Data.ID)
+
+	if id == "" || _id_err != nil {
+		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "UUID of user is not provided", _id_err)
+		return
+	}
+
+	where := bson.M{
+		"created_by_user": _id,
+	}
+	if payload.Data.AccessLevel == "super_admin" {
+		where = bson.M{}
+	}
+	res, err := database_connections.MONGO_COLLECTIONS.VideoPlayList.UpdateOne(
+		ctx,
+		bson.M{
+			"_id": _id,
+		},
+		bson.M{
+			"$set": bson.M{
+				"email":     updateWithData.Email,
+				"username":  updateWithData.Username,
+				"updatedAt": _time,
+			}},
+	)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"err": err,
+		}).Errorln("Failed to update user data")
+		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Failed to update data", nil)
+		return
+	}
+	var response_data = make(map[string]interface{})
+	response_data["updated_with_data"] = updateWithData
+	response_data["updated_count"] = res.ModifiedCount
+	response_data["match_count"] = res.MatchedCount
+	my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "Updated successfully", response_data)
 
 }
 

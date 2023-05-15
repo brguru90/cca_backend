@@ -1,3 +1,18 @@
+********* content protection on app level *****
+/api/add_app_only_decrypt_key/
+1. before app build, an encryption key(app_key) is generated along with app_id
+2. app_key & app_id will be passed as env for app build
+3. same app_key & app_id pushed to server database(may be internal api or with admin cred)
+4. on app build, they app_key will be passed to content_decryption_function
+5. http://host/api/get_video_key?video_id=10   
+    this api will be called along with app_id, to get video key 
+    & the video key will be again decrypted with app_key
+6.In above API server will encrypted video key with same app_key based on app_id
+    
+    
+    
+    
+    
     *** tables ***
 
 
