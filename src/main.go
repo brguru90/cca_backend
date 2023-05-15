@@ -27,11 +27,8 @@ var SERVER_PORT string = "8000"
 func main() {
 	configs.InitEnv()
 	my_modules.InitLogger()
-	// database.ConnectPostgres()
-	database.InitMongoDB()
-	database.ConnectRedis()
+	database.InitDataBases()
 	my_modules.InitFirebase()
-	database.InitRedisPool()
 	go triggers.TriggerForUsersModification()
 	go my_modules.InitCronJobs()
 

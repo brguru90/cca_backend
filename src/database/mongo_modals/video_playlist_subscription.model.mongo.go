@@ -1,6 +1,7 @@
-package database
+package mongo_modals
 
 import (
+	"cca/src/database/database_connections"
 	"context"
 	"time"
 
@@ -36,7 +37,7 @@ func InitVideoPlayListSubscriptionCollection() {
 	}
 
 	opts := options.CreateIndexes().SetMaxTime(10 * time.Second)
-	_, err := MONGO_COLLECTIONS.VideoPlayListSubscription.Indexes().CreateMany(context.Background(), indexes, opts)
+	_, err := database_connections.MONGO_COLLECTIONS.VideoPlayListSubscription.Indexes().CreateMany(context.Background(), indexes, opts)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"err": err,

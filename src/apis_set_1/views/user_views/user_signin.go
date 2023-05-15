@@ -1,13 +1,14 @@
 package user_views
 
 import (
-	"cca/src/database"
+	"cca/src/database/database_connections"
+	"cca/src/database/database_utils"
+	"cca/src/database/mongo_modals"
 	"cca/src/my_modules"
 	"context"
 	"crypto/sha1"
 	"encoding/hex"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -50,11 +51,11 @@ func SignUp(c *gin.Context) {
 		return
 	}
 	_errors := make(map[string]interface{})
-	var newUserData database.UsersModel
+	var newUserData mongo_modals.UsersModel
 	{
 		_time := time.Now()
 		ph := sha1.Sum([]byte(newUserRow.Password))
-		newUserData = database.UsersModel{
+		newUserData = mongo_modals.UsersModel{
 			// Uid:          uuid.New().String(),
 			Email:             newUserRow.Email,
 			Username:          newUserRow.Username,
@@ -65,15 +66,12 @@ func SignUp(c *gin.Context) {
 			AccessLevel:       my_modules.AccessLevel.CUSTOMER.Label,
 			AccessLevelWeight: my_modules.AccessLevel.CUSTOMER.Weight,
 		}
-		ins_res, ins_err := database.MONGO_COLLECTIONS.Users.InsertOne(ctx, newUserData)
+		ins_res, ins_err := database_connections.MONGO_COLLECTIONS.Users.InsertOne(ctx, newUserData)
 		if ins_err != nil {
-			errStr := ins_err.Error()
-			log.Infoln(errStr)
-			switch {
-			case strings.Contains(strings.ToLower(errStr), "index must have unique name"):
-			case strings.Contains(strings.ToLower(errStr), "duplicate"):
-				_errors["email"] = "already exists"
-			default:
+			resp_err, is_known := database_utils.GetDBErrorString(ins_err)
+			if is_known {
+				_errors["email"] = resp_err
+			} else {
 				log.WithFields(log.Fields{
 					"ins_err": ins_err,
 				}).Errorln("Error in inserting data to mongo users")
@@ -92,7 +90,7 @@ func SignUp(c *gin.Context) {
 	access_token_payload := my_modules.Authenticate(c, newUserData, "some safe data", false)
 	{
 		_time := time.Now()
-		_, ins_err := database.MONGO_COLLECTIONS.ActiveSessions.InsertOne(ctx, database.ActiveSessionsModel{
+		_, ins_err := database_connections.MONGO_COLLECTIONS.ActiveSessions.InsertOne(ctx, mongo_modals.ActiveSessionsModel{
 			UserID:    newUserData.ID,
 			TokenID:   access_token_payload.Token_id,
 			IP:        c.ClientIP(),
@@ -133,7 +131,7 @@ func Login(c *gin.Context) {
 		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "Invalid input data format", nil)
 		return
 	}
-	var userData database.UsersModel
+	var userData mongo_modals.UsersModel
 	{
 		// access_level, ok := c.GetQuery("access_level")
 		// if !ok {
@@ -145,7 +143,7 @@ func Login(c *gin.Context) {
 		// 	}
 		// }
 
-		err := database.MONGO_COLLECTIONS.Users.FindOne(ctx, bson.M{
+		err := database_connections.MONGO_COLLECTIONS.Users.FindOne(ctx, bson.M{
 			"email": userCredential.Email,
 			// "access_level": access_level,
 		}).Decode(&userData)
@@ -180,7 +178,7 @@ func Login(c *gin.Context) {
 	access_token_payload := my_modules.Authenticate(c, userData, "some safe data", false)
 	{
 		_time := time.Now()
-		_, ins_err := database.MONGO_COLLECTIONS.ActiveSessions.InsertOne(ctx, database.ActiveSessionsModel{
+		_, ins_err := database_connections.MONGO_COLLECTIONS.ActiveSessions.InsertOne(ctx, mongo_modals.ActiveSessionsModel{
 			UserID:    userData.ID,
 			TokenID:   access_token_payload.Token_id,
 			IP:        c.ClientIP(),
@@ -226,9 +224,9 @@ func LoginWithMobile(c *gin.Context) {
 		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "Invalid input data format", nil)
 		return
 	}
-	var userData database.UsersModel
+	var userData mongo_modals.UsersModel
 	{
-		err := database.MONGO_COLLECTIONS.Users.FindOne(ctx, bson.M{
+		err := database_connections.MONGO_COLLECTIONS.Users.FindOne(ctx, bson.M{
 			"mobile": userCredential.Mobile,
 		}).Decode(&userData)
 		if err != nil {
@@ -262,7 +260,7 @@ func LoginWithMobile(c *gin.Context) {
 	access_token_payload := my_modules.Authenticate(c, userData, "some safe data", false)
 	{
 		_time := time.Now()
-		_, ins_err := database.MONGO_COLLECTIONS.ActiveSessions.InsertOne(ctx, database.ActiveSessionsModel{
+		_, ins_err := database_connections.MONGO_COLLECTIONS.ActiveSessions.InsertOne(ctx, mongo_modals.ActiveSessionsModel{
 			UserID:    userData.ID,
 			TokenID:   access_token_payload.Token_id,
 			IP:        c.ClientIP(),
@@ -291,7 +289,7 @@ type SocialAuthReqStruct struct {
 
 type SocialAuthLoginStruct struct {
 	LoginType string `json:"login_type" binding:"required"`
-	database.UsersModel
+	mongo_modals.UsersModel
 }
 
 // @BasePath /api
@@ -338,11 +336,11 @@ func VerifySocialAuth(c *gin.Context) {
 	// claims="map[auth_time:1.65298436e+09 email:brguru90@gmail.com email_verified:true firebase:map[identities:map[email:[brguru90@gmail.com] google.com:[114141226575791102096]] sign_in_provider:google.com] name:GURUPRASAD BR picture:https://lh3.googleusercontent.com/a-/AOh14GjplxOLH3kgFpntqdydk9guYNJQdpDMqvPC7GEf=s96-c user_id:0cD0lvwH2aYKEpkx6HDvk2ZR4Af1]"
 
 	ctx := context.Background()
-	var newUserData database.UsersModel
+	var newUserData mongo_modals.UsersModel
 	var login bool = true
 	{
 		_time := time.Now()
-		newUserData = database.UsersModel{
+		newUserData = mongo_modals.UsersModel{
 			Uid:               token.UID,
 			AuthProvider:      token.Firebase.SignInProvider,
 			AccessLevel:       my_modules.AccessLevel.CUSTOMER.Label,
@@ -370,7 +368,7 @@ func VerifySocialAuth(c *gin.Context) {
 				},
 			},
 		}}
-		err := database.MONGO_COLLECTIONS.Users.FindOne(ctx, filter).Decode(&newUserData)
+		err := database_connections.MONGO_COLLECTIONS.Users.FindOne(ctx, filter).Decode(&newUserData)
 		log.WithFields(log.Fields{
 			"newUserData": newUserData,
 		}).Infoln()
@@ -378,7 +376,7 @@ func VerifySocialAuth(c *gin.Context) {
 		if err != nil {
 			if err == mongo.ErrNoDocuments {
 				// if user not already exists
-				ins_res, ins_err := database.MONGO_COLLECTIONS.Users.InsertOne(ctx, newUserData)
+				ins_res, ins_err := database_connections.MONGO_COLLECTIONS.Users.InsertOne(ctx, newUserData)
 				if ins_err != nil {
 					log.WithFields(log.Fields{
 						"ins_err": ins_err,
@@ -401,7 +399,7 @@ func VerifySocialAuth(c *gin.Context) {
 
 		if token.Firebase.SignInProvider == "phone" {
 			ph := sha1.Sum([]byte(socialAuth.Password))
-			var updateUserData database.UsersModel
+			var updateUserData mongo_modals.UsersModel
 			// updateUserData := newUserData
 			updateUserData.Uid = newUserData.Uid
 			updateUserData.AuthProvider = newUserData.AuthProvider
@@ -409,7 +407,7 @@ func VerifySocialAuth(c *gin.Context) {
 			updateUserData.Username = socialAuth.Name
 			updateUserData.Password = hex.EncodeToString(ph[:])
 			if updateWith, bsonParseErr := my_modules.StructToBsonD(updateUserData); bsonParseErr == nil {
-				updateRes, update_err := database.MONGO_COLLECTIONS.Users.UpdateOne(ctx,
+				updateRes, update_err := database_connections.MONGO_COLLECTIONS.Users.UpdateOne(ctx,
 					filter,
 					bson.D{{"$set", updateWith}})
 				if update_err != nil {
@@ -453,7 +451,7 @@ func VerifySocialAuth(c *gin.Context) {
 	access_token_payload := my_modules.Authenticate(c, loginData.UsersModel, "some safe data", false)
 	{
 		_time := time.Now()
-		_, ins_err := database.MONGO_COLLECTIONS.ActiveSessions.InsertOne(ctx, database.ActiveSessionsModel{
+		_, ins_err := database_connections.MONGO_COLLECTIONS.ActiveSessions.InsertOne(ctx, mongo_modals.ActiveSessionsModel{
 			UserID:    newUserData.ID,
 			TokenID:   access_token_payload.Token_id,
 			IP:        c.ClientIP(),

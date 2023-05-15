@@ -2,7 +2,9 @@ package admin_views
 
 import (
 	"cca/src/configs"
-	"cca/src/database"
+	"cca/src/database/database_connections"
+	"cca/src/database/database_utils"
+	"cca/src/database/mongo_modals"
 	"cca/src/my_modules"
 	"context"
 	"fmt"
@@ -112,7 +114,7 @@ func UploadVideo(c *gin.Context) {
 	}
 
 	_time := time.Now()
-	_, ins_err := database.MONGO_COLLECTIONS.VideoUploads.InsertOne(ctx, database.VideoUploadModal{
+	_, ins_err := database_connections.MONGO_COLLECTIONS.VideoUploads.InsertOne(ctx, mongo_modals.VideoUploadModal{
 		Title:                   infoForm.Title,
 		CreatedByUser:           infoForm.CreatedBy,
 		Description:             infoForm.Description,
@@ -125,13 +127,8 @@ func UploadVideo(c *gin.Context) {
 	})
 	if ins_err != nil {
 		os.Remove(dst_video_file_path)
-		errStr := ins_err.Error()
-		resp_err := "Failed to update"
-		switch {
-		case strings.Contains(strings.ToLower(errStr), "index must have unique name"):
-		case strings.Contains(strings.ToLower(errStr), "duplicate"):
-			resp_err = "Already exists"
-		default:
+		resp_err, is_known := database_utils.GetDBErrorString(ins_err)
+		if !is_known {
 			log.WithFields(log.Fields{
 				"ins_err": ins_err,
 			}).Errorln("Error in inserting data to mongo users")
@@ -168,7 +165,7 @@ type VideoStreamReqStruct struct {
 // @Router /admin/generate_video_stream/ [post]
 func GenerateVideoStream(c *gin.Context) {
 	ctx := c.Request.Context()
-	if _, err := database.REDIS_DB_CONNECTION.Get(ctx, "video_stream_generation_in_progress").Result(); err == nil {
+	if _, err := database_connections.REDIS_DB_CONNECTION.Get(ctx, "video_stream_generation_in_progress").Result(); err == nil {
 		my_modules.CreateAndSendResponse(c, http.StatusOK, "warning", "Process is already running", nil)
 		return
 	}
@@ -193,7 +190,7 @@ func GenerateVideoStream(c *gin.Context) {
 	var err error
 	var cursor *mongo.Cursor
 	defer cursor.Close(ctx)
-	cursor, err = database.MONGO_COLLECTIONS.VideoUploads.Find(ctx, bson.M{"_id": bson.M{"$in": videos_doc_id}})
+	cursor, err = database_connections.MONGO_COLLECTIONS.VideoUploads.Find(ctx, bson.M{"_id": bson.M{"$in": videos_doc_id}})
 	if err != nil {
 		if err != context.Canceled {
 			log.WithFields(log.Fields{
@@ -210,24 +207,24 @@ func GenerateVideoStream(c *gin.Context) {
 		// }
 		go func(ids []primitive.ObjectID) {
 			ctx, _ := context.WithTimeout(context.Background(), time.Hour*1)
-			cursor, err := database.MONGO_COLLECTIONS.VideoUploads.Find(ctx, bson.M{"_id": bson.M{"$in": ids}})
+			cursor, err := database_connections.MONGO_COLLECTIONS.VideoUploads.Find(ctx, bson.M{"_id": bson.M{"$in": ids}})
 			if err == nil {
 				defer cursor.Close(ctx)
 			}
-			if err := database.RedisPoolSet("video_stream_generation_in_progress", "value", 60*time.Minute); err != nil {
+			if err := database_connections.RedisPoolSet("video_stream_generation_in_progress", "value", 60*time.Minute); err != nil {
 				log.WithFields(log.Fields{
 					"Error": err,
 				}).Panic("Unable to write into redis pool")
 			}
 			defer func() {
-				if err := database.RedisPoolDel("video_stream_generation_in_progress"); err != nil {
+				if err := database_connections.RedisPoolDel("video_stream_generation_in_progress"); err != nil {
 					log.WithFields(log.Fields{
 						"Error": err,
 					}).Panic("Unable to write into redis pool")
 				}
 			}()
 			for cursor.Next(ctx) {
-				var videoData database.VideoUploadModal
+				var videoData mongo_modals.VideoUploadModal
 				if err = cursor.Decode(&videoData); err != nil {
 					log.Errorln(fmt.Sprintf("Scan failed: %v\n", err))
 					return
@@ -251,7 +248,7 @@ func GenerateVideoStream(c *gin.Context) {
 					"video_decryption_key": video_decryption_key,
 				}).Debugln("Unable to write into redis pool")
 
-				database.MONGO_COLLECTIONS.VideoUploads.UpdateOne(
+				database_connections.MONGO_COLLECTIONS.VideoUploads.UpdateOne(
 					context.Background(),
 					bson.M{
 						"_id": videoData.ID,
@@ -299,8 +296,8 @@ func GetStreamKey(c *gin.Context) {
 		return
 	}
 
-	var videoData database.VideoUploadModal
-	err = database.MONGO_COLLECTIONS.VideoUploads.FindOne(ctx, bson.M{
+	var videoData mongo_modals.VideoUploadModal
+	err = database_connections.MONGO_COLLECTIONS.VideoUploads.FindOne(ctx, bson.M{
 		"_id": objID,
 		// "access_level": access_level,
 	}).Decode(&videoData)
@@ -352,7 +349,7 @@ func GetAllUploadedVideos(c *gin.Context) {
 
 	var err error
 	var cursor *mongo.Cursor
-	cursor, err = database.MONGO_COLLECTIONS.VideoUploads.Find(ctx, bson.M{
+	cursor, err = database_connections.MONGO_COLLECTIONS.VideoUploads.Find(ctx, bson.M{
 		"uploaded_by_user": _id,
 	})
 	if err != nil {
@@ -365,9 +362,9 @@ func GetAllUploadedVideos(c *gin.Context) {
 		return
 	} else {
 		defer cursor.Close(ctx)
-		var videosList []database.VideoUploadModal = []database.VideoUploadModal{}
+		var videosList []mongo_modals.VideoUploadModal = []mongo_modals.VideoUploadModal{}
 		for cursor.Next(c.Request.Context()) {
-			var videoData database.VideoUploadModal
+			var videoData mongo_modals.VideoUploadModal
 			if err = cursor.Decode(&videoData); err != nil {
 				log.Errorln(fmt.Sprintf("Scan failed: %v\n", err))
 				// continue
@@ -383,10 +380,66 @@ func GetAllUploadedVideos(c *gin.Context) {
 	}
 }
 
+// @BasePath /api/
+// @Summary Get list of playlist
+// @Schemes
+// @Description api to fetch existing playlist
+// @Tags Playlist
+// @Accept json
+// @Produce json
+// @Success 200 {object} my_modules.ResponseFormat
+// @Failure 400 {object} my_modules.ResponseFormat
+// @Failure 403 {object} my_modules.ResponseFormat
+// @Failure 500 {object} my_modules.ResponseFormat
+// @Router /admin/playlist/ [get]
 func GetAllPlayLists(c *gin.Context) {
 	// If Admin: All playlist created by user
 	// If Super Admin: All playlist created by all user
+	ctx := c.Request.Context()
+	payload, ok := my_modules.ExtractTokenPayload(c)
+	if !ok {
+		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "Unable to get user info", nil)
+		return
+	}
 
+	var id string = payload.Data.ID
+	_id, _id_err := primitive.ObjectIDFromHex(payload.Data.ID)
+
+	if id == "" || _id_err != nil {
+		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "UUID of user is not provided", _id_err)
+		return
+	}
+
+	where := bson.M{
+		"created_by_user": _id,
+	}
+	if payload.Data.AccessLevel == "super_admin" {
+		where = bson.M{}
+	}
+	cursor, err := database_connections.MONGO_COLLECTIONS.VideoPlayList.Find(ctx, where)
+	if err != nil {
+		if err != mongo.ErrNoDocuments {
+			log.WithFields(log.Fields{
+				"err": err,
+			}).Errorln("Failed to load session data")
+		}
+		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "No record found", nil)
+		return
+	} else {
+		defer cursor.Close(ctx)
+		var playlistsData []mongo_modals.VideoPlayListModal = []mongo_modals.VideoPlayListModal{}
+		// cursor.All(ctx,sessionsData);
+		for cursor.Next(c.Request.Context()) {
+			var playlistData mongo_modals.VideoPlayListModal
+			if err = cursor.Decode(&playlistData); err != nil {
+				my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Error in retrieving video playlist data", nil)
+				return
+			}
+			playlistsData = append(playlistsData, playlistData)
+		}
+		my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "Record found", playlistsData)
+		return
+	}
 }
 
 // @BasePath /api/
@@ -396,7 +449,7 @@ func GetAllPlayLists(c *gin.Context) {
 // @Tags Playlist
 // @Accept json
 // @Produce json
-// @Param new_playlist_data body database.VideoPlayListModal true "New Playlist"
+// @Param new_playlist_data body mongo_modals.VideoPlayListModal true "New Playlist"
 // @Success 200 {object} my_modules.ResponseFormat
 // @Failure 400 {object} my_modules.ResponseFormat
 // @Failure 403 {object} my_modules.ResponseFormat
@@ -404,18 +457,40 @@ func GetAllPlayLists(c *gin.Context) {
 // @Router /admin/playlist/ [post]
 func CreatePlayList(c *gin.Context) {
 	ctx := c.Request.Context()
-	var newVideoPlayList database.VideoPlayListModal
+	var newVideoPlayList mongo_modals.VideoPlayListModal
 	if err := c.ShouldBind(&newVideoPlayList); err != nil {
 		log.Errorln(err)
 		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Invalid playlist payload", nil)
 		return
 	}
+	payload, ok := my_modules.ExtractTokenPayload(c)
+	if !ok {
+		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "Unable to get user info", nil)
+		return
+	}
+
+	var id string = payload.Data.ID
+	_id, _id_err := primitive.ObjectIDFromHex(payload.Data.ID)
+
+	if id == "" || _id_err != nil {
+		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "UUID of user is not provided", _id_err)
+		return
+	}
+
 	_time := time.Now()
 	newVideoPlayList.CreatedAt = _time
 	newVideoPlayList.UpdatedAt = _time
-	ins_res, ins_err := database.MONGO_COLLECTIONS.VideoPlayList.InsertOne(ctx, newVideoPlayList)
+	newVideoPlayList.CreatedByUser = _id
+	ins_res, ins_err := database_connections.MONGO_COLLECTIONS.VideoPlayList.InsertOne(ctx, newVideoPlayList)
 	if ins_err != nil {
-		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Failed to update", nil)
+		resp_err, is_known := database_utils.GetDBErrorString(ins_err)
+		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", resp_err, nil)
+		if !is_known {
+			log.WithFields(log.Fields{
+				"ins_err": ins_err,
+			}).Errorln("Error in inserting data to mongo users")
+			my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Failed to update", nil)
+		}
 		return
 	}
 	newVideoPlayList.ID = ins_res.InsertedID.(primitive.ObjectID)

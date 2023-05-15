@@ -121,6 +121,45 @@ const docTemplate = `{
             }
         },
         "/admin/playlist/": {
+            "get": {
+                "description": "api to fetch existing playlist",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Playlist"
+                ],
+                "summary": "Get list of playlist",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "api to create new empty playlist",
                 "consumes": [
@@ -140,7 +179,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/database.VideoPlayListModal"
+                            "$ref": "#/definitions/mongo_modals.VideoPlayListModal"
                         }
                     }
                 ],
@@ -535,7 +574,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/database.UsersModel"
+                            "$ref": "#/definitions/mongo_modals.UsersModel"
                         }
                     }
                 ],
@@ -667,7 +706,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/database.ActiveSessionsModel"
+                            "$ref": "#/definitions/mongo_modals.ActiveSessionsModel"
                         }
                     }
                 ],
@@ -819,7 +858,7 @@ const docTemplate = `{
                 }
             }
         },
-        "database.ActiveSessionsModel": {
+        "mongo_modals.ActiveSessionsModel": {
             "type": "object",
             "properties": {
                 "_id": {
@@ -851,7 +890,7 @@ const docTemplate = `{
                 }
             }
         },
-        "database.UsersModel": {
+        "mongo_modals.UsersModel": {
             "type": "object",
             "required": [
                 "access_level",
@@ -888,7 +927,7 @@ const docTemplate = `{
                 }
             }
         },
-        "database.VideoPlayListModal": {
+        "mongo_modals.VideoPlayListModal": {
             "type": "object",
             "required": [
                 "is_live",
@@ -897,6 +936,9 @@ const docTemplate = `{
                 "videos_ids"
             ],
             "properties": {
+                "created_by_user": {
+                    "type": "string"
+                },
                 "description": {
                     "type": "string"
                 },

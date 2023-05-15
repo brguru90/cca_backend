@@ -15,7 +15,7 @@ definitions:
     required:
     - video_ids
     type: object
-  database.ActiveSessionsModel:
+  mongo_modals.ActiveSessionsModel:
     properties:
       _id:
         type: string
@@ -36,7 +36,7 @@ definitions:
       user_id:
         type: string
     type: object
-  database.UsersModel:
+  mongo_modals.UsersModel:
     properties:
       access_level:
         type: string
@@ -62,8 +62,10 @@ definitions:
     - password
     - username
     type: object
-  database.VideoPlayListModal:
+  mongo_modals.VideoPlayListModal:
     properties:
+      created_by_user:
+        type: string
       description:
         type: string
       is_live:
@@ -199,6 +201,32 @@ paths:
       tags:
       - VideoManagement
   /admin/playlist/:
+    get:
+      consumes:
+      - application/json
+      description: api to fetch existing playlist
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: Get list of playlist
+      tags:
+      - Playlist
     post:
       consumes:
       - application/json
@@ -209,7 +237,7 @@ paths:
         name: new_playlist_data
         required: true
         schema:
-          $ref: '#/definitions/database.VideoPlayListModal'
+          $ref: '#/definitions/mongo_modals.VideoPlayListModal'
       produces:
       - application/json
       responses:
@@ -494,7 +522,7 @@ paths:
         name: new_user
         required: true
         schema:
-          $ref: '#/definitions/database.UsersModel'
+          $ref: '#/definitions/mongo_modals.UsersModel'
       produces:
       - application/json
       responses:
@@ -555,7 +583,7 @@ paths:
         name: block_active_session
         required: true
         schema:
-          $ref: '#/definitions/database.ActiveSessionsModel'
+          $ref: '#/definitions/mongo_modals.ActiveSessionsModel'
       produces:
       - application/json
       responses:

@@ -1,8 +1,10 @@
-package database
+package mongo_modals
 
 import (
 	"context"
 	"time"
+
+	"cca/src/database/database_connections"
 
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
@@ -51,7 +53,7 @@ func InitActiveSessionCollection() {
 	}
 
 	opts := options.CreateIndexes().SetMaxTime(10 * time.Second)
-	_, err := MONGO_COLLECTIONS.ActiveSessions.Indexes().CreateMany(context.Background(), indexes, opts)
+	_, err := database_connections.MONGO_COLLECTIONS.ActiveSessions.Indexes().CreateMany(context.Background(), indexes, opts)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"err": err,

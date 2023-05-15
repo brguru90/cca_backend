@@ -2,7 +2,8 @@ package my_modules
 
 import (
 	"cca/src/configs"
-	"cca/src/database"
+	"cca/src/database/database_connections"
+	"cca/src/database/mongo_modals"
 	"context"
 	"crypto/rand"
 	"encoding/base64"
@@ -179,7 +180,7 @@ func EnsureCsrfToken(c *gin.Context) string {
 	return csrf_token
 }
 
-func Authenticate(c *gin.Context, newUserRow database.UsersModel, data_to_encrypt string, already_encrypted bool) AccessToken {
+func Authenticate(c *gin.Context, newUserRow mongo_modals.UsersModel, data_to_encrypt string, already_encrypted bool) AccessToken {
 	token_payload := TokenPayload{
 		Email:             newUserRow.Email,
 		Mobile:            newUserRow.Mobile,
@@ -215,7 +216,7 @@ func Authenticate(c *gin.Context, newUserRow database.UsersModel, data_to_encryp
 
 func RenewAuthentication(c *gin.Context, token_payload AccessToken) AccessToken {
 	_id, _ := primitive.ObjectIDFromHex(token_payload.Data.ID)
-	return Authenticate(c, database.UsersModel{
+	return Authenticate(c, mongo_modals.UsersModel{
 		Email:             token_payload.Data.Email,
 		Mobile:            token_payload.Data.Mobile,
 		ID:                _id,
@@ -268,7 +269,7 @@ func LoginStatus(c *gin.Context, access_level interface{}, enforce_csrf_check bo
 		return AccessToken{}, "tokenExpired", http.StatusForbidden, false
 	}
 
-	_, r_err := database.REDIS_DB_CONNECTION.Get(context.Background(), token_claims.AccessToken.Token_id).Result()
+	_, r_err := database_connections.REDIS_DB_CONNECTION.Get(context.Background(), token_claims.AccessToken.Token_id).Result()
 	if r_err == nil {
 		return token_claims.AccessToken, "Session blocked", http.StatusForbidden, false
 	}
@@ -276,7 +277,7 @@ func LoginStatus(c *gin.Context, access_level interface{}, enforce_csrf_check bo
 	csrf_token := c.Request.Header.Get("csrf_token")
 	if csrf_token == "" {
 		_id, _ := primitive.ObjectIDFromHex(token_claims.AccessToken.Data.ID)
-		token_claims.AccessToken = Authenticate(c, database.UsersModel{
+		token_claims.AccessToken = Authenticate(c, mongo_modals.UsersModel{
 			Email:             token_claims.AccessToken.Data.Email,
 			Mobile:            token_claims.AccessToken.Data.Mobile,
 			ID:                _id,
@@ -292,7 +293,7 @@ func LoginStatus(c *gin.Context, access_level interface{}, enforce_csrf_check bo
 	} else {
 		if DecryptAES(EncryptionKey, token_claims.AccessToken.Csrf_token) != csrf_token {
 			_id, _ := primitive.ObjectIDFromHex(token_claims.AccessToken.Data.ID)
-			token_claims.AccessToken = Authenticate(c, database.UsersModel{
+			token_claims.AccessToken = Authenticate(c, mongo_modals.UsersModel{
 				Email:             token_claims.AccessToken.Data.Email,
 				Mobile:            token_claims.AccessToken.Data.Mobile,
 				ID:                _id,

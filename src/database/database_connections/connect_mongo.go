@@ -1,4 +1,4 @@
-package database
+package database_connections
 
 import (
 	"cca/src/configs"
@@ -61,12 +61,6 @@ func InitMongoDB() {
 	MONGO_COLLECTIONS.VideoUploads = MONGO_DATABASE.Collection("video_uploads")
 	MONGO_COLLECTIONS.VideoPlayList = MONGO_DATABASE.Collection("video_playlist")
 	MONGO_COLLECTIONS.VideoPlayListSubscription = MONGO_DATABASE.Collection("video_playlist_subscription")
-
-	InitUserCollection()
-	InitActiveSessionCollection()
-	InitVideoUploadCollection()
-	InitVideoPlayListCollection()
-	InitVideoPlayListSubscriptionCollection()
 
 	createSampleCollection()
 }

@@ -7,7 +7,8 @@ import (
 	"strconv"
 	"time"
 
-	"cca/src/database"
+	"cca/src/database/database_connections"
+	"cca/src/database/mongo_modals"
 	"cca/src/my_modules"
 
 	"github.com/gin-gonic/gin"
@@ -55,7 +56,7 @@ func GetUserData(c *gin.Context) {
 		var cursor *mongo.Cursor
 		if _page > 0 {
 			var _offset = _limit * (_page - 1)
-			cursor, err = database.MONGO_COLLECTIONS.Users.Find(c.Request.Context(), bson.M{},
+			cursor, err = database_connections.MONGO_COLLECTIONS.Users.Find(c.Request.Context(), bson.M{},
 				&options.FindOptions{
 					Sort: bson.M{
 						"_id": 1,
@@ -64,7 +65,7 @@ func GetUserData(c *gin.Context) {
 					Limit: &_limit,
 				})
 		} else {
-			cursor, err = database.MONGO_COLLECTIONS.Users.Find(ctx, bson.M{
+			cursor, err = database_connections.MONGO_COLLECTIONS.Users.Find(ctx, bson.M{
 				"_id": _id,
 			})
 		}
@@ -79,9 +80,9 @@ func GetUserData(c *gin.Context) {
 			return
 		} else {
 			defer cursor.Close(ctx)
-			var usersData []database.UsersModel = []database.UsersModel{}
+			var usersData []mongo_modals.UsersModel = []mongo_modals.UsersModel{}
 			for cursor.Next(c.Request.Context()) {
-				var userData database.UsersModel
+				var userData mongo_modals.UsersModel
 				if err = cursor.Decode(&userData); err != nil {
 					log.Errorln(fmt.Sprintf("Scan failed: %v\n", err))
 					// continue
@@ -92,7 +93,7 @@ func GetUserData(c *gin.Context) {
 			}
 
 			if _page > 0 {
-				total_users, _ := database.REDIS_DB_CONNECTION.Get(context.Background(), "users_count").Result()
+				total_users, _ := database_connections.REDIS_DB_CONNECTION.Get(context.Background(), "users_count").Result()
 				total_users_int, _ := strconv.ParseInt(total_users, 10, 64)
 				my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "Record found", map[string]interface{}{
 					"users":       usersData,
@@ -118,7 +119,7 @@ func GetUserData(c *gin.Context) {
 // @Tags Account
 // @Accept json
 // @Produce json
-// @Param new_user body database.UsersModel true "Add user"
+// @Param new_user body mongo_modals.UsersModel true "Add user"
 // @Success 200 {object} my_modules.ResponseFormat
 // @Failure 400 {object} my_modules.ResponseFormat
 // @Failure 403 {object} my_modules.ResponseFormat
@@ -126,13 +127,13 @@ func GetUserData(c *gin.Context) {
 // @Router /user/ [put]
 func UpdateUserData(c *gin.Context) {
 	ctx := context.Background()
-	// db_connection := database.POSTGRES_DB_CONNECTION
+	// db_connection := mongo_modals.POSTGRES_DB_CONNECTION
 	payload, ok := my_modules.ExtractTokenPayload(c)
 	if !ok {
 		return
 	}
 
-	var updateWithData database.UsersModel
+	var updateWithData mongo_modals.UsersModel
 
 	if err := c.ShouldBindJSON(&updateWithData); err != nil {
 		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "Invalid input data format", nil)
@@ -143,7 +144,7 @@ func UpdateUserData(c *gin.Context) {
 	// overide any uuid with user uuid
 	_id, _ := primitive.ObjectIDFromHex(payload.Data.ID)
 
-	res, err := database.MONGO_COLLECTIONS.Users.UpdateOne(
+	res, err := database_connections.MONGO_COLLECTIONS.Users.UpdateOne(
 		ctx,
 		bson.M{
 			"_id": _id,
@@ -189,7 +190,7 @@ func GetActiveSession(c *gin.Context) {
 	}
 	_id, _ := primitive.ObjectIDFromHex(payload.Data.ID)
 
-	cursor, err := database.MONGO_COLLECTIONS.ActiveSessions.Find(ctx, bson.M{
+	cursor, err := database_connections.MONGO_COLLECTIONS.ActiveSessions.Find(ctx, bson.M{
 		"user_id":  _id,
 		"token_id": bson.M{"$ne": payload.Token_id},
 	})
@@ -203,10 +204,10 @@ func GetActiveSession(c *gin.Context) {
 		return
 	} else {
 		defer cursor.Close(ctx)
-		var sessionsData []database.ActiveSessionsModel = []database.ActiveSessionsModel{}
+		var sessionsData []mongo_modals.ActiveSessionsModel = []mongo_modals.ActiveSessionsModel{}
 		// cursor.All(ctx,sessionsData);
 		for cursor.Next(c.Request.Context()) {
-			var sessionData database.ActiveSessionsModel
+			var sessionData mongo_modals.ActiveSessionsModel
 			if err = cursor.Decode(&sessionData); err != nil {
 				my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Error in retriving session data", nil)
 				return
@@ -232,7 +233,7 @@ func GetActiveSession(c *gin.Context) {
 // @Failure 500 {object} my_modules.ResponseFormat
 // @Router /user/ [delete]
 func Deleteuser(c *gin.Context) {
-	// db_connection := database.POSTGRES_DB_CONNECTION
+	// db_connection := mongo_modals.POSTGRES_DB_CONNECTION
 	payload, ok := my_modules.ExtractTokenPayload(c)
 	if !ok {
 		return
@@ -246,7 +247,7 @@ func Deleteuser(c *gin.Context) {
 		return
 	}
 
-	result, err := database.MONGO_COLLECTIONS.Users.DeleteOne(context.Background(), bson.M{
+	result, err := database_connections.MONGO_COLLECTIONS.Users.DeleteOne(context.Background(), bson.M{
 		"_id": _id,
 	})
 	if err != nil {
@@ -301,8 +302,8 @@ func Logout(c *gin.Context) {
 	my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "Logged out", nil)
 }
 
-func updateActiveSession(activeSessionsRow database.ActiveSessionsModel, status string) (int64, error) {
-	// db_connection := database.POSTGRES_DB_CONNECTION
+func updateActiveSession(activeSessionsRow mongo_modals.ActiveSessionsModel, status string) (int64, error) {
+	// db_connection := mongo_modals.POSTGRES_DB_CONNECTION
 
 	where_map := map[string]interface{}{
 		"user_id":  activeSessionsRow.UserID,
@@ -318,7 +319,7 @@ func updateActiveSession(activeSessionsRow database.ActiveSessionsModel, status 
 		return -1, err_bson
 	}
 
-	result, err := database.MONGO_COLLECTIONS.ActiveSessions.UpdateOne(
+	result, err := database_connections.MONGO_COLLECTIONS.ActiveSessions.UpdateOne(
 		context.Background(),
 		where,
 		bson.M{
@@ -342,20 +343,20 @@ func updateActiveSession(activeSessionsRow database.ActiveSessionsModel, status 
 // @Tags Session
 // @Accept json
 // @Produce json
-// @Param block_active_session body database.ActiveSessionsModel true "block token"
+// @Param block_active_session body mongo_modals.ActiveSessionsModel true "block token"
 // @Success 200 {object} my_modules.ResponseFormat
 // @Failure 400 {object} my_modules.ResponseFormat
 // @Failure 403 {object} my_modules.ResponseFormat
 // @Failure 500 {object} my_modules.ResponseFormat
 // @Router /user/block_token/ [post]
 func BlockSession(c *gin.Context) {
-	redis_db_connection := database.REDIS_DB_CONNECTION
+	redis_db_connection := database_connections.REDIS_DB_CONNECTION
 	payload, ok := my_modules.ExtractTokenPayload(c)
 	if !ok {
 		return
 	}
 
-	var activeSessionsRow database.ActiveSessionsModel
+	var activeSessionsRow mongo_modals.ActiveSessionsModel
 	if err := c.ShouldBindJSON(&activeSessionsRow); err != nil {
 		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "Invalid input data format", nil)
 		return

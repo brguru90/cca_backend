@@ -1,7 +1,8 @@
 package user_views
 
 import (
-	"cca/src/database"
+	"cca/src/database/database_connections"
+	"cca/src/database/mongo_modals"
 	"cca/src/my_modules"
 	"context"
 	"fmt"
@@ -19,7 +20,7 @@ func GetAllUserData(c *gin.Context) {
 
 	var err error
 	var cursor *mongo.Cursor
-	cursor, err = database.MONGO_COLLECTIONS.Users.Find(ctx, bson.M{})
+	cursor, err = database_connections.MONGO_COLLECTIONS.Users.Find(ctx, bson.M{})
 	if err != nil {
 		if err != context.Canceled {
 			log.WithFields(log.Fields{
@@ -30,9 +31,9 @@ func GetAllUserData(c *gin.Context) {
 		return
 	} else {
 		defer cursor.Close(ctx)
-		var usersData []database.UsersModel = []database.UsersModel{}
+		var usersData []mongo_modals.UsersModel = []mongo_modals.UsersModel{}
 		for cursor.Next(c.Request.Context()) {
-			var userData database.UsersModel
+			var userData mongo_modals.UsersModel
 			if err = cursor.Decode(&userData); err != nil {
 				log.Errorln(fmt.Sprintf("Scan failed: %v\n", err))
 				// continue

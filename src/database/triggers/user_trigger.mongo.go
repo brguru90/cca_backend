@@ -1,7 +1,8 @@
 package triggers
 
 import (
-	"cca/src/database"
+	"cca/src/database/database_connections"
+	"cca/src/database/mongo_modals"
 	"context"
 
 	log "github.com/sirupsen/logrus"
@@ -12,9 +13,9 @@ import (
 
 func TriggerForUsersModification() {
 
-	database.REDIS_DB_CONNECTION.Del(context.TODO(), "users_update_in_progress")
+	database_connections.REDIS_DB_CONNECTION.Del(context.TODO(), "users_update_in_progress")
 
-	updateStream, err := database.MONGO_COLLECTIONS.Users.Watch(context.Background(), mongo.Pipeline{})
+	updateStream, err := database_connections.MONGO_COLLECTIONS.Users.Watch(context.Background(), mongo.Pipeline{})
 	if err != nil {
 		log.WithFields(log.Fields{
 			"err": err,
@@ -38,7 +39,7 @@ func TriggerForUsersModification() {
 		// log.Warnln(data)
 		// operationType: insert,delete,update
 		if data["fullDocument"] != "" {
-			var userData database.UsersModel
+			var userData mongo_modals.UsersModel
 			document_key := data["documentKey"].(bson.M)["_id"].(primitive.ObjectID)
 
 			switch data["operationType"] {
