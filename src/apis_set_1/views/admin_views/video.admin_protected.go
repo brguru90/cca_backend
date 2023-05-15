@@ -37,7 +37,7 @@ type VideoInfoReqStruct struct {
 // @Summary video upload
 // @Schemes
 // @Description api to upload video content for multiple adaptive bit rate streaming
-// @Tags VideoManagement
+// @Tags Manage Videos
 // @Accept mpfd
 // @Produce json
 // @Param video_file formData file true "Video file"
@@ -154,7 +154,7 @@ type VideoStreamReqStruct struct {
 // @Summary Generate video stream
 // @Schemes
 // @Description api to get the list of all the videos uploaded by the logged user
-// @Tags VideoManagement
+// @Tags Manage Videos
 // @Accept json
 // @Produce json
 // @Param video_ids body VideoStreamReqStruct true "Video IDs"
@@ -271,7 +271,7 @@ type VideoStreamKeyReqStruct struct {
 // @Summary get video decode key
 // @Schemes
 // @Description api to get video decryption key for hls stream
-// @Tags VideoManagement
+// @Tags Manage Videos
 // @Accept json
 // @Produce json
 // @Param video_id body VideoStreamKeyReqStruct true "Video ID"
@@ -324,7 +324,7 @@ func GetStreamKey(c *gin.Context) {
 // @Summary get all uploaded videos
 // @Schemes
 // @Description api to get the list of all the videos uploaded by the logged user
-// @Tags VideoManagement
+// @Tags Manage Videos
 // @Produce json
 // @Success 200 {object} my_modules.ResponseFormat
 // @Failure 400 {object} my_modules.ResponseFormat
@@ -498,9 +498,23 @@ func CreatePlayList(c *gin.Context) {
 }
 
 type PlaylistVideoReqStruct struct {
-	Ids []string `form:"videos_ids" binding:"required"`
+	PlaylistId string   `json:"playlist_id" binding:"required"`
+	Ids        []string `json:"videos_ids" binding:"required"`
 }
 
+// @BasePath /api/
+// @Summary Update playlist videos
+// @Schemes
+// @Description api to update playlist videos
+// @Tags Playlist
+// @Accept json
+// @Produce json
+// @Param video_list body PlaylistVideoReqStruct true "Playlist videos"
+// @Success 200 {object} my_modules.ResponseFormat
+// @Failure 400 {object} my_modules.ResponseFormat
+// @Failure 403 {object} my_modules.ResponseFormat
+// @Failure 500 {object} my_modules.ResponseFormat
+// @Router /admin/playlist/ [put]
 func UpdatePlayList(c *gin.Context) {
 	ctx := c.Request.Context()
 	var videos_info PlaylistVideoReqStruct
@@ -515,31 +529,46 @@ func UpdatePlayList(c *gin.Context) {
 		return
 	}
 
-	var id string = payload.Data.ID
 	_id, _id_err := primitive.ObjectIDFromHex(payload.Data.ID)
-
-	if id == "" || _id_err != nil {
+	if payload.Data.ID == "" || _id_err != nil {
 		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "UUID of user is not provided", _id_err)
 		return
 	}
 
+	playlist_id, _id_err := primitive.ObjectIDFromHex(videos_info.PlaylistId)
+	if videos_info.PlaylistId == "" || _id_err != nil {
+		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "UUID of user is not provided", _id_err)
+		return
+	}
+
+	video_ids := []primitive.ObjectID{}
+	for i := 0; i < len(videos_info.Ids); i++ {
+		video_id, _id_err := primitive.ObjectIDFromHex(videos_info.Ids[i])
+		if videos_info.Ids[i] == "" || _id_err != nil {
+			continue
+		}
+		video_ids = append(video_ids, video_id)
+	}
+	if len(video_ids) == 0 {
+		my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "No video provided", nil)
+	}
+
 	where := bson.M{
+		"_id":             playlist_id,
 		"created_by_user": _id,
 	}
 	if payload.Data.AccessLevel == "super_admin" {
-		where = bson.M{}
+		where = bson.M{"_id": playlist_id}
 	}
 	res, err := database_connections.MONGO_COLLECTIONS.VideoPlayList.UpdateOne(
 		ctx,
-		bson.M{
-			"_id": _id,
-		},
+		where,
 		bson.M{
 			"$set": bson.M{
-				"email":     updateWithData.Email,
-				"username":  updateWithData.Username,
-				"updatedAt": _time,
-			}},
+				"videos_ids": video_ids,
+				"updatedAt":  time.Now(),
+			},
+		},
 	)
 	if err != nil {
 		log.WithFields(log.Fields{
@@ -549,7 +578,6 @@ func UpdatePlayList(c *gin.Context) {
 		return
 	}
 	var response_data = make(map[string]interface{})
-	response_data["updated_with_data"] = updateWithData
 	response_data["updated_count"] = res.ModifiedCount
 	response_data["match_count"] = res.MatchedCount
 	my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "Updated successfully", response_data)

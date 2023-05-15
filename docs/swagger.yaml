@@ -1,4 +1,16 @@
 definitions:
+  admin_views.PlaylistVideoReqStruct:
+    properties:
+      playlist_id:
+        type: string
+      videos_ids:
+        items:
+          type: string
+        type: array
+    required:
+    - playlist_id
+    - videos_ids
+    type: object
   admin_views.VideoStreamKeyReqStruct:
     properties:
       video_id:
@@ -258,6 +270,39 @@ paths:
           schema:
             $ref: '#/definitions/my_modules.ResponseFormat'
       summary: Create new playlist
+      tags:
+      - Playlist
+    put:
+      consumes:
+      - application/json
+      description: api to update playlist videos
+      parameters:
+      - description: Playlist videos
+        in: body
+        name: video_list
+        required: true
+        schema:
+          $ref: '#/definitions/admin_views.PlaylistVideoReqStruct'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: Update playlist videos
       tags:
       - Playlist
   /admin/upload_list/:
