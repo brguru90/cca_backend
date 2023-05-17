@@ -27,11 +27,8 @@ var SERVER_PORT string = "8000"
 func main() {
 	configs.InitEnv()
 	my_modules.InitLogger()
-	// database.ConnectPostgres()
-	database.InitMongoDB()
-	database.ConnectRedis()
+	database.InitDataBases()
 	my_modules.InitFirebase()
-	database.InitRedisPool()
 	go triggers.TriggerForUsersModification()
 	go my_modules.InitCronJobs()
 
@@ -54,9 +51,10 @@ func main() {
 	// https://github.com/gin-gonic/gin
 
 	// all_router = gin.New()
-	// all_router.Use(static.Serve("/", static.LocalFile("./src/static", true)))
+	file_upload_size_mb := 1024 * 2
+	all_router.MaxMultipartMemory = int64(file_upload_size_mb) << 20
 	all_router.Use(static.Serve("/", static.LocalFile("../frontend/build", true)))
-	all_router.Use(static.Serve("/cdn", static.LocalFile("./uploads/public/video/multi_bitrate/", true)))
+	all_router.StaticFS("/cdn", http.Dir("./uploads/public/"))
 	if configs.EnvConfigs.GIN_MODE != "release" {
 		all_router.Use(cors.Default())
 	}
@@ -85,11 +83,13 @@ func main() {
 	bind_to_host := fmt.Sprintf(":%d", configs.EnvConfigs.SERVER_PORT) //formatted host string
 	// all_router.Run(bind_to_host)
 	srv := &http.Server{
-		Addr:         bind_to_host,
-		Handler:      all_router,
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 10 * time.Second,
+		Addr:           bind_to_host,
+		Handler:        all_router,
+		ReadTimeout:    5 * time.Minute,
+		WriteTimeout:   200 * time.Second,
+		MaxHeaderBytes: file_upload_size_mb << 20,
 	}
+
 	log.Debugf("http://127.0.0.1:%d", configs.EnvConfigs.SERVER_PORT)
 	log.Debugf("http://127.0.0.1:%d/api/swagger", configs.EnvConfigs.SERVER_PORT)
 	srv.ListenAndServe()

@@ -1,7 +1,8 @@
 package triggers
 
 import (
-	"cca/src/database"
+	"cca/src/database/database_connections"
+	"cca/src/database/mongo_modals"
 	"cca/src/my_modules"
 	"context"
 	"time"
@@ -25,7 +26,7 @@ import (
 
 func deleteUserCache(_id string, ctx context.Context) {
 	// Deletes the cache for the specified user by his ID
-	database.REDIS_DB_CONNECTION.Del(ctx, "users___id="+_id)
+	database_connections.REDIS_DB_CONNECTION.Del(ctx, "users___id="+_id)
 }
 
 // func eraseAllUserPaginationCache(ctx context.Context) {
@@ -42,13 +43,13 @@ func deleteUserCache(_id string, ctx context.Context) {
 // }
 
 func eraseAllUserPaginationCache(ctx context.Context) {
-	database.REDIS_DB_CONNECTION.Del(ctx, "users___paginated")
+	database_connections.REDIS_DB_CONNECTION.Del(ctx, "users___paginated")
 }
 
 func getUsersCount(ctx context.Context) {
-	count, err := database.MONGO_COLLECTIONS.Users.CountDocuments(ctx, bson.M{})
+	count, err := database_connections.MONGO_COLLECTIONS.Users.CountDocuments(ctx, bson.M{})
 	if err == nil {
-		err2 := database.REDIS_DB_CONNECTION.Set(ctx, "users_count", count, time.Second*0).Err()
+		err2 := database_connections.REDIS_DB_CONNECTION.Set(ctx, "users_count", count, time.Second*0).Err()
 		if err2 != nil {
 			log.WithFields(log.Fields{
 				"errors": err2,
@@ -102,13 +103,13 @@ func invalidateCache(_id string) {
 	if invalidate_cache_timeout != nil {
 		invalidate_cache_timeout()
 	}
-	database.REDIS_DB_CONNECTION.Set(context.Background(), "users_update_in_progress", "1", max_users_update_in_progress_ttl)
+	database_connections.REDIS_DB_CONNECTION.Set(context.Background(), "users_update_in_progress", "1", max_users_update_in_progress_ttl)
 	go deleteUserCache(_id, context.Background())
 	cb := func() {
 		ctx := context.Background()
 		eraseAllUserPaginationCache(ctx)
 		getUsersCount(ctx)
-		database.REDIS_DB_CONNECTION.Del(ctx, "users_update_in_progress")
+		database_connections.REDIS_DB_CONNECTION.Del(ctx, "users_update_in_progress")
 	}
 	invalidate_cache_timeout = my_modules.SetTimeOut(cb, time.Millisecond*500)
 
@@ -118,6 +119,6 @@ func invalidateCache(_id string) {
 	// getUsersCount(ctx)
 }
 
-func OnUserModification(_id string, userData database.UsersModel, operationType string) {
+func OnUserModification(_id string, userData mongo_modals.UsersModel, operationType string) {
 	invalidateCache(_id)
 }

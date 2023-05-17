@@ -1,4 +1,4 @@
-package database
+package database_connections
 
 import (
 	"cca/src/configs"
@@ -17,8 +17,11 @@ var MONGO_DB_CONNECTION *mongo.Client
 var MONGO_DATABASE *mongo.Database
 
 type MongoCollections struct {
-	Users          *mongo.Collection
-	ActiveSessions *mongo.Collection
+	Users                     *mongo.Collection
+	ActiveSessions            *mongo.Collection
+	VideoPlayList             *mongo.Collection
+	VideoUploads              *mongo.Collection
+	VideoPlayListSubscription *mongo.Collection
 }
 
 var MONGO_COLLECTIONS MongoCollections
@@ -55,9 +58,10 @@ func InitMongoDB() {
 	MONGO_DATABASE = MONGO_DB_CONNECTION.Database(DATABASE)
 	MONGO_COLLECTIONS.Users = MONGO_DATABASE.Collection("users")
 	MONGO_COLLECTIONS.ActiveSessions = MONGO_DATABASE.Collection("active_sessions")
+	MONGO_COLLECTIONS.VideoUploads = MONGO_DATABASE.Collection("video_uploads")
+	MONGO_COLLECTIONS.VideoPlayList = MONGO_DATABASE.Collection("video_playlist")
+	MONGO_COLLECTIONS.VideoPlayListSubscription = MONGO_DATABASE.Collection("video_playlist_subscription")
 
-	InitUserCollection()
-	InitActiveSessionCollection()
 	createSampleCollection()
 }
 

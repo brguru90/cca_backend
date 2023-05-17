@@ -1,7 +1,7 @@
 package app_cron_jobs
 
 import (
-	"cca/src/database"
+	"cca/src/database/database_connections"
 	"context"
 	"time"
 
@@ -19,7 +19,7 @@ func ClearExpiredToken() {
 		"time": _time,
 	}).Debug(" -- ClearExpiredToken Cron job started -- ")
 
-	result, err := database.MONGO_COLLECTIONS.ActiveSessions.DeleteMany(ctx, bson.M{
+	result, err := database_connections.MONGO_COLLECTIONS.ActiveSessions.DeleteMany(ctx, bson.M{
 		"exp": bson.M{"$lte": _time.UnixMilli()},
 	})
 

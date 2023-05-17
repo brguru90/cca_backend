@@ -1,11 +1,14 @@
 package user_views
 
 import (
-	"cca/src/database"
+	"cca/src/database/database_connections"
+	"cca/src/database/database_utils"
+	"cca/src/database/mongo_modals"
 	"cca/src/my_modules"
 	"context"
+	"crypto/sha1"
+	"encoding/hex"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -20,14 +23,20 @@ type CredentialErrorPayload struct {
 	Errors_data map[string]interface{} `json:"errors,omitempty"`
 }
 
+type UserCredentialReqStruct struct {
+	Email    string `json:"email" binding:"required"`
+	Password string `json:"password" binding:"required"`
+	Username string `json:"username"`
+}
+
 // @BasePath /api
 // @Summary url to signup
 // @Schemes
 // @Description allow people to create new to user account
-// @Tags SignUp
+// @Tags Account
 // @Accept json
 // @Produce json
-// @Param new_user body database.UsersModel true "Add user"
+// @Param new_user body UserCredentialReqStruct true "Add user"
 // @Success 200 {object} my_modules.ResponseFormat
 // @Failure 400 {object} my_modules.ResponseFormat
 // @Failure 500 {object} my_modules.ResponseFormat
@@ -35,33 +44,34 @@ type CredentialErrorPayload struct {
 // @Router /sign_up [post]
 func SignUp(c *gin.Context) {
 	ctx := context.Background()
-	var newUserRow database.UsersModel
+	var newUserRow UserCredentialReqStruct
 	// ShouldBindJSON will validate json body & convert it to structure object
 	if err := c.ShouldBindJSON(&newUserRow); err != nil {
 		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "Invalid input data format", nil)
 		return
 	}
 	_errors := make(map[string]interface{})
-	var newUserData database.UsersModel
+	var newUserData mongo_modals.UsersModel
 	{
 		_time := time.Now()
-		newUserData = database.UsersModel{
-			Email:        newUserRow.Email,
-			Username:     newUserRow.Username,
-			Password:     newUserRow.Password,
-			AuthProvider: "email",
-			CreatedAt:    _time,
-			UpdatedAt:    _time,
+		ph := sha1.Sum([]byte(newUserRow.Password))
+		newUserData = mongo_modals.UsersModel{
+			// Uid:          uuid.New().String(),
+			Email:             newUserRow.Email,
+			Username:          newUserRow.Username,
+			Password:          hex.EncodeToString(ph[:]),
+			AuthProvider:      "email",
+			CreatedAt:         _time,
+			UpdatedAt:         _time,
+			AccessLevel:       my_modules.AccessLevel.CUSTOMER.Label,
+			AccessLevelWeight: my_modules.AccessLevel.CUSTOMER.Weight,
 		}
-		ins_res, ins_err := database.MONGO_COLLECTIONS.Users.InsertOne(ctx, newUserData)
+		ins_res, ins_err := database_connections.MONGO_COLLECTIONS.Users.InsertOne(ctx, newUserData)
 		if ins_err != nil {
-			errStr := ins_err.Error()
-			log.Infoln(errStr)
-			switch {
-			case strings.Contains(strings.ToLower(errStr), "index must have unique name"):
-			case strings.Contains(strings.ToLower(errStr), "duplicate"):
-				_errors["email"] = "already exists"
-			default:
+			resp_err, is_known := database_utils.GetDBErrorString(ins_err)
+			if is_known {
+				_errors["email"] = resp_err
+			} else {
 				log.WithFields(log.Fields{
 					"ins_err": ins_err,
 				}).Errorln("Error in inserting data to mongo users")
@@ -77,10 +87,10 @@ func SignUp(c *gin.Context) {
 		}
 	}
 	newUserData.Password = ""
-	access_token_payload := my_modules.Authenticate(c, newUserData)
+	access_token_payload := my_modules.Authenticate(c, newUserData, "some safe data", false)
 	{
 		_time := time.Now()
-		_, ins_err := database.MONGO_COLLECTIONS.ActiveSessions.InsertOne(ctx, database.ActiveSessionsModel{
+		_, ins_err := database_connections.MONGO_COLLECTIONS.ActiveSessions.InsertOne(ctx, mongo_modals.ActiveSessionsModel{
 			UserID:    newUserData.ID,
 			TokenID:   access_token_payload.Token_id,
 			IP:        c.ClientIP(),
@@ -101,35 +111,43 @@ func SignUp(c *gin.Context) {
 	my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "Registered successfully", newUserData)
 }
 
-type UserCredential struct {
-	Email    string `json:"email" binding:"required"`
-	Password string `json:"password" binding:"required"`
-}
-
 // @BasePath /api
 // @Summary url to login
 // @Schemes
 // @Description allow people to login into their account
-// @Tags Login
+// @Tags Account
 // @Accept json
 // @Produce json
-// @Param existing_user body UserCredential true "Add user"
+// @Param existing_user body UserCredentialReqStruct true "Add user"
+// @Param access_level query string false "Access level" Enums(admin, super_admin, customer)
 // @Success 200 {object} my_modules.ResponseFormat
 // @Failure 400 {object} my_modules.ResponseFormat
 // @Failure 500 {object} my_modules.ResponseFormat
+// @Failure 403 {object} my_modules.ResponseFormat
 // @Router /login [post]
 func Login(c *gin.Context) {
 	ctx := context.Background()
 	_errors := make(map[string]interface{})
-	var userCredential UserCredential
+	var userCredential UserCredentialReqStruct
 	if err := c.ShouldBindJSON(&userCredential); err != nil {
 		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "Invalid input data format", nil)
 		return
 	}
-	var userData database.UsersModel
+	var userData mongo_modals.UsersModel
 	{
-		err := database.MONGO_COLLECTIONS.Users.FindOne(ctx, bson.M{
-			"email": userCredential.Email,
+		access_level, ok := c.GetQuery("access_level")
+		if !ok {
+			access_level = my_modules.AccessLevel.CUSTOMER.Label
+		} else {
+			_, ok = my_modules.AllAccessLevel[access_level]
+			if !ok {
+				access_level = my_modules.AccessLevel.CUSTOMER.Label
+			}
+		}
+
+		err := database_connections.MONGO_COLLECTIONS.Users.FindOne(ctx, bson.M{
+			"email":        userCredential.Email,
+			"access_level": access_level,
 		}).Decode(&userData)
 		if err != nil {
 			if err == mongo.ErrNoDocuments {
@@ -149,7 +167,9 @@ func Login(c *gin.Context) {
 			my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "Error in finding user", CredentialErrorPayload{Errors_data: _errors})
 			return
 		}
-		if userData.Password != userCredential.Password {
+
+		ph := sha1.Sum([]byte(userCredential.Password))
+		if userData.Password != hex.EncodeToString(ph[:]) {
 			_errors["password"] = "Wrong password"
 			my_modules.CreateAndSendResponse(c, http.StatusForbidden, "error", "Invalid credential", CredentialErrorPayload{Errors_data: _errors})
 			return
@@ -157,10 +177,10 @@ func Login(c *gin.Context) {
 	}
 	userData.Password = ""
 	userData.AuthProvider = "email"
-	access_token_payload := my_modules.Authenticate(c, userData)
+	access_token_payload := my_modules.Authenticate(c, userData, "some safe data", false)
 	{
 		_time := time.Now()
-		_, ins_err := database.MONGO_COLLECTIONS.ActiveSessions.InsertOne(ctx, database.ActiveSessionsModel{
+		_, ins_err := database_connections.MONGO_COLLECTIONS.ActiveSessions.InsertOne(ctx, mongo_modals.ActiveSessionsModel{
 			UserID:    userData.ID,
 			TokenID:   access_token_payload.Token_id,
 			IP:        c.ClientIP(),
@@ -181,7 +201,7 @@ func Login(c *gin.Context) {
 	my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "Authorization success", userData)
 }
 
-type UserMobileCredential struct {
+type UserMobileCredentialReqStruct struct {
 	Mobile   string `json:"mobile" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
@@ -190,10 +210,10 @@ type UserMobileCredential struct {
 // @Summary url to login with mobile number
 // @Schemes
 // @Description allow people to login into their account
-// @Tags Mobile Login
+// @Tags Account
 // @Accept json
 // @Produce json
-// @Param existing_user body UserMobileCredential true "Add user"
+// @Param existing_user body UserMobileCredentialReqStruct true "Add user"
 // @Success 200 {object} my_modules.ResponseFormat
 // @Failure 400 {object} my_modules.ResponseFormat
 // @Failure 500 {object} my_modules.ResponseFormat
@@ -201,14 +221,14 @@ type UserMobileCredential struct {
 func LoginWithMobile(c *gin.Context) {
 	ctx := context.Background()
 	_errors := make(map[string]interface{})
-	var userCredential UserMobileCredential
+	var userCredential UserMobileCredentialReqStruct
 	if err := c.ShouldBindJSON(&userCredential); err != nil {
 		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "Invalid input data format", nil)
 		return
 	}
-	var userData database.UsersModel
+	var userData mongo_modals.UsersModel
 	{
-		err := database.MONGO_COLLECTIONS.Users.FindOne(ctx, bson.M{
+		err := database_connections.MONGO_COLLECTIONS.Users.FindOne(ctx, bson.M{
 			"mobile": userCredential.Mobile,
 		}).Decode(&userData)
 		if err != nil {
@@ -229,7 +249,9 @@ func LoginWithMobile(c *gin.Context) {
 			my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "Error in finding user", CredentialErrorPayload{Errors_data: _errors})
 			return
 		}
-		if userData.Password != userCredential.Password {
+		ph := sha1.Sum([]byte(userCredential.Password))
+		phs := hex.EncodeToString(ph[:])
+		if userData.Password != phs {
 			_errors["password"] = "Wrong password"
 			my_modules.CreateAndSendResponse(c, http.StatusForbidden, "error", "Invalid credential", CredentialErrorPayload{Errors_data: _errors})
 			return
@@ -237,10 +259,10 @@ func LoginWithMobile(c *gin.Context) {
 	}
 	userData.Password = ""
 	userData.AuthProvider = "phone"
-	access_token_payload := my_modules.Authenticate(c, userData)
+	access_token_payload := my_modules.Authenticate(c, userData, "some safe data", false)
 	{
 		_time := time.Now()
-		_, ins_err := database.MONGO_COLLECTIONS.ActiveSessions.InsertOne(ctx, database.ActiveSessionsModel{
+		_, ins_err := database_connections.MONGO_COLLECTIONS.ActiveSessions.InsertOne(ctx, mongo_modals.ActiveSessionsModel{
 			UserID:    userData.ID,
 			TokenID:   access_token_payload.Token_id,
 			IP:        c.ClientIP(),
@@ -261,31 +283,32 @@ func LoginWithMobile(c *gin.Context) {
 	my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "Authorization success", userData)
 }
 
-type SocialAuth struct {
+type SocialAuthReqStruct struct {
 	IdToken  string `json:"idToken" binding:"required"`
 	Name     string `json:"name"`
 	Password string `json:"password"`
 }
 
-type SocialAuthLogin struct {
+type SocialAuthLoginStruct struct {
 	LoginType string `json:"login_type" binding:"required"`
-	database.UsersModel
+	mongo_modals.UsersModel
 }
 
 // @BasePath /api
-// @Summary url to signup/login with social authentication
+// @Summary Verify Social Authentication
 // @Schemes
-// @Tags VerifySocialAuth
+// @Description  url to signup/login with social authentication
+// @Tags Account
 // @Accept json
 // @Produce json
-// @Param new_or_existing_user body SocialAuth true "Add user"
+// @Param new_or_existing_user body SocialAuthReqStruct true "Add user"
 // @Success 200 {object} my_modules.ResponseFormat
 // @Failure 400 {object} my_modules.ResponseFormat
 // @Failure 500 {object} my_modules.ResponseFormat
 // @Failure 403 {object} my_modules.ResponseFormat
 // @Router /verify_social_auth [post]
 func VerifySocialAuth(c *gin.Context) {
-	var socialAuth SocialAuth
+	var socialAuth SocialAuthReqStruct
 	if err := c.ShouldBindJSON(&socialAuth); err != nil {
 		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "Invalid input data format", nil)
 		return
@@ -315,20 +338,23 @@ func VerifySocialAuth(c *gin.Context) {
 	// claims="map[auth_time:1.65298436e+09 email:brguru90@gmail.com email_verified:true firebase:map[identities:map[email:[brguru90@gmail.com] google.com:[114141226575791102096]] sign_in_provider:google.com] name:GURUPRASAD BR picture:https://lh3.googleusercontent.com/a-/AOh14GjplxOLH3kgFpntqdydk9guYNJQdpDMqvPC7GEf=s96-c user_id:0cD0lvwH2aYKEpkx6HDvk2ZR4Af1]"
 
 	ctx := context.Background()
-	var newUserData database.UsersModel
+	var newUserData mongo_modals.UsersModel
 	var login bool = true
 	{
 		_time := time.Now()
-		newUserData = database.UsersModel{
-			Uid:          token.UID,
-			AuthProvider: token.Firebase.SignInProvider,
-			CreatedAt:    _time,
-			UpdatedAt:    _time,
+		newUserData = mongo_modals.UsersModel{
+			Uid:               token.UID,
+			AuthProvider:      token.Firebase.SignInProvider,
+			AccessLevel:       my_modules.AccessLevel.CUSTOMER.Label,
+			AccessLevelWeight: my_modules.AccessLevel.CUSTOMER.Weight,
+			CreatedAt:         _time,
+			UpdatedAt:         _time,
 		}
 		if token.Firebase.SignInProvider == "phone" {
+			ph := sha1.Sum([]byte(socialAuth.Password))
 			newUserData.Mobile = token.Claims["phone_number"].(string)
 			newUserData.Username = socialAuth.Name
-			newUserData.Password = socialAuth.Password
+			newUserData.Password = hex.EncodeToString(ph[:])
 		} else {
 			newUserData.Username = token.Claims["name"].(string)
 		}
@@ -344,7 +370,7 @@ func VerifySocialAuth(c *gin.Context) {
 				},
 			},
 		}}
-		err := database.MONGO_COLLECTIONS.Users.FindOne(ctx, filter).Decode(&newUserData)
+		err := database_connections.MONGO_COLLECTIONS.Users.FindOne(ctx, filter).Decode(&newUserData)
 		log.WithFields(log.Fields{
 			"newUserData": newUserData,
 		}).Infoln()
@@ -352,7 +378,7 @@ func VerifySocialAuth(c *gin.Context) {
 		if err != nil {
 			if err == mongo.ErrNoDocuments {
 				// if user not already exists
-				ins_res, ins_err := database.MONGO_COLLECTIONS.Users.InsertOne(ctx, newUserData)
+				ins_res, ins_err := database_connections.MONGO_COLLECTIONS.Users.InsertOne(ctx, newUserData)
 				if ins_err != nil {
 					log.WithFields(log.Fields{
 						"ins_err": ins_err,
@@ -374,11 +400,16 @@ func VerifySocialAuth(c *gin.Context) {
 		}
 
 		if token.Firebase.SignInProvider == "phone" {
-			updateUserData := newUserData
+			ph := sha1.Sum([]byte(socialAuth.Password))
+			var updateUserData mongo_modals.UsersModel
+			// updateUserData := newUserData
+			updateUserData.Uid = newUserData.Uid
+			updateUserData.AuthProvider = newUserData.AuthProvider
+			updateUserData.Mobile = newUserData.Mobile
 			updateUserData.Username = socialAuth.Name
-			updateUserData.Password = socialAuth.Password
+			updateUserData.Password = hex.EncodeToString(ph[:])
 			if updateWith, bsonParseErr := my_modules.StructToBsonD(updateUserData); bsonParseErr == nil {
-				updateRes, update_err := database.MONGO_COLLECTIONS.Users.UpdateOne(ctx,
+				updateRes, update_err := database_connections.MONGO_COLLECTIONS.Users.UpdateOne(ctx,
 					filter,
 					bson.D{{"$set", updateWith}})
 				if update_err != nil {
@@ -406,7 +437,7 @@ func VerifySocialAuth(c *gin.Context) {
 	}
 
 	// access_token_payload := my_modules.Authenticate(c, newUserData)
-	loginData := SocialAuthLogin{
+	loginData := SocialAuthLoginStruct{
 		UsersModel: newUserData,
 		LoginType:  "login",
 	}
@@ -419,10 +450,10 @@ func VerifySocialAuth(c *gin.Context) {
 	// 	"UsersModel": loginData.UsersModel,
 	// }).Infoln()
 
-	access_token_payload := my_modules.Authenticate(c, loginData.UsersModel)
+	access_token_payload := my_modules.Authenticate(c, loginData.UsersModel, "some safe data", false)
 	{
 		_time := time.Now()
-		_, ins_err := database.MONGO_COLLECTIONS.ActiveSessions.InsertOne(ctx, database.ActiveSessionsModel{
+		_, ins_err := database_connections.MONGO_COLLECTIONS.ActiveSessions.InsertOne(ctx, mongo_modals.ActiveSessionsModel{
 			UserID:    newUserData.ID,
 			TokenID:   access_token_payload.Token_id,
 			IP:        c.ClientIP(),
@@ -445,26 +476,29 @@ func VerifySocialAuth(c *gin.Context) {
 
 }
 
-type LoginStatusPayload struct {
+type LoginStatusPayloadReqStruct struct {
 	ExtendSession bool `json:"extend_session" binding:"required"`
 }
 
 // @BasePath /api
-// @Summary
+// @Summary Login status
 // @Schemes
 // @Description api used to validate user login session
-// @Tags Login status
+// @Tags Account
 // @Accept json
 // @Produce json
+// @Param access_level query string false "Access level" Enums(admin, super_admin, customer)
 // @Success 200 {object} my_modules.ResponseFormat
 // @Failure 400 {object} my_modules.ResponseFormat
 // @Failure 403 {object} my_modules.ResponseFormat
 // @Failure 500 {object} my_modules.ResponseFormat
-// @Router /login_status [post]
+// @Router /login_status [get]
 func LoginStatus(c *gin.Context) {
-	var loginStatusPayload LoginStatusPayload
+	var loginStatusPayload LoginStatusPayloadReqStruct
 
-	decoded_token, err, http_status, ok := my_modules.LoginStatus(c, false)
+	access_level, ok := my_modules.AllAccessLevelReverseMap[c.Query("access_level")]
+
+	decoded_token, err, http_status, ok := my_modules.LoginStatus(c, access_level, false)
 	if err != "" {
 		my_modules.CreateAndSendResponse(c, http_status, "error", err, nil)
 		return

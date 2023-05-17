@@ -16,9 +16,292 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/admin/generate_video_stream/": {
+            "post": {
+                "description": "api to get the list of all the videos uploaded by the logged user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Manage Videos"
+                ],
+                "summary": "Generate video stream",
+                "parameters": [
+                    {
+                        "description": "Video IDs",
+                        "name": "video_ids",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/admin_views.VideoStreamReqStruct"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/get_stream_key/": {
+            "post": {
+                "description": "api to get video decryption key for hls stream",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Manage Videos"
+                ],
+                "summary": "get video decode key",
+                "parameters": [
+                    {
+                        "description": "Video ID",
+                        "name": "video_id",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/admin_views.VideoStreamKeyReqStruct"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/playlist/": {
+            "get": {
+                "description": "api to fetch existing playlist",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Playlist"
+                ],
+                "summary": "Get list of playlist",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/admin_views.GetAllPlayListsRespStruct"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "api to update playlist videos",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Playlist"
+                ],
+                "summary": "Update playlist videos",
+                "parameters": [
+                    {
+                        "description": "Playlist videos",
+                        "name": "video_list",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/admin_views.PlaylistVideoReqStruct"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "api to create new empty playlist",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Playlist"
+                ],
+                "summary": "Create new playlist",
+                "parameters": [
+                    {
+                        "description": "New Playlist",
+                        "name": "new_playlist_data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/mongo_modals.VideoPlayListModal"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/admin_views.CreatePlayListRespStruct"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/upload_list/": {
+            "get": {
+                "description": "api to get the list of all the videos uploaded by the logged user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Manage Videos"
+                ],
+                "summary": "get all uploaded videos",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/admin_views.GetAllUploadedVideosRespStruct"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/upload_streaming_video/": {
             "post": {
-                "description": "allow people to update their user profile data",
+                "description": "api to upload video content for multiple adaptive bit rate streaming",
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -26,14 +309,43 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Video upload"
+                    "Manage Videos"
                 ],
                 "summary": "video upload",
                 "parameters": [
                     {
                         "type": "file",
-                        "description": "File",
-                        "name": "file",
+                        "description": "Video file",
+                        "name": "video_file",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Preview image file",
+                        "name": "preview_image_file",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "created_by",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "description",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "boolean",
+                        "name": "is_live",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "name": "title",
                         "in": "formData",
                         "required": true
                     }
@@ -76,7 +388,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Login"
+                    "Account"
                 ],
                 "summary": "url to login",
                 "parameters": [
@@ -86,8 +398,19 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/user_views.UserCredential"
+                            "$ref": "#/definitions/user_views.UserCredentialReqStruct"
                         }
+                    },
+                    {
+                        "enum": [
+                            "admin",
+                            "super_admin",
+                            "customer"
+                        ],
+                        "type": "string",
+                        "description": "Access level",
+                        "name": "access_level",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -99,6 +422,12 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/my_modules.ResponseFormat"
                         }
@@ -122,7 +451,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Mobile Login"
+                    "Account"
                 ],
                 "summary": "url to login with mobile number",
                 "parameters": [
@@ -132,7 +461,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/user_views.UserMobileCredential"
+                            "$ref": "#/definitions/user_views.UserMobileCredentialReqStruct"
                         }
                     }
                 ],
@@ -159,7 +488,7 @@ const docTemplate = `{
             }
         },
         "/login_status": {
-            "post": {
+            "get": {
                 "description": "api used to validate user login session",
                 "consumes": [
                     "application/json"
@@ -168,7 +497,21 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Login status"
+                    "Account"
+                ],
+                "summary": "Login status",
+                "parameters": [
+                    {
+                        "enum": [
+                            "admin",
+                            "super_admin",
+                            "customer"
+                        ],
+                        "type": "string",
+                        "description": "Access level",
+                        "name": "access_level",
+                        "in": "query"
+                    }
                 ],
                 "responses": {
                     "200": {
@@ -208,7 +551,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "SignUp"
+                    "Account"
                 ],
                 "summary": "url to signup",
                 "parameters": [
@@ -218,7 +561,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/database.UsersModel"
+                            "$ref": "#/definitions/user_views.UserCredentialReqStruct"
                         }
                     }
                 ],
@@ -260,9 +603,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "View user data"
+                    "Account"
                 ],
-                "summary": "url to view user data",
+                "summary": "View user data",
                 "parameters": [
                     {
                         "type": "string",
@@ -307,9 +650,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Update user data"
+                    "Account"
                 ],
-                "summary": "url to update user data",
+                "summary": "Update user data",
                 "parameters": [
                     {
                         "description": "Add user",
@@ -317,7 +660,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/database.UsersModel"
+                            "$ref": "#/definitions/mongo_modals.UsersModel"
                         }
                     }
                 ],
@@ -357,7 +700,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Delete user account"
+                    "Account"
                 ],
                 "summary": "url to delete user account",
                 "responses": {
@@ -398,9 +741,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Get Active sessions"
+                    "Session"
                 ],
-                "summary": "get active user login session",
+                "summary": "Get active user login session",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -439,9 +782,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Block sessions"
+                    "Session"
                 ],
-                "summary": "block specified session",
+                "summary": "Block specified session",
                 "parameters": [
                     {
                         "description": "block token",
@@ -449,7 +792,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/database.ActiveSessionsModel"
+                            "$ref": "#/definitions/mongo_modals.ActiveSessionsModel"
                         }
                     }
                 ],
@@ -491,7 +834,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Logout"
+                    "Session"
                 ],
                 "summary": "allow user to logout",
                 "responses": {
@@ -524,6 +867,7 @@ const docTemplate = `{
         },
         "/verify_social_auth": {
             "post": {
+                "description": "url to signup/login with social authentication",
                 "consumes": [
                     "application/json"
                 ],
@@ -531,9 +875,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "VerifySocialAuth"
+                    "Account"
                 ],
-                "summary": "url to signup/login with social authentication",
+                "summary": "Verify Social Authentication",
                 "parameters": [
                     {
                         "description": "Add user",
@@ -541,7 +885,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/user_views.SocialAuth"
+                            "$ref": "#/definitions/user_views.SocialAuthReqStruct"
                         }
                     }
                 ],
@@ -575,7 +919,113 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "database.ActiveSessionsModel": {
+        "admin_views.CreatePlayListRespStruct": {
+            "type": "object",
+            "required": [
+                "data",
+                "msg",
+                "status"
+            ],
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/mongo_modals.VideoPlayListModal"
+                },
+                "msg": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "admin_views.GetAllPlayListsRespStruct": {
+            "type": "object",
+            "required": [
+                "data",
+                "msg",
+                "status"
+            ],
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/mongo_modals.VideoPlayListModal"
+                    }
+                },
+                "msg": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "admin_views.GetAllUploadedVideosRespStruct": {
+            "type": "object",
+            "required": [
+                "data",
+                "msg",
+                "status"
+            ],
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/mongo_modals.VideoUploadModal"
+                    }
+                },
+                "msg": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "admin_views.PlaylistVideoReqStruct": {
+            "type": "object",
+            "required": [
+                "playlist_id",
+                "videos_ids"
+            ],
+            "properties": {
+                "playlist_id": {
+                    "type": "string"
+                },
+                "videos_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "admin_views.VideoStreamKeyReqStruct": {
+            "type": "object",
+            "required": [
+                "video_id"
+            ],
+            "properties": {
+                "video_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "admin_views.VideoStreamReqStruct": {
+            "type": "object",
+            "required": [
+                "video_ids"
+            ],
+            "properties": {
+                "video_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "mongo_modals.ActiveSessionsModel": {
             "type": "object",
             "properties": {
                 "_id": {
@@ -607,15 +1057,23 @@ const docTemplate = `{
                 }
             }
         },
-        "database.UsersModel": {
+        "mongo_modals.UsersModel": {
             "type": "object",
             "required": [
+                "access_level",
+                "access_level_weight",
                 "email",
                 "mobile",
                 "password",
                 "username"
             ],
             "properties": {
+                "access_level": {
+                    "type": "string"
+                },
+                "access_level_weight": {
+                    "type": "integer"
+                },
                 "auth_provider": {
                     "type": "string"
                 },
@@ -632,6 +1090,78 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "mongo_modals.VideoPlayListModal": {
+            "type": "object",
+            "required": [
+                "is_live",
+                "price",
+                "title",
+                "videos_ids"
+            ],
+            "properties": {
+                "created_by_user": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "is_live": {
+                    "type": "boolean"
+                },
+                "price": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "videos_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "mongo_modals.VideoUploadModal": {
+            "type": "object",
+            "required": [
+                "duration",
+                "is_live",
+                "title"
+            ],
+            "properties": {
+                "created_by_user": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "duration": {
+                    "type": "integer"
+                },
+                "is_live": {
+                    "type": "boolean"
+                },
+                "link_to_original_video": {
+                    "type": "string"
+                },
+                "link_to_video_preview_image": {
+                    "type": "string"
+                },
+                "link_to_video_stream": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "uploaded_by_user": {
+                    "type": "string"
+                },
+                "video_decryption_key": {
                     "type": "string"
                 }
             }
@@ -653,7 +1183,7 @@ const docTemplate = `{
                 }
             }
         },
-        "user_views.SocialAuth": {
+        "user_views.SocialAuthReqStruct": {
             "type": "object",
             "required": [
                 "idToken"
@@ -670,7 +1200,7 @@ const docTemplate = `{
                 }
             }
         },
-        "user_views.UserCredential": {
+        "user_views.UserCredentialReqStruct": {
             "type": "object",
             "required": [
                 "email",
@@ -682,10 +1212,13 @@ const docTemplate = `{
                 },
                 "password": {
                     "type": "string"
+                },
+                "username": {
+                    "type": "string"
                 }
             }
         },
-        "user_views.UserMobileCredential": {
+        "user_views.UserMobileCredentialReqStruct": {
             "type": "object",
             "required": [
                 "mobile",

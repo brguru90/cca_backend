@@ -43,6 +43,7 @@
       "mode": "debug",
       "program": "src/main.go",
       "cwd": "${workspaceFolder}/",
+      "args": ["server"],
       // "preLaunchTask": "gennerate_swagger_doc",
       "env": {
         "SERVER_PORT": "8000",
@@ -62,7 +63,8 @@
         "DISABLE_COLOR": "false",
         "FIREBASE_PUBLIC_API_KEY":"AIzaSyAJwqFWjDt45O1kJVqRNt2SYt7aZZZsTFI",
         "FIREBASE_AUTH_DOMAIN":"crud-eb4cc.firebaseapp.com",
-        "FIREBASE_PROJECT_ID":"crud-eb4cc"
+        "FIREBASE_PROJECT_ID":"crud-eb4cc",
+        "VIDEO_UPLOAD_PATH":"uploads",
       }
     },
     {

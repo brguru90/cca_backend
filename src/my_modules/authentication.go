@@ -2,10 +2,9 @@ package my_modules
 
 import (
 	"cca/src/configs"
-	"cca/src/database"
+	"cca/src/database/database_connections"
+	"cca/src/database/mongo_modals"
 	"context"
-	"crypto/aes"
-	"crypto/cipher"
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
@@ -13,6 +12,9 @@ import (
 	"net/url"
 	"strconv"
 	"time"
+
+	"crypto/aes"
+	"crypto/cipher"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
@@ -24,12 +26,14 @@ var EncryptionKey = "thisis32bitlongpassphraseimusing"
 var encryption_bytes_padding = []byte{35, 46, 57, 24, 85, 35, 24, 74, 87, 35, 88, 98, 66, 32, 14, 05}
 
 type TokenPayload struct {
-	Email        string `json:"email" binding:"required"`
-	Mobile       string `json:"mobile" binding:"required"`
-	ID           string `json:"_id" binding:"required"`
-	UID          string `json:"uid"`
-	Username     string `json:"username"`
-	AuthProvider string `json:"auth_provider" binding:"required"`
+	Email             string `json:"email" binding:"required"`
+	Mobile            string `json:"mobile" binding:"required"`
+	ID                string `json:"_id" binding:"required"`
+	UID               string `json:"uid"`
+	Username          string `json:"username"`
+	AccessLevel       string `json:"access_level"  binding:"required"`
+	AccessLevelWeight int    `json:"access_level_weight" binding:"required"`
+	AuthProvider      string `json:"auth_provider" binding:"required"`
 }
 type AccessToken struct {
 	Data          TokenPayload `json:"data" binding:"required"`
@@ -97,7 +101,7 @@ func DecryptAES(key string, text string) string {
 	return string(plainText)
 }
 
-func GenerateAccessToken(uname string, csrf_token string, data TokenPayload) (string, AccessTokenClaims) {
+func GenerateAccessToken(uname string, csrf_token string, data TokenPayload, encrypted_data string) (string, AccessTokenClaims) {
 	time_now := time.Now().UnixMilli()
 	token_id := ""
 
@@ -105,14 +109,12 @@ func GenerateAccessToken(uname string, csrf_token string, data TokenPayload) (st
 		token_id = data.ID + "_" + base64.StdEncoding.EncodeToString(_rand) + "_" + strconv.FormatInt(int64(time_now), 10)
 	}
 
-	data_to_encrypt := "some data"
-
 	var accessTokenPayload AccessTokenClaims = AccessTokenClaims{
 		AccessToken: AccessToken{
 			Uname:         uname,
 			Token_id:      token_id,
 			Data:          data,
-			EncryptedData: EncryptAES(EncryptionKey, data_to_encrypt),
+			EncryptedData: encrypted_data,
 			IssuedAtTime:  time_now,
 			Exp:           time_now + configs.EnvConfigs.JWT_TOKEN_EXPIRE_IN_MINS*60*1000,
 			Csrf_token:    EncryptAES(EncryptionKey, csrf_token),
@@ -178,20 +180,34 @@ func EnsureCsrfToken(c *gin.Context) string {
 	return csrf_token
 }
 
-func Authenticate(c *gin.Context, newUserRow database.UsersModel) AccessToken {
+func Authenticate(c *gin.Context, newUserRow mongo_modals.UsersModel, data_to_encrypt string, already_encrypted bool) AccessToken {
 	token_payload := TokenPayload{
-		Email:        newUserRow.Email,
-		Mobile:       newUserRow.Mobile,
-		ID:           newUserRow.ID.Hex(),
-		UID:          newUserRow.Uid,
-		Username:     newUserRow.Username,
-		AuthProvider: newUserRow.AuthProvider,
+		Email:             newUserRow.Email,
+		Mobile:            newUserRow.Mobile,
+		ID:                newUserRow.ID.Hex(),
+		UID:               newUserRow.Uid,
+		Username:          newUserRow.Username,
+		AccessLevel:       newUserRow.AccessLevel,
+		AccessLevelWeight: newUserRow.AccessLevelWeight,
+		AuthProvider:      newUserRow.AuthProvider,
 	}
-	access_token, access_token_payload := GenerateAccessToken(
-		newUserRow.Username,
-		EnsureCsrfToken(c),
-		token_payload,
-	)
+	var access_token string
+	var access_token_payload AccessTokenClaims
+	if already_encrypted {
+		access_token, access_token_payload = GenerateAccessToken(
+			newUserRow.Email,
+			EnsureCsrfToken(c),
+			token_payload,
+			data_to_encrypt,
+		)
+	} else {
+		access_token, access_token_payload = GenerateAccessToken(
+			newUserRow.Email,
+			EnsureCsrfToken(c),
+			token_payload,
+			EncryptAES(EncryptionKey, data_to_encrypt),
+		)
+	}
 	newUserRow_json, _ := json.Marshal(newUserRow)
 	SetCookie(c, "access_token", access_token, access_token_payload.Exp, true)
 	SetCookie(c, "user_data", string(newUserRow_json), access_token_payload.Exp, false)
@@ -200,17 +216,19 @@ func Authenticate(c *gin.Context, newUserRow database.UsersModel) AccessToken {
 
 func RenewAuthentication(c *gin.Context, token_payload AccessToken) AccessToken {
 	_id, _ := primitive.ObjectIDFromHex(token_payload.Data.ID)
-	return Authenticate(c, database.UsersModel{
-		Email:        token_payload.Data.Email,
-		Mobile:       token_payload.Data.Mobile,
-		ID:           _id,
-		Uid:          token_payload.Data.UID,
-		Username:     token_payload.Uname,
-		AuthProvider: token_payload.Data.AuthProvider,
-	})
+	return Authenticate(c, mongo_modals.UsersModel{
+		Email:             token_payload.Data.Email,
+		Mobile:            token_payload.Data.Mobile,
+		ID:                _id,
+		Uid:               token_payload.Data.UID,
+		Username:          token_payload.Uname,
+		AuthProvider:      token_payload.Data.AuthProvider,
+		AccessLevel:       token_payload.Data.AccessLevel,
+		AccessLevelWeight: token_payload.Data.AccessLevelWeight,
+	}, token_payload.EncryptedData, true)
 }
 
-func LoginStatus(c *gin.Context, enforce_csrf_check bool) (AccessToken, string, int, bool) {
+func LoginStatus(c *gin.Context, access_level interface{}, enforce_csrf_check bool) (AccessToken, string, int, bool) {
 	var token_claims AccessTokenClaims
 	access_token, err := c.Cookie("access_token")
 
@@ -232,7 +250,7 @@ func LoginStatus(c *gin.Context, enforce_csrf_check bool) (AccessToken, string, 
 	if err != nil {
 		e, ok := err.(*jwt.ValidationError)
 		if err == jwt.ErrSignatureInvalid {
-			return AccessToken{}, "Invalid token signature", http.StatusUnauthorized, false
+			return AccessToken{}, "Invalid token signature", http.StatusForbidden, false
 		}
 		log.WithFields(log.Fields{
 			"Error":        err,
@@ -244,49 +262,61 @@ func LoginStatus(c *gin.Context, enforce_csrf_check bool) (AccessToken, string, 
 		return AccessToken{}, "Unknown error in Decrypting token", http.StatusInternalServerError, false
 	}
 	if !token.Valid {
-		return AccessToken{}, "unAuthorized", http.StatusUnauthorized, false
+		return AccessToken{}, "unAuthorized", http.StatusForbidden, false
 	}
 
 	if time.Now().UnixMilli() > token_claims.AccessToken.Exp {
-		return AccessToken{}, "tokenExpired", http.StatusUnauthorized, false
+		return AccessToken{}, "tokenExpired", http.StatusForbidden, false
 	}
 
-	_, r_err := database.REDIS_DB_CONNECTION.Get(context.Background(), token_claims.AccessToken.Token_id).Result()
+	_, r_err := database_connections.REDIS_DB_CONNECTION.Get(context.Background(), token_claims.AccessToken.Token_id).Result()
 	if r_err == nil {
-		return token_claims.AccessToken, "Session blocked", http.StatusUnauthorized, false
+		return token_claims.AccessToken, "Session blocked", http.StatusForbidden, false
 	}
 
 	csrf_token := c.Request.Header.Get("csrf_token")
 	if csrf_token == "" {
 		_id, _ := primitive.ObjectIDFromHex(token_claims.AccessToken.Data.ID)
-		token_claims.AccessToken = Authenticate(c, database.UsersModel{
-			Email:        token_claims.AccessToken.Data.Email,
-			Mobile:       token_claims.AccessToken.Data.Mobile,
-			ID:           _id,
-			Uid:          token_claims.AccessToken.Data.UID,
-			Username:     token_claims.Uname,
-			AuthProvider: token_claims.Data.AuthProvider,
-		})
+		token_claims.AccessToken = Authenticate(c, mongo_modals.UsersModel{
+			Email:             token_claims.AccessToken.Data.Email,
+			Mobile:            token_claims.AccessToken.Data.Mobile,
+			ID:                _id,
+			Uid:               token_claims.AccessToken.Data.UID,
+			Username:          token_claims.Uname,
+			AuthProvider:      token_claims.Data.AuthProvider,
+			AccessLevel:       token_claims.Data.AccessLevel,
+			AccessLevelWeight: token_claims.Data.AccessLevelWeight,
+		}, token_claims.AccessToken.EncryptedData, true)
 		if enforce_csrf_check {
-			return AccessToken{}, "missing csrf token", http.StatusBadRequest, false
+			return AccessToken{}, "missing csrf token", http.StatusForbidden, false
 		}
 	} else {
 		if DecryptAES(EncryptionKey, token_claims.AccessToken.Csrf_token) != csrf_token {
 			_id, _ := primitive.ObjectIDFromHex(token_claims.AccessToken.Data.ID)
-			token_claims.AccessToken = Authenticate(c, database.UsersModel{
-				Email:        token_claims.AccessToken.Data.Email,
-				Mobile:       token_claims.AccessToken.Data.Mobile,
-				ID:           _id,
-				Uid:          token_claims.AccessToken.Data.UID,
-				Username:     token_claims.Uname,
-				AuthProvider: token_claims.Data.AuthProvider,
-			})
+			token_claims.AccessToken = Authenticate(c, mongo_modals.UsersModel{
+				Email:             token_claims.AccessToken.Data.Email,
+				Mobile:            token_claims.AccessToken.Data.Mobile,
+				ID:                _id,
+				Uid:               token_claims.AccessToken.Data.UID,
+				Username:          token_claims.Uname,
+				AuthProvider:      token_claims.Data.AuthProvider,
+				AccessLevel:       token_claims.Data.AccessLevel,
+				AccessLevelWeight: token_claims.Data.AccessLevelWeight,
+			}, token_claims.AccessToken.EncryptedData, true)
 			if enforce_csrf_check {
-				return AccessToken{}, "invalid csrf token", http.StatusUnauthorized, false
+				return AccessToken{}, "invalid csrf token", http.StatusForbidden, false
 			}
 		}
 	}
 	token_claims.AccessToken.EncryptedData = DecryptAES(EncryptionKey, token_claims.AccessToken.EncryptedData)
+
+	if access_level != nil {
+		// user access level < required access level
+		if token_claims.AccessToken.Data.AccessLevelWeight < access_level.(AccessLevelType).Weight {
+			return AccessToken{}, "Unauthorized access level", http.StatusForbidden, false
+		}
+	}
+
 	return token_claims.AccessToken, "", http.StatusOK, true
 }
 

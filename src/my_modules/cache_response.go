@@ -3,7 +3,7 @@ package my_modules
 import (
 	"bytes"
 	"cca/src/configs"
-	"cca/src/database"
+	"cca/src/database/database_connections"
 	"crypto/sha1"
 	"fmt"
 	"math"
@@ -45,9 +45,9 @@ func GetCachedResponse(view_func func(*gin.Context), table_name string, cache_tt
 		var responseCache ResponseCacheStruct
 
 		// if users_update_in_progress key doesn't exists then check cache
-		if _temp_val, cache_should_mis_err := database.RedisPoolGet("users_update_in_progress"); cache_should_mis_err != nil {
+		if _temp_val, cache_should_mis_err := database_connections.RedisPoolGet("users_update_in_progress"); cache_should_mis_err != nil {
 			// getting data from cache
-			cache_mis_err := database.RedisPoolHGetJSON(db_cache_key, api_cache_key, &responseCache)
+			cache_mis_err := database_connections.RedisPoolHGetJSON(db_cache_key, api_cache_key, &responseCache)
 			if cache_mis_err == nil {
 				_now := time.Now()
 
@@ -64,7 +64,7 @@ func GetCachedResponse(view_func func(*gin.Context), table_name string, cache_tt
 					if _now.Sub(responseCache.LastModified) >= cache_ttl_sec_3quarter {
 						log.Debugln("cache Renewing --> " + _uri)
 						responseCache.LastModified = _now
-						err := database.RedisPoolHSetJSON(db_cache_key, api_cache_key, responseCache, cache_ttl_secs)
+						err := database_connections.RedisPoolHSetJSON(db_cache_key, api_cache_key, responseCache, cache_ttl_secs)
 						if err != nil {
 							log.WithFields(log.Fields{
 								"err":     err,
@@ -100,7 +100,7 @@ func GetCachedResponse(view_func func(*gin.Context), table_name string, cache_tt
 				HTTPStatusCode: c.Writer.Status(),
 				LastModified:   time.Now(),
 			}
-			err := database.RedisPoolHSetJSON(db_cache_key, api_cache_key, responseCache, cache_ttl_secs)
+			err := database_connections.RedisPoolHSetJSON(db_cache_key, api_cache_key, responseCache, cache_ttl_secs)
 			if err != nil {
 				log.WithFields(log.Fields{
 					"err":     err,

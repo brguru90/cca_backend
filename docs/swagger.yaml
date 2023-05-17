@@ -1,5 +1,76 @@
 definitions:
-  database.ActiveSessionsModel:
+  admin_views.CreatePlayListRespStruct:
+    properties:
+      data:
+        $ref: '#/definitions/mongo_modals.VideoPlayListModal'
+      msg:
+        type: string
+      status:
+        type: string
+    required:
+    - data
+    - msg
+    - status
+    type: object
+  admin_views.GetAllPlayListsRespStruct:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/mongo_modals.VideoPlayListModal'
+        type: array
+      msg:
+        type: string
+      status:
+        type: string
+    required:
+    - data
+    - msg
+    - status
+    type: object
+  admin_views.GetAllUploadedVideosRespStruct:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/mongo_modals.VideoUploadModal'
+        type: array
+      msg:
+        type: string
+      status:
+        type: string
+    required:
+    - data
+    - msg
+    - status
+    type: object
+  admin_views.PlaylistVideoReqStruct:
+    properties:
+      playlist_id:
+        type: string
+      videos_ids:
+        items:
+          type: string
+        type: array
+    required:
+    - playlist_id
+    - videos_ids
+    type: object
+  admin_views.VideoStreamKeyReqStruct:
+    properties:
+      video_id:
+        type: string
+    required:
+    - video_id
+    type: object
+  admin_views.VideoStreamReqStruct:
+    properties:
+      video_ids:
+        items:
+          type: string
+        type: array
+    required:
+    - video_ids
+    type: object
+  mongo_modals.ActiveSessionsModel:
     properties:
       _id:
         type: string
@@ -20,8 +91,12 @@ definitions:
       user_id:
         type: string
     type: object
-  database.UsersModel:
+  mongo_modals.UsersModel:
     properties:
+      access_level:
+        type: string
+      access_level_weight:
+        type: integer
       auth_provider:
         type: string
       email:
@@ -35,10 +110,61 @@ definitions:
       username:
         type: string
     required:
+    - access_level
+    - access_level_weight
     - email
     - mobile
     - password
     - username
+    type: object
+  mongo_modals.VideoPlayListModal:
+    properties:
+      created_by_user:
+        type: string
+      description:
+        type: string
+      is_live:
+        type: boolean
+      price:
+        type: integer
+      title:
+        type: string
+      videos_ids:
+        items:
+          type: string
+        type: array
+    required:
+    - is_live
+    - price
+    - title
+    - videos_ids
+    type: object
+  mongo_modals.VideoUploadModal:
+    properties:
+      created_by_user:
+        type: string
+      description:
+        type: string
+      duration:
+        type: integer
+      is_live:
+        type: boolean
+      link_to_original_video:
+        type: string
+      link_to_video_preview_image:
+        type: string
+      link_to_video_stream:
+        type: string
+      title:
+        type: string
+      uploaded_by_user:
+        type: string
+      video_decryption_key:
+        type: string
+    required:
+    - duration
+    - is_live
+    - title
     type: object
   my_modules.ResponseFormat:
     properties:
@@ -52,7 +178,7 @@ definitions:
     - msg
     - status
     type: object
-  user_views.SocialAuth:
+  user_views.SocialAuthReqStruct:
     properties:
       idToken:
         type: string
@@ -63,17 +189,19 @@ definitions:
     required:
     - idToken
     type: object
-  user_views.UserCredential:
+  user_views.UserCredentialReqStruct:
     properties:
       email:
         type: string
       password:
         type: string
+      username:
+        type: string
     required:
     - email
     - password
     type: object
-  user_views.UserMobileCredential:
+  user_views.UserMobileCredentialReqStruct:
     properties:
       mobile:
         type: string
@@ -86,17 +214,222 @@ definitions:
 info:
   contact: {}
 paths:
+  /admin/generate_video_stream/:
+    post:
+      consumes:
+      - application/json
+      description: api to get the list of all the videos uploaded by the logged user
+      parameters:
+      - description: Video IDs
+        in: body
+        name: video_ids
+        required: true
+        schema:
+          $ref: '#/definitions/admin_views.VideoStreamReqStruct'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: Generate video stream
+      tags:
+      - Manage Videos
+  /admin/get_stream_key/:
+    post:
+      consumes:
+      - application/json
+      description: api to get video decryption key for hls stream
+      parameters:
+      - description: Video ID
+        in: body
+        name: video_id
+        required: true
+        schema:
+          $ref: '#/definitions/admin_views.VideoStreamKeyReqStruct'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: get video decode key
+      tags:
+      - Manage Videos
+  /admin/playlist/:
+    get:
+      consumes:
+      - application/json
+      description: api to fetch existing playlist
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/admin_views.GetAllPlayListsRespStruct'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: Get list of playlist
+      tags:
+      - Playlist
+    post:
+      consumes:
+      - application/json
+      description: api to create new empty playlist
+      parameters:
+      - description: New Playlist
+        in: body
+        name: new_playlist_data
+        required: true
+        schema:
+          $ref: '#/definitions/mongo_modals.VideoPlayListModal'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/admin_views.CreatePlayListRespStruct'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: Create new playlist
+      tags:
+      - Playlist
+    put:
+      consumes:
+      - application/json
+      description: api to update playlist videos
+      parameters:
+      - description: Playlist videos
+        in: body
+        name: video_list
+        required: true
+        schema:
+          $ref: '#/definitions/admin_views.PlaylistVideoReqStruct'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: Update playlist videos
+      tags:
+      - Playlist
+  /admin/upload_list/:
+    get:
+      description: api to get the list of all the videos uploaded by the logged user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/admin_views.GetAllUploadedVideosRespStruct'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: get all uploaded videos
+      tags:
+      - Manage Videos
   /admin/upload_streaming_video/:
     post:
       consumes:
       - multipart/form-data
-      description: allow people to update their user profile data
+      description: api to upload video content for multiple adaptive bit rate streaming
       parameters:
-      - description: File
+      - description: Video file
         in: formData
-        name: file
+        name: video_file
         required: true
         type: file
+      - description: Preview image file
+        in: formData
+        name: preview_image_file
+        required: true
+        type: file
+      - in: formData
+        name: created_by
+        required: true
+        type: string
+      - in: formData
+        name: description
+        type: string
+      - in: formData
+        name: is_live
+        type: boolean
+      - in: formData
+        name: title
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -118,7 +451,7 @@ paths:
             $ref: '#/definitions/my_modules.ResponseFormat'
       summary: video upload
       tags:
-      - Video upload
+      - Manage Videos
   /login:
     post:
       consumes:
@@ -130,60 +463,15 @@ paths:
         name: existing_user
         required: true
         schema:
-          $ref: '#/definitions/user_views.UserCredential'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/my_modules.ResponseFormat'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/my_modules.ResponseFormat'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/my_modules.ResponseFormat'
-      summary: url to login
-      tags:
-      - Login
-  /login_mobile:
-    post:
-      consumes:
-      - application/json
-      description: allow people to login into their account
-      parameters:
-      - description: Add user
-        in: body
-        name: existing_user
-        required: true
-        schema:
-          $ref: '#/definitions/user_views.UserMobileCredential'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/my_modules.ResponseFormat'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/my_modules.ResponseFormat'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/my_modules.ResponseFormat'
-      summary: url to login with mobile number
-      tags:
-      - Mobile Login
-  /login_status:
-    post:
-      consumes:
-      - application/json
-      description: api used to validate user login session
+          $ref: '#/definitions/user_views.UserCredentialReqStruct'
+      - description: Access level
+        enum:
+        - admin
+        - super_admin
+        - customer
+        in: query
+        name: access_level
+        type: string
       produces:
       - application/json
       responses:
@@ -203,8 +491,75 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: url to login
       tags:
-      - Login status
+      - Account
+  /login_mobile:
+    post:
+      consumes:
+      - application/json
+      description: allow people to login into their account
+      parameters:
+      - description: Add user
+        in: body
+        name: existing_user
+        required: true
+        schema:
+          $ref: '#/definitions/user_views.UserMobileCredentialReqStruct'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: url to login with mobile number
+      tags:
+      - Account
+  /login_status:
+    get:
+      consumes:
+      - application/json
+      description: api used to validate user login session
+      parameters:
+      - description: Access level
+        enum:
+        - admin
+        - super_admin
+        - customer
+        in: query
+        name: access_level
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: Login status
+      tags:
+      - Account
   /sign_up:
     post:
       consumes:
@@ -216,7 +571,7 @@ paths:
         name: new_user
         required: true
         schema:
-          $ref: '#/definitions/database.UsersModel'
+          $ref: '#/definitions/user_views.UserCredentialReqStruct'
       produces:
       - application/json
       responses:
@@ -238,7 +593,7 @@ paths:
             $ref: '#/definitions/my_modules.ResponseFormat'
       summary: url to signup
       tags:
-      - SignUp
+      - Account
   /user/:
     delete:
       consumes:
@@ -265,7 +620,7 @@ paths:
             $ref: '#/definitions/my_modules.ResponseFormat'
       summary: url to delete user account
       tags:
-      - Delete user account
+      - Account
     get:
       consumes:
       - application/json
@@ -294,9 +649,9 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/my_modules.ResponseFormat'
-      summary: url to view user data
+      summary: View user data
       tags:
-      - View user data
+      - Account
     put:
       consumes:
       - application/json
@@ -307,7 +662,7 @@ paths:
         name: new_user
         required: true
         schema:
-          $ref: '#/definitions/database.UsersModel'
+          $ref: '#/definitions/mongo_modals.UsersModel'
       produces:
       - application/json
       responses:
@@ -327,9 +682,9 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/my_modules.ResponseFormat'
-      summary: url to update user data
+      summary: Update user data
       tags:
-      - Update user data
+      - Account
   /user/active_sessions/:
     get:
       consumes:
@@ -354,9 +709,9 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/my_modules.ResponseFormat'
-      summary: get active user login session
+      summary: Get active user login session
       tags:
-      - Get Active sessions
+      - Session
   /user/block_token/:
     post:
       consumes:
@@ -368,7 +723,7 @@ paths:
         name: block_active_session
         required: true
         schema:
-          $ref: '#/definitions/database.ActiveSessionsModel'
+          $ref: '#/definitions/mongo_modals.ActiveSessionsModel'
       produces:
       - application/json
       responses:
@@ -388,9 +743,9 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/my_modules.ResponseFormat'
-      summary: block specified session
+      summary: Block specified session
       tags:
-      - Block sessions
+      - Session
   /user/logout/:
     get:
       consumes:
@@ -418,18 +773,19 @@ paths:
             $ref: '#/definitions/my_modules.ResponseFormat'
       summary: allow user to logout
       tags:
-      - Logout
+      - Session
   /verify_social_auth:
     post:
       consumes:
       - application/json
+      description: url to signup/login with social authentication
       parameters:
       - description: Add user
         in: body
         name: new_or_existing_user
         required: true
         schema:
-          $ref: '#/definitions/user_views.SocialAuth'
+          $ref: '#/definitions/user_views.SocialAuthReqStruct'
       produces:
       - application/json
       responses:
@@ -449,7 +805,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/my_modules.ResponseFormat'
-      summary: url to signup/login with social authentication
+      summary: Verify Social Authentication
       tags:
-      - VerifySocialAuth
+      - Account
 swagger: "2.0"
