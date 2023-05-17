@@ -16,13 +16,9 @@
     *** tables ***
 
 
-** playlist **
-ID | Title | Description | Price | isLive | [VideosIds]
-
-
-
 
 ** Video Content **
+-- admin/lecture upload his videos
 ID | Title | Description | Duration | CreatedByUser | UploadedByUser | isLive | linkToriginalVideo | linkToVideoStream | VideoDecryptionKey | LinkToVideoPreviewImage
 
 * linkToriginalVideo & LinkToVideoPreviewImage -> video will be uploaded instantly & path updated to column
@@ -39,16 +35,48 @@ ID | Title | Description | Duration | CreatedByUser | UploadedByUser | isLive | 
 
     """
 
+** playlist **
+-- admin/lecture create own playlist
+-- & he can map his own uploaded videos to his playlist (from above table will check UploadedByUser)
+ID | Title | Description | Price | isLive | [VideosIds]
+
+
+
+
+
 
 
 ** Subscription package **
+-- admin create his own subscription
+-- subscription package means, user group multiple playlist(assume multiple courses) into single package
+-- and admin set price for subscription package
+-- since each playlist have the price value, in subscription input(in frontend input value) will auto populate total price form subscription_package by summing the price of all selected playlist, but still user can modify(like if user want to cur down price since user purchasing multiple course/playlist in bulk)
+
+-- actions,
+-- list/view all the subscription_package created by admin
+-- create subscription package with name,description,price with unmapped playlist initially
+-- once subscription_package created, he can add(map),delete(unmap) playlist to this subscription_package from ui side
+-- & he can delete subscription_package
+-- isLive(true/false) means should this subscription_package enabled, like user can enroll to subscription_package
 ID | Title | Description | [PlayListIDs] | Enabled | Price
 
 
 
 
 ** User Subscription **
+-- App side(customer side implementation)
+-- here customer him self enroll to subscription_package by paying specified amount
+-- it will have the expiration time based on amount user pays
+
+-- Admin side
+-- Admin can disable subscription if he wants for some reason
+-- admin can view list of customer, subscribed to his subscription_packages
 ID | UserID | PlayListID | IntialSubscriptionDate | ExpireOn | enabled | [subscribedOn] | [amountPaid]
 
 * subscribedOn & amountPaid --> is the array of subsequent renew of subscription
 * if ExpireOn==nil, means life time subscription
+
+
+** list/add/modify/remove admin users **
+
+-- only allowed to super_admins
