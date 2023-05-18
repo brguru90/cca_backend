@@ -177,6 +177,19 @@ func GenerateVideoStream(c *gin.Context) {
 		return
 	}
 
+	payload, ok := my_modules.ExtractTokenPayload(c)
+	if !ok {
+		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "Unable to get user info", nil)
+		return
+	}
+
+	user_id, _id_err := primitive.ObjectIDFromHex(payload.Data.ID)
+
+	if payload.Data.ID == "" || _id_err != nil {
+		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "UUID of user is not provided", _id_err)
+		return
+	}
+
 	var videos_doc_id []primitive.ObjectID
 	for i := 0; i < len(videoStreamInfo.Id); i++ {
 		objID, err := primitive.ObjectIDFromHex(videoStreamInfo.Id[i])
@@ -187,10 +200,16 @@ func GenerateVideoStream(c *gin.Context) {
 
 	unprotected_video := fmt.Sprintf("%s/public/video", configs.EnvConfigs.VIDEO_UPLOAD_PATH)
 
+	where := bson.M{"_id": bson.M{"$in": videos_doc_id}, "uploaded_by_user": user_id}
+
+	if payload.Data.AccessLevel == "super_admin" {
+		where = bson.M{"_id": bson.M{"$in": videos_doc_id}}
+	}
+
 	var err error
 	var cursor *mongo.Cursor
 	defer cursor.Close(ctx)
-	cursor, err = database_connections.MONGO_COLLECTIONS.VideoUploads.Find(ctx, bson.M{"_id": bson.M{"$in": videos_doc_id}})
+	cursor, err = database_connections.MONGO_COLLECTIONS.VideoUploads.Find(ctx, where)
 	if err != nil {
 		if err != context.Canceled {
 			log.WithFields(log.Fields{
@@ -383,7 +402,82 @@ func GetAllUploadedVideos(c *gin.Context) {
 	}
 }
 
+// @BasePath /api/
+// @Summary Delete videos
+// @Schemes
+// @Description api delete videos by id
+// @Tags Manage Videos
+// @Accept json
+// @Produce json
+// @Param video_ids body VideoStreamReqStruct true "Remove videos"
+// @Success 200 {object} my_modules.ResponseFormat
+// @Failure 400 {object} my_modules.ResponseFormat
+// @Failure 403 {object} my_modules.ResponseFormat
+// @Failure 500 {object} my_modules.ResponseFormat
+// @Router /admin/upload_list/ [get]
 func RemoveVideos(c *gin.Context) {
+	// ctx := c.Request.Context()
+	// var videos_data VideoStreamReqStruct
+	// if err := c.ShouldBind(&videos_data); err != nil {
+	// 	log.Errorln(err)
+	// 	my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Invalid upload payload", nil)
+	// 	return
+	// }
+
+	// payload, ok := my_modules.ExtractTokenPayload(c)
+	// if !ok {
+	// 	my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "Unable to get user info", nil)
+	// 	return
+	// }
+
+	// user_id, _id_err := primitive.ObjectIDFromHex(payload.Data.ID)
+
+	// if payload.Data.ID == "" || _id_err != nil {
+	// 	my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "UUID of user is not provided", _id_err)
+	// 	return
+	// }
+
+	// var videos_doc_id []primitive.ObjectID
+	// for i := 0; i < len(videos_data.Id); i++ {
+	// 	objID, err := primitive.ObjectIDFromHex(videos_data.Id[i])
+	// 	if err == nil {
+	// 		videos_doc_id = append(videos_doc_id, objID)
+	// 	}
+	// }
+
+	// where := bson.M{"_id": bson.M{"$in": videos_doc_id}, "uploaded_by_user": user_id}
+
+	// if payload.Data.AccessLevel == "super_admin" {
+	// 	where = bson.M{"_id": bson.M{"$in": videos_doc_id}}
+	// }
+	// var err error
+	// var cursor *mongo.Cursor
+	// defer cursor.Close(ctx)
+	// cursor, err = database_connections.MONGO_COLLECTIONS.VideoUploads.Find(ctx, where)
+	// if err != nil {
+	// 	if err != context.Canceled {
+	// 		log.WithFields(log.Fields{
+	// 			"error": err,
+	// 		}).Errorln("QueryRow failed ==>")
+	// 	}
+	// 	my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "No record found", nil)
+	// } else {
+
+	// }
+
+	// result, err := database_connections.MONGO_COLLECTIONS.VideoUploads.DeleteOne(context.Background(), where)
+	// if err != nil {
+	// 	log.WithFields(log.Fields{
+	// 		"err": err,
+	// 	}).Errorln("Failed to delete user data")
+	// 	my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Failed to delete user data", nil)
+	// 	return
+	// }
+	// rows_deleted := result.DeletedCount
+
+	// // if payload.Data.AccessLevel == "super_admin" {
+	// // 	where = bson.M{"_id": bson.M{"$in": videos_doc_id}}
+	// // }
 
 }
 
