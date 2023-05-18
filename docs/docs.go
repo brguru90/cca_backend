@@ -404,19 +404,33 @@ const docTemplate = `{
         },
         "/admin/upload_list/": {
             "get": {
-                "description": "api to get the list of all the videos uploaded by the logged user",
+                "description": "api delete videos by id",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Manage Videos"
                 ],
-                "summary": "get all uploaded videos",
+                "summary": "Delete videos",
+                "parameters": [
+                    {
+                        "description": "Remove videos",
+                        "name": "video_ids",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/admin_views.VideoStreamReqStruct"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/admin_views.GetAllUploadedVideosRespStruct"
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
                         }
                     },
                     "400": {

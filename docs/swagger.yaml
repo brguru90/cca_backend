@@ -519,14 +519,23 @@ paths:
       - Playlist Subscription Package
   /admin/upload_list/:
     get:
-      description: api to get the list of all the videos uploaded by the logged user
+      consumes:
+      - application/json
+      description: api delete videos by id
+      parameters:
+      - description: Remove videos
+        in: body
+        name: video_ids
+        required: true
+        schema:
+          $ref: '#/definitions/admin_views.VideoStreamReqStruct'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/admin_views.GetAllUploadedVideosRespStruct'
+            $ref: '#/definitions/my_modules.ResponseFormat'
         "400":
           description: Bad Request
           schema:
@@ -539,7 +548,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/my_modules.ResponseFormat'
-      summary: get all uploaded videos
+      summary: Delete videos
       tags:
       - Manage Videos
   /admin/upload_streaming_video/:
