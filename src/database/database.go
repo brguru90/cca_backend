@@ -8,7 +8,7 @@ import (
 func InitDataBases() {
 	database_connections.InitMongoDB()
 	database_connections.ConnectRedis()
-	database_connections.ConnectRedis()
+	database_connections.InitRedisPool()
 
 	mongo_modals.InitUserCollection()
 	mongo_modals.InitActiveSessionCollection()
