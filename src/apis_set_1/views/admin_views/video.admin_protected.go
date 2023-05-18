@@ -383,6 +383,10 @@ func GetAllUploadedVideos(c *gin.Context) {
 	}
 }
 
+func RemoveVideos(c *gin.Context) {
+
+}
+
 type GetAllPlayListsRespStruct struct {
 	my_modules.ResponseFormat
 	Data []mongo_modals.VideoPlayListModal `json:"data"`
@@ -597,16 +601,223 @@ func UpdatePlayList(c *gin.Context) {
 
 }
 
+func RemovePlayList(c *gin.Context) {
+
+}
+
+type GetAllSubscriptionPackagesStruct struct {
+	my_modules.ResponseFormat
+	Data []mongo_modals.VideoPlayListSubscriptionPackageModal `json:"data"`
+}
+
+// @BasePath /api/
+// @Summary Get list of playlist subscription packages
+// @Schemes
+// @Description api to fetch playlist subscription packages
+// @Tags Playlist Subscription Package
+// @Accept json
+// @Produce json
+// @Success 200 {object} GetAllSubscriptionPackagesStruct
+// @Failure 400 {object} my_modules.ResponseFormat
+// @Failure 403 {object} my_modules.ResponseFormat
+// @Failure 500 {object} my_modules.ResponseFormat
+// @Router /admin/subscription_package/ [get]
 func GetAllSubscriptionPackages(c *gin.Context) {
 	// If Admin: All subscription package created by user
 	// If Super Admin: All subscription package created by all user
 
+	ctx := c.Request.Context()
+	payload, ok := my_modules.ExtractTokenPayload(c)
+	if !ok {
+		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "Unable to get user info", nil)
+		return
+	}
+
+	var id string = payload.Data.ID
+	_id, _id_err := primitive.ObjectIDFromHex(payload.Data.ID)
+
+	if id == "" || _id_err != nil {
+		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "UUID of user is not provided", _id_err)
+		return
+	}
+
+	where := bson.M{
+		"created_by": _id,
+	}
+	if payload.Data.AccessLevel == "super_admin" {
+		where = bson.M{}
+	}
+	cursor, err := database_connections.MONGO_COLLECTIONS.VideoPlayListSubscriptionPackage.Find(ctx, where)
+	if err != nil {
+		if err != mongo.ErrNoDocuments {
+			log.WithFields(log.Fields{
+				"err": err,
+			}).Errorln("Failed to load session data")
+		}
+		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "No record found", nil)
+		return
+	} else {
+		defer cursor.Close(ctx)
+		var playlistSubscriptionPackagesData []mongo_modals.VideoPlayListSubscriptionPackageModal = []mongo_modals.VideoPlayListSubscriptionPackageModal{}
+		// cursor.All(ctx,sessionsData);
+		for cursor.Next(c.Request.Context()) {
+			var playlistSubscriptionPackageData mongo_modals.VideoPlayListSubscriptionPackageModal
+			if err = cursor.Decode(&playlistSubscriptionPackageData); err != nil {
+				my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Error in retrieving video playlist data", nil)
+				return
+			}
+			playlistSubscriptionPackagesData = append(playlistSubscriptionPackagesData, playlistSubscriptionPackageData)
+		}
+		my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "Record found", playlistSubscriptionPackagesData)
+		return
+	}
+
 }
 
+// @BasePath /api/
+// @Summary Create new playlist subscription package
+// @Schemes
+// @Description api to create new empty playlist subscription package
+// @Tags Playlist Subscription Package
+// @Accept json
+// @Produce json
+// @Param new_playlist_subscription body mongo_modals.VideoPlayListSubscriptionPackageModal true "New Playlist Subscription Package"
+// @Success 200 {object} GetAllSubscriptionPackagesStruct
+// @Failure 400 {object} my_modules.ResponseFormat
+// @Failure 403 {object} my_modules.ResponseFormat
+// @Failure 500 {object} my_modules.ResponseFormat
+// @Router /admin/subscription_package/ [post]
 func CreateSubscriptionPackage(c *gin.Context) {
 
+	ctx := c.Request.Context()
+	var newVideoPlayListSubscriptionPackage mongo_modals.VideoPlayListSubscriptionPackageModal
+	if err := c.ShouldBind(&newVideoPlayListSubscriptionPackage); err != nil {
+		log.Errorln(err)
+		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Invalid playlist payload", nil)
+		return
+	}
+	payload, ok := my_modules.ExtractTokenPayload(c)
+	if !ok {
+		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "Unable to get user info", nil)
+		return
+	}
+
+	var id string = payload.Data.ID
+	_id, _id_err := primitive.ObjectIDFromHex(payload.Data.ID)
+
+	if id == "" || _id_err != nil {
+		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "UUID of user is not provided", _id_err)
+		return
+	}
+
+	_time := time.Now()
+	newVideoPlayListSubscriptionPackage.CreatedAt = _time
+	newVideoPlayListSubscriptionPackage.UpdatedAt = _time
+	newVideoPlayListSubscriptionPackage.CreatedBy = _id
+	ins_res, ins_err := database_connections.MONGO_COLLECTIONS.VideoPlayListSubscriptionPackage.InsertOne(ctx, newVideoPlayListSubscriptionPackage)
+	if ins_err != nil {
+		resp_err, is_known := database_utils.GetDBErrorString(ins_err)
+		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", resp_err, nil)
+		if !is_known {
+			log.WithFields(log.Fields{
+				"ins_err": ins_err,
+			}).Errorln("Error in inserting data to mongo users")
+			my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Failed to update", nil)
+		}
+		return
+	}
+	newVideoPlayListSubscriptionPackage.ID = ins_res.InsertedID.(primitive.ObjectID)
+	my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "success", newVideoPlayListSubscriptionPackage)
+
 }
 
+type VideoPlayListSubscriptionPackageModalReqStruct struct {
+	SubscriptionPackageId string   `json:"subscription_package_id" binding:"required"`
+	PlaylistIds           []string `json:"playlists_ids" binding:"required"`
+}
+
+// @BasePath /api/
+// @Summary Update playlist subscription packages
+// @Schemes
+// @Description api to update playlist subscription packages
+// @Tags Playlist Subscription Package
+// @Accept json
+// @Produce json
+// @Param subscription_packages body VideoPlayListSubscriptionPackageModalReqStruct true "Playlist subscription packages"
+// @Success 200 {object} my_modules.ResponseFormat
+// @Failure 400 {object} my_modules.ResponseFormat
+// @Failure 403 {object} my_modules.ResponseFormat
+// @Failure 500 {object} my_modules.ResponseFormat
+// @Router /admin/subscription_package/ [put]
 func UpdateSubscriptionPackage(c *gin.Context) {
+
+	ctx := c.Request.Context()
+	var playlists_info VideoPlayListSubscriptionPackageModalReqStruct
+	if err := c.ShouldBind(&playlists_info); err != nil {
+		log.Errorln(err)
+		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Invalid playlist payload", nil)
+		return
+	}
+	payload, ok := my_modules.ExtractTokenPayload(c)
+	if !ok {
+		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "Unable to get user info", nil)
+		return
+	}
+
+	_id, _id_err := primitive.ObjectIDFromHex(payload.Data.ID)
+	if payload.Data.ID == "" || _id_err != nil {
+		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "UUID of user is not provided", _id_err)
+		return
+	}
+
+	subscription_package_id, _id_err := primitive.ObjectIDFromHex(playlists_info.SubscriptionPackageId)
+	if playlists_info.SubscriptionPackageId == "" || _id_err != nil {
+		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "UUID of user is not provided", _id_err)
+		return
+	}
+
+	playlists_ids := []primitive.ObjectID{}
+	for i := 0; i < len(playlists_info.PlaylistIds); i++ {
+		playlist_id, _id_err := primitive.ObjectIDFromHex(playlists_info.PlaylistIds[i])
+		if playlists_info.PlaylistIds[i] == "" || _id_err != nil {
+			continue
+		}
+		playlists_ids = append(playlists_ids, playlist_id)
+	}
+	if len(playlists_ids) == 0 {
+		my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "No video provided", nil)
+	}
+
+	where := bson.M{
+		"_id":             subscription_package_id,
+		"created_by_user": _id,
+	}
+	if payload.Data.AccessLevel == "super_admin" {
+		where = bson.M{"_id": subscription_package_id}
+	}
+	res, err := database_connections.MONGO_COLLECTIONS.VideoPlayListSubscriptionPackage.UpdateOne(
+		ctx,
+		where,
+		bson.M{
+			"$set": bson.M{
+				"playlists_ids": playlists_ids,
+				"updatedAt":     time.Now(),
+			},
+		},
+	)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"err": err,
+		}).Errorln("Failed to update user data")
+		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Failed to update data", nil)
+		return
+	}
+	var response_data = make(map[string]interface{})
+	response_data["updated_count"] = res.ModifiedCount
+	response_data["match_count"] = res.MatchedCount
+	my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "Updated successfully", response_data)
+}
+
+func RemoveSubscriptionPackage(c *gin.Context) {
 
 }
