@@ -27,6 +27,21 @@ definitions:
     - msg
     - status
     type: object
+  admin_views.GetAllSubscriptionPackagesStruct:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/mongo_modals.VideoPlayListSubscriptionPackageModal'
+        type: array
+      msg:
+        type: string
+      status:
+        type: string
+    required:
+    - data
+    - msg
+    - status
+    type: object
   admin_views.GetAllUploadedVideosRespStruct:
     properties:
       data:
@@ -53,6 +68,18 @@ definitions:
     required:
     - playlist_id
     - videos_ids
+    type: object
+  admin_views.VideoPlayListSubscriptionPackageModalReqStruct:
+    properties:
+      playlists_ids:
+        items:
+          type: string
+        type: array
+      subscription_package_id:
+        type: string
+    required:
+    - playlists_ids
+    - subscription_package_id
     type: object
   admin_views.VideoStreamKeyReqStruct:
     properties:
@@ -138,6 +165,28 @@ definitions:
     - price
     - title
     - videos_ids
+    type: object
+  mongo_modals.VideoPlayListSubscriptionPackageModal:
+    properties:
+      created_by:
+        type: string
+      description:
+        type: string
+      is_enabled:
+        type: boolean
+      playlists_ids:
+        items:
+          type: string
+        type: array
+      price:
+        type: integer
+      title:
+        type: string
+    required:
+    - is_enabled
+    - playlists_ids
+    - price
+    - title
     type: object
   mongo_modals.VideoUploadModal:
     properties:
@@ -375,6 +424,99 @@ paths:
       summary: Update playlist videos
       tags:
       - Playlist
+  /admin/subscription_package/:
+    get:
+      consumes:
+      - application/json
+      description: api to fetch playlist subscription packages
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/admin_views.GetAllSubscriptionPackagesStruct'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: Get list of playlist subscription packages
+      tags:
+      - Playlist Subscription Package
+    post:
+      consumes:
+      - application/json
+      description: api to create new empty playlist subscription package
+      parameters:
+      - description: New Playlist Subscription Package
+        in: body
+        name: new_playlist_subscription
+        required: true
+        schema:
+          $ref: '#/definitions/mongo_modals.VideoPlayListSubscriptionPackageModal'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/admin_views.GetAllSubscriptionPackagesStruct'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: Create new playlist subscription package
+      tags:
+      - Playlist Subscription Package
+    put:
+      consumes:
+      - application/json
+      description: api to update playlist subscription packages
+      parameters:
+      - description: Playlist subscription packages
+        in: body
+        name: subscription_packages
+        required: true
+        schema:
+          $ref: '#/definitions/admin_views.VideoPlayListSubscriptionPackageModalReqStruct'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: Update playlist subscription packages
+      tags:
+      - Playlist Subscription Package
   /admin/upload_list/:
     get:
       description: api to get the list of all the videos uploaded by the logged user

@@ -261,6 +261,147 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/subscription_package/": {
+            "get": {
+                "description": "api to fetch playlist subscription packages",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Playlist Subscription Package"
+                ],
+                "summary": "Get list of playlist subscription packages",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/admin_views.GetAllSubscriptionPackagesStruct"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "api to update playlist subscription packages",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Playlist Subscription Package"
+                ],
+                "summary": "Update playlist subscription packages",
+                "parameters": [
+                    {
+                        "description": "Playlist subscription packages",
+                        "name": "subscription_packages",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/admin_views.VideoPlayListSubscriptionPackageModalReqStruct"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "api to create new empty playlist subscription package",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Playlist Subscription Package"
+                ],
+                "summary": "Create new playlist subscription package",
+                "parameters": [
+                    {
+                        "description": "New Playlist Subscription Package",
+                        "name": "new_playlist_subscription",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/mongo_modals.VideoPlayListSubscriptionPackageModal"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/admin_views.GetAllSubscriptionPackagesStruct"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/upload_list/": {
             "get": {
                 "description": "api to get the list of all the videos uploaded by the logged user",
@@ -960,6 +1101,28 @@ const docTemplate = `{
                 }
             }
         },
+        "admin_views.GetAllSubscriptionPackagesStruct": {
+            "type": "object",
+            "required": [
+                "data",
+                "msg",
+                "status"
+            ],
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/mongo_modals.VideoPlayListSubscriptionPackageModal"
+                    }
+                },
+                "msg": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
         "admin_views.GetAllUploadedVideosRespStruct": {
             "type": "object",
             "required": [
@@ -997,6 +1160,24 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "admin_views.VideoPlayListSubscriptionPackageModalReqStruct": {
+            "type": "object",
+            "required": [
+                "playlists_ids",
+                "subscription_package_id"
+            ],
+            "properties": {
+                "playlists_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "subscription_package_id": {
+                    "type": "string"
                 }
             }
         },
@@ -1123,6 +1304,38 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "mongo_modals.VideoPlayListSubscriptionPackageModal": {
+            "type": "object",
+            "required": [
+                "is_enabled",
+                "playlists_ids",
+                "price",
+                "title"
+            ],
+            "properties": {
+                "created_by": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "is_enabled": {
+                    "type": "boolean"
+                },
+                "playlists_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "price": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
                 }
             }
         },

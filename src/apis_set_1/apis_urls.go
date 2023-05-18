@@ -64,15 +64,19 @@ func InitApiTest(router *gin.RouterGroup) {
 		admin_router.POST("upload_streaming_video/", admin_views.UploadVideo)
 		admin_router.POST("generate_video_stream/", admin_views.GenerateVideoStream)
 		admin_router.GET("upload_list/", admin_views.GetAllUploadedVideos)
+		admin_router.DELETE("delete_streaming_video/", admin_views.RemoveVideos)
 		admin_router.POST("get_stream_key/", admin_views.GetStreamKey)
 
 		// Todo, pending APIs
 		admin_router.GET("playlist/", admin_views.GetAllPlayLists)
 		admin_router.POST("playlist/", admin_views.CreatePlayList)
 		admin_router.PUT("playlist/", admin_views.UpdatePlayList)
-		admin_router.GET("subscription_package/", admin_views.CreateSubscriptionPackage)
+		admin_router.DELETE("playlist/", admin_views.RemovePlayList)
+
+		admin_router.GET("subscription_package/", admin_views.GetAllSubscriptionPackages)
 		admin_router.POST("subscription_package/", admin_views.CreateSubscriptionPackage)
 		admin_router.PUT("subscription_package/", admin_views.UpdateSubscriptionPackage)
+		admin_router.DELETE("subscription_package/", admin_views.RemoveSubscriptionPackage)
 
 	}
 
