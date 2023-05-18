@@ -263,6 +263,40 @@ definitions:
 info:
   contact: {}
 paths:
+  /admin/delete_streaming_video/:
+    delete:
+      consumes:
+      - application/json
+      description: api delete videos by id
+      parameters:
+      - description: Remove videos
+        in: body
+        name: video_ids
+        required: true
+        schema:
+          $ref: '#/definitions/admin_views.VideoStreamReqStruct'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: Delete videos
+      tags:
+      - Manage Videos
   /admin/generate_video_stream/:
     post:
       consumes:

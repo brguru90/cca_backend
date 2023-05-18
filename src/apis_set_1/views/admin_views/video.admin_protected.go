@@ -239,7 +239,7 @@ func GenerateVideoStream(c *gin.Context) {
 				if err := database_connections.RedisPoolDel("video_stream_generation_in_progress"); err != nil {
 					log.WithFields(log.Fields{
 						"Error": err,
-					}).Panic("Unable to write into redis pool")
+					}).Errorln("Unable to write into redis pool")
 				}
 			}()
 			for cursor.Next(ctx) {
@@ -414,71 +414,93 @@ func GetAllUploadedVideos(c *gin.Context) {
 // @Failure 400 {object} my_modules.ResponseFormat
 // @Failure 403 {object} my_modules.ResponseFormat
 // @Failure 500 {object} my_modules.ResponseFormat
-// @Router /admin/upload_list/ [get]
+// @Router /admin/delete_streaming_video/ [delete]
 func RemoveVideos(c *gin.Context) {
-	// ctx := c.Request.Context()
-	// var videos_data VideoStreamReqStruct
-	// if err := c.ShouldBind(&videos_data); err != nil {
-	// 	log.Errorln(err)
-	// 	my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Invalid upload payload", nil)
-	// 	return
-	// }
+	ctx := c.Request.Context()
+	var videos_data VideoStreamReqStruct
+	if err := c.ShouldBind(&videos_data); err != nil {
+		log.Errorln(err)
+		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Invalid upload payload", nil)
+		return
+	}
 
-	// payload, ok := my_modules.ExtractTokenPayload(c)
-	// if !ok {
-	// 	my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "Unable to get user info", nil)
-	// 	return
-	// }
+	payload, ok := my_modules.ExtractTokenPayload(c)
+	if !ok {
+		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "Unable to get user info", nil)
+		return
+	}
 
-	// user_id, _id_err := primitive.ObjectIDFromHex(payload.Data.ID)
+	user_id, _id_err := primitive.ObjectIDFromHex(payload.Data.ID)
 
-	// if payload.Data.ID == "" || _id_err != nil {
-	// 	my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "UUID of user is not provided", _id_err)
-	// 	return
-	// }
+	if payload.Data.ID == "" || _id_err != nil {
+		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "UUID of user is not provided", _id_err)
+		return
+	}
 
-	// var videos_doc_id []primitive.ObjectID
-	// for i := 0; i < len(videos_data.Id); i++ {
-	// 	objID, err := primitive.ObjectIDFromHex(videos_data.Id[i])
-	// 	if err == nil {
-	// 		videos_doc_id = append(videos_doc_id, objID)
-	// 	}
-	// }
+	var videos_doc_id []primitive.ObjectID
+	for i := 0; i < len(videos_data.Id); i++ {
+		objID, err := primitive.ObjectIDFromHex(videos_data.Id[i])
+		if err == nil {
+			videos_doc_id = append(videos_doc_id, objID)
+		}
+	}
 
-	// where := bson.M{"_id": bson.M{"$in": videos_doc_id}, "uploaded_by_user": user_id}
+	where := bson.M{"_id": bson.M{"$in": videos_doc_id}, "uploaded_by_user": user_id}
 
 	// if payload.Data.AccessLevel == "super_admin" {
 	// 	where = bson.M{"_id": bson.M{"$in": videos_doc_id}}
 	// }
-	// var err error
-	// var cursor *mongo.Cursor
-	// defer cursor.Close(ctx)
-	// cursor, err = database_connections.MONGO_COLLECTIONS.VideoUploads.Find(ctx, where)
-	// if err != nil {
-	// 	if err != context.Canceled {
-	// 		log.WithFields(log.Fields{
-	// 			"error": err,
-	// 		}).Errorln("QueryRow failed ==>")
-	// 	}
-	// 	my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "No record found", nil)
-	// } else {
 
-	// }
+	var response_data = make(map[string]interface{})
+	var files_deleted = make(map[string]interface{})
+	var err error
+	var cursor *mongo.Cursor
+	cursor, err = database_connections.MONGO_COLLECTIONS.VideoUploads.Find(ctx, where)
+	if err != nil {
+		if err != context.Canceled {
+			log.WithFields(log.Fields{
+				"error": err,
+			}).Errorln("QueryRow failed ==>")
+		}
+		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "No record found", nil)
+	} else {
+		defer cursor.Close(ctx)
+		for cursor.Next(ctx) {
+			var videoData mongo_modals.VideoUploadModal
+			if err = cursor.Decode(&videoData); err != nil {
+				log.Errorln(fmt.Sprintf("Scan failed: %v\n", err))
+				continue
+			}
+			files_deleted[videoData.Title] = map[string]interface{}{
+				"original_video": false,
+				"stream_video":   false,
+			}
+			video_stream_path := strings.Split(videoData.LinkToVideoStream, "/")
+			video_stream_path = video_stream_path[:len(video_stream_path)-1]
+			err1 := os.Remove(videoData.LinkToOriginalVideo)
+			err2 := os.RemoveAll(strings.Join(video_stream_path, "/"))
+			files_deleted[videoData.Title] = map[string]interface{}{
+				"original_video": err1 == nil,
+				"stream_video":   err2 == nil,
+			}
+		}
+	}
 
-	// result, err := database_connections.MONGO_COLLECTIONS.VideoUploads.DeleteOne(context.Background(), where)
-	// if err != nil {
-	// 	log.WithFields(log.Fields{
-	// 		"err": err,
-	// 	}).Errorln("Failed to delete user data")
-	// 	my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Failed to delete user data", nil)
-	// 	return
-	// }
-	// rows_deleted := result.DeletedCount
-
-	// // if payload.Data.AccessLevel == "super_admin" {
-	// // 	where = bson.M{"_id": bson.M{"$in": videos_doc_id}}
-	// // }
-
+	result, err := database_connections.MONGO_COLLECTIONS.VideoUploads.DeleteMany(context.Background(), where)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"err": err,
+		}).Errorln("Failed to delete user data")
+		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Failed to delete user data", nil)
+		return
+	}
+	response_data["files_deleted_for_title"] = files_deleted
+	if result.DeletedCount > 0 {
+		response_data["deleted_count"] = result.DeletedCount
+		my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "Removed successfully", response_data)
+		return
+	}
+	my_modules.CreateAndSendResponse(c, http.StatusOK, "error", "Failed to removed", response_data)
 }
 
 type GetAllPlayListsRespStruct struct {
