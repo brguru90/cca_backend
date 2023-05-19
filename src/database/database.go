@@ -12,6 +12,7 @@ func InitDataBases() {
 
 	mongo_modals.InitUserCollection()
 	mongo_modals.InitActiveSessionCollection()
+	mongo_modals.InitAppBuildRegistrationCollection()
 	mongo_modals.InitVideoUploadCollection()
 	mongo_modals.InitVideoPlayListCollection()
 	mongo_modals.InitVideoPlayListSubscriptionPackageCollection()

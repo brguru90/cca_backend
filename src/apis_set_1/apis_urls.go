@@ -33,6 +33,8 @@ func InitApiTest(router *gin.RouterGroup) {
 	router.GET("login_status/", user_views.LoginStatus)
 	router.GET("all_users/", user_views.GetAllUserData)
 
+	router.POST("register_build/", user_views.RegisterBuild)
+
 	{
 		protected_router := router.Group("user/", middlewares.ValidateToken(my_modules.AccessLevel.CUSTOMER))
 		protected_router.GET("", my_modules.GetCachedResponse(user_views.GetUserData, "users", CACHE_TTL_DURATION, api_modules.ForUserPagination))

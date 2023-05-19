@@ -736,6 +736,42 @@ paths:
       summary: Login status
       tags:
       - Account
+  /register_build:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Register app
+      parameters:
+      - in: formData
+        name: app_id
+        required: true
+        type: string
+      - in: formData
+        name: app_secret
+        required: true
+        type: string
+      - in: formData
+        name: auth_key
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: url to Register app
+      tags:
+      - App Build
   /sign_up:
     post:
       consumes:

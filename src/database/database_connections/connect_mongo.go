@@ -23,6 +23,7 @@ type MongoCollections struct {
 	VideoUploads                     *mongo.Collection
 	VideoPlayListSubscriptionPackage *mongo.Collection
 	VideoPlayListUserSubscription    *mongo.Collection
+	AppBuildRegistration             *mongo.Collection
 }
 
 var MONGO_COLLECTIONS MongoCollections
@@ -59,6 +60,7 @@ func InitMongoDB() {
 	MONGO_DATABASE = MONGO_DB_CONNECTION.Database(DATABASE)
 	MONGO_COLLECTIONS.Users = MONGO_DATABASE.Collection("users")
 	MONGO_COLLECTIONS.ActiveSessions = MONGO_DATABASE.Collection("active_sessions")
+	MONGO_COLLECTIONS.AppBuildRegistration = MONGO_DATABASE.Collection("app_build_registration")
 	MONGO_COLLECTIONS.VideoUploads = MONGO_DATABASE.Collection("video_uploads")
 	MONGO_COLLECTIONS.VideoPlayList = MONGO_DATABASE.Collection("video_playlist")
 	MONGO_COLLECTIONS.VideoPlayListSubscriptionPackage = MONGO_DATABASE.Collection("video_playlist_subscription_package")

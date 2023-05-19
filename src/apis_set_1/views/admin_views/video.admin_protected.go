@@ -617,12 +617,13 @@ func CreatePlayList(c *gin.Context) {
 	ins_res, ins_err := database_connections.MONGO_COLLECTIONS.VideoPlayList.InsertOne(ctx, newVideoPlayList)
 	if ins_err != nil {
 		resp_err, is_known := database_utils.GetDBErrorString(ins_err)
-		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", resp_err, nil)
 		if !is_known {
 			log.WithFields(log.Fields{
 				"ins_err": ins_err,
 			}).Errorln("Error in inserting data to mongo users")
 			my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Failed to update", nil)
+		} else {
+			my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", resp_err, nil)
 		}
 		return
 	}
@@ -833,12 +834,13 @@ func CreateSubscriptionPackage(c *gin.Context) {
 	ins_res, ins_err := database_connections.MONGO_COLLECTIONS.VideoPlayListSubscriptionPackage.InsertOne(ctx, newVideoPlayListSubscriptionPackage)
 	if ins_err != nil {
 		resp_err, is_known := database_utils.GetDBErrorString(ins_err)
-		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", resp_err, nil)
 		if !is_known {
 			log.WithFields(log.Fields{
 				"ins_err": ins_err,
 			}).Errorln("Error in inserting data to mongo users")
 			my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Failed to update", nil)
+		} else {
+			my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", resp_err, nil)
 		}
 		return
 	}
