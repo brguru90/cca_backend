@@ -7,6 +7,7 @@ import (
 	"cca/src/database/triggers"
 	"cca/src/middlewares"
 	"cca/src/my_modules"
+	"flag"
 	"fmt"
 	"net/http"
 	"time"
@@ -25,12 +26,29 @@ import (
 var SERVER_PORT string = "8000"
 
 func main() {
+	micro_service := flag.String("micro_service", "api_server", "Micro service ro run")
+	flag.Parse()
+	fmt.Println(*micro_service)
+
 	configs.InitEnv()
 	my_modules.InitLogger()
 	database.InitDataBases()
 	my_modules.InitFirebase()
 	go triggers.TriggerForUsersModification()
-	go my_modules.InitCronJobs()
+
+	{
+		switch *micro_service {
+		case "cron_job":
+			log.Infoln("Running only cron jobs")
+			my_modules.InitCronJobs()
+			return
+		case "api_server":
+			break
+		default:
+			// it will run cron service along with api service
+			go my_modules.InitCronJobs()
+		}
+	}
 
 	// init with default middlewares
 	var all_router *gin.Engine = gin.Default()
