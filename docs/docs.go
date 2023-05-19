@@ -1291,9 +1291,13 @@ const docTemplate = `{
         "admin_views.VideoStreamKeyReqStruct": {
             "type": "object",
             "required": [
+                "app_id",
                 "video_id"
             ],
             "properties": {
+                "app_id": {
+                    "type": "string"
+                },
                 "video_id": {
                     "type": "string"
                 }

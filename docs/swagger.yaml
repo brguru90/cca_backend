@@ -83,9 +83,12 @@ definitions:
     type: object
   admin_views.VideoStreamKeyReqStruct:
     properties:
+      app_id:
+        type: string
       video_id:
         type: string
     required:
+    - app_id
     - video_id
     type: object
   admin_views.VideoStreamReqStruct:
