@@ -283,6 +283,7 @@ func GenerateVideoStream(c *gin.Context) {
 }
 
 type VideoStreamKeyReqStruct struct {
+	AppID   string `form:"app_id" binding:"required"`
 	VideoId string `json:"video_id" binding:"required"`
 }
 
@@ -331,6 +332,34 @@ func GetStreamKey(c *gin.Context) {
 		}
 		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Error in finding video", nil)
 		return
+	}
+
+	var videoPlaylist mongo_modals.VideoPlayListModal
+	objIDArr := []primitive.ObjectID{objID}
+	err = database_connections.MONGO_COLLECTIONS.VideoPlayList.FindOne(ctx, bson.M{
+		"videos_ids": bson.M{"$in": objIDArr},
+		// "access_level": access_level,
+	}).Decode(&videoPlaylist)
+	if err != nil {
+		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Error in finding video in playlist", nil)
+	}
+
+	var videoPlaylistSubscriptionPackage mongo_modals.VideoPlayListSubscriptionPackageModal
+	playlistIDArr := []primitive.ObjectID{videoPlaylist.ID}
+	err = database_connections.MONGO_COLLECTIONS.VideoPlayListSubscriptionPackage.FindOne(ctx, bson.M{
+		"playlists_ids": bson.M{"$in": playlistIDArr},
+	}).Decode(&videoPlaylistSubscriptionPackage)
+	if err != nil {
+		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Error in finding playlist in  subscription package", nil)
+	}
+
+	var videoPlaylistUserSubscriptions mongo_modals.VideoPlayListUserSubscriptionModal
+	playlistUserSubscriptionIDArr := []primitive.ObjectID{videoPlaylistSubscriptionPackage.ID}
+	err = database_connections.MONGO_COLLECTIONS.VideoPlayListUserSubscription.FindOne(ctx, bson.M{
+		"subscription_package_id": bson.M{"$in": playlistUserSubscriptionIDArr},
+	}).Decode(&videoPlaylistUserSubscriptions)
+	if err != nil {
+		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Error in finding package in user subscription ", nil)
 	}
 
 	my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "found", map[string]interface{}{

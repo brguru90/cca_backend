@@ -44,6 +44,8 @@ func InitApiTest(router *gin.RouterGroup) {
 		protected_router.POST("block_token/", user_views.BlockSession)
 		protected_router.GET("logout/", user_views.Logout)
 
+		protected_router.POST("get_stream_key/", admin_views.GetStreamKey)
+
 		// Todo, pending APIs
 
 		protected_router.GET("get_subscriptions/", user_views.GetAvailableSubscriptionPackages)
@@ -67,7 +69,6 @@ func InitApiTest(router *gin.RouterGroup) {
 		admin_router.POST("generate_video_stream/", admin_views.GenerateVideoStream)
 		admin_router.GET("upload_list/", admin_views.GetAllUploadedVideos)
 		admin_router.DELETE("delete_streaming_video/", admin_views.RemoveVideos)
-		admin_router.POST("get_stream_key/", admin_views.GetStreamKey)
 
 		// Todo, pending APIs
 		admin_router.GET("playlist/", admin_views.GetAllPlayLists)
