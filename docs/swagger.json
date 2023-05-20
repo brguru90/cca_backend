@@ -108,58 +108,6 @@
                 }
             }
         },
-        "/admin/get_stream_key/": {
-            "post": {
-                "description": "api to get video decryption key for hls stream",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Manage Videos"
-                ],
-                "summary": "get video decode key",
-                "parameters": [
-                    {
-                        "description": "Video ID",
-                        "name": "video_id",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/admin_views.VideoStreamKeyReqStruct"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/my_modules.ResponseFormat"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/my_modules.ResponseFormat"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/my_modules.ResponseFormat"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/my_modules.ResponseFormat"
-                        }
-                    }
-                }
-            }
-        },
         "/admin/playlist/": {
             "get": {
                 "description": "api to fetch existing playlist",
@@ -1060,6 +1008,203 @@
                 }
             }
         },
+        "/user/enroll_to_course/": {
+            "post": {
+                "description": "api to enroll playlist/subscription",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customer side"
+                ],
+                "summary": "enroll to course",
+                "parameters": [
+                    {
+                        "description": "Video ID",
+                        "name": "video_id",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/user_views.EnrollToCourseReqStruct"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/get_playlists/": {
+            "get": {
+                "description": "api to fetch existing playlist",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customer side"
+                ],
+                "summary": "Get list of playlist",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/user_views.GetAllPlayListsRespStruct"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/get_stream_key/": {
+            "post": {
+                "description": "api to get video decryption key for hls stream",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customer side"
+                ],
+                "summary": "get video decode key",
+                "parameters": [
+                    {
+                        "description": "Video ID",
+                        "name": "video_id",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/user_views.VideoStreamKeyReqStruct"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/get_videos/": {
+            "post": {
+                "description": "api to fetch videos by providing ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customer side"
+                ],
+                "summary": "Get list of videos",
+                "parameters": [
+                    {
+                        "description": "Videos IDS",
+                        "name": "videos",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/user_views.GetVideosReqStruct"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/user_views.GetAllPlayListsRespStruct"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            }
+        },
         "/user/logout/": {
             "get": {
                 "description": "API allow user to logout, which delete the cookie which stores token",
@@ -1276,21 +1421,6 @@
                 }
             }
         },
-        "admin_views.VideoStreamKeyReqStruct": {
-            "type": "object",
-            "required": [
-                "app_id",
-                "video_id"
-            ],
-            "properties": {
-                "app_id": {
-                    "type": "string"
-                },
-                "video_id": {
-                    "type": "string"
-                }
-            }
-        },
         "admin_views.VideoStreamReqStruct": {
             "type": "object",
             "required": [
@@ -1388,6 +1518,9 @@
                 },
                 "description": {
                     "type": "string"
+                },
+                "enroll_days": {
+                    "type": "integer"
                 },
                 "is_live": {
                     "type": "boolean"
@@ -1495,6 +1628,59 @@
                 }
             }
         },
+        "user_views.EnrollToCourseReqStruct": {
+            "type": "object",
+            "required": [
+                "playlist_ids"
+            ],
+            "properties": {
+                "playlist_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "subscription_package_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "user_views.GetAllPlayListsRespStruct": {
+            "type": "object",
+            "required": [
+                "data",
+                "msg",
+                "status"
+            ],
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/user_views.VideoPlayListModal"
+                    }
+                },
+                "msg": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "user_views.GetVideosReqStruct": {
+            "type": "object",
+            "required": [
+                "video_ids"
+            ],
+            "properties": {
+                "video_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "user_views.SocialAuthReqStruct": {
             "type": "object",
             "required": [
@@ -1541,6 +1727,60 @@
                     "type": "string"
                 },
                 "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "user_views.VideoPlayListModal": {
+            "type": "object",
+            "required": [
+                "is_live",
+                "paid",
+                "price",
+                "title",
+                "videos_ids"
+            ],
+            "properties": {
+                "created_by_user": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "enroll_days": {
+                    "type": "integer"
+                },
+                "is_live": {
+                    "type": "boolean"
+                },
+                "paid": {
+                    "type": "boolean"
+                },
+                "price": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "videos_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "user_views.VideoStreamKeyReqStruct": {
+            "type": "object",
+            "required": [
+                "app_id",
+                "video_id"
+            ],
+            "properties": {
+                "app_id": {
+                    "type": "string"
+                },
+                "video_id": {
                     "type": "string"
                 }
             }

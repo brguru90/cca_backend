@@ -81,16 +81,6 @@ definitions:
     - playlists_ids
     - subscription_package_id
     type: object
-  admin_views.VideoStreamKeyReqStruct:
-    properties:
-      app_id:
-        type: string
-      video_id:
-        type: string
-    required:
-    - app_id
-    - video_id
-    type: object
   admin_views.VideoStreamReqStruct:
     properties:
       video_ids:
@@ -153,6 +143,8 @@ definitions:
         type: string
       description:
         type: string
+      enroll_days:
+        type: integer
       is_live:
         type: boolean
       price:
@@ -230,6 +222,41 @@ definitions:
     - msg
     - status
     type: object
+  user_views.EnrollToCourseReqStruct:
+    properties:
+      playlist_ids:
+        items:
+          type: string
+        type: array
+      subscription_package_id:
+        type: string
+    required:
+    - playlist_ids
+    type: object
+  user_views.GetAllPlayListsRespStruct:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/user_views.VideoPlayListModal'
+        type: array
+      msg:
+        type: string
+      status:
+        type: string
+    required:
+    - data
+    - msg
+    - status
+    type: object
+  user_views.GetVideosReqStruct:
+    properties:
+      video_ids:
+        items:
+          type: string
+        type: array
+    required:
+    - video_ids
+    type: object
   user_views.SocialAuthReqStruct:
     properties:
       idToken:
@@ -262,6 +289,43 @@ definitions:
     required:
     - mobile
     - password
+    type: object
+  user_views.VideoPlayListModal:
+    properties:
+      created_by_user:
+        type: string
+      description:
+        type: string
+      enroll_days:
+        type: integer
+      is_live:
+        type: boolean
+      paid:
+        type: boolean
+      price:
+        type: integer
+      title:
+        type: string
+      videos_ids:
+        items:
+          type: string
+        type: array
+    required:
+    - is_live
+    - paid
+    - price
+    - title
+    - videos_ids
+    type: object
+  user_views.VideoStreamKeyReqStruct:
+    properties:
+      app_id:
+        type: string
+      video_id:
+        type: string
+    required:
+    - app_id
+    - video_id
     type: object
 info:
   contact: {}
@@ -332,40 +396,6 @@ paths:
           schema:
             $ref: '#/definitions/my_modules.ResponseFormat'
       summary: Generate video stream
-      tags:
-      - Manage Videos
-  /admin/get_stream_key/:
-    post:
-      consumes:
-      - application/json
-      description: api to get video decryption key for hls stream
-      parameters:
-      - description: Video ID
-        in: body
-        name: video_id
-        required: true
-        schema:
-          $ref: '#/definitions/admin_views.VideoStreamKeyReqStruct'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/my_modules.ResponseFormat'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/my_modules.ResponseFormat'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/my_modules.ResponseFormat'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/my_modules.ResponseFormat'
-      summary: get video decode key
       tags:
       - Manage Videos
   /admin/playlist/:
@@ -961,6 +991,135 @@ paths:
       summary: Block specified session
       tags:
       - Session
+  /user/enroll_to_course/:
+    post:
+      consumes:
+      - application/json
+      description: api to enroll playlist/subscription
+      parameters:
+      - description: Video ID
+        in: body
+        name: video_id
+        required: true
+        schema:
+          $ref: '#/definitions/user_views.EnrollToCourseReqStruct'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: enroll to course
+      tags:
+      - Customer side
+  /user/get_playlists/:
+    get:
+      consumes:
+      - application/json
+      description: api to fetch existing playlist
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user_views.GetAllPlayListsRespStruct'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: Get list of playlist
+      tags:
+      - Customer side
+  /user/get_stream_key/:
+    post:
+      consumes:
+      - application/json
+      description: api to get video decryption key for hls stream
+      parameters:
+      - description: Video ID
+        in: body
+        name: video_id
+        required: true
+        schema:
+          $ref: '#/definitions/user_views.VideoStreamKeyReqStruct'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: get video decode key
+      tags:
+      - Customer side
+  /user/get_videos/:
+    post:
+      consumes:
+      - application/json
+      description: api to fetch videos by providing ID
+      parameters:
+      - description: Videos IDS
+        in: body
+        name: videos
+        required: true
+        schema:
+          $ref: '#/definitions/user_views.GetVideosReqStruct'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user_views.GetAllPlayListsRespStruct'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: Get list of videos
+      tags:
+      - Customer side
   /user/logout/:
     get:
       consumes:

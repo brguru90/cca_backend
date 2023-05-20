@@ -16,6 +16,7 @@ type VideoPlayListModal struct {
 	ID            primitive.ObjectID   `json:"_id,omitempty" bson:"_id,omitempty" swaggerignore:"true"`
 	Title         string               `json:"title"  binding:"required" bson:"title"`
 	Description   string               `json:"description,omitempty" bson:"description,omitempty"`
+	EnrollDays    int16                `json:"enroll_days,omitempty" bson:"enroll_days,omitempty"`
 	Price         int64                `json:"price,omitempty"  binding:"required" bson:"price,omitempty"`
 	IsLive        bool                 `json:"is_live,omitempty" binding:"required" bson:"is_live"`
 	CreatedByUser primitive.ObjectID   `json:"created_by_user,omitempty" bson:"created_by_user,omitempty"`

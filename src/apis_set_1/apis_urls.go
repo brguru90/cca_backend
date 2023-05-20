@@ -44,15 +44,15 @@ func InitApiTest(router *gin.RouterGroup) {
 		protected_router.POST("block_token/", user_views.BlockSession)
 		protected_router.GET("logout/", user_views.Logout)
 
-		protected_router.POST("get_stream_key/", admin_views.GetStreamKey)
-
 		// Todo, pending APIs
 
+		protected_router.GET("get_playlists/", user_views.GetAvailablePlaylist)
+		protected_router.POST("get_videos/", user_views.GetVideos)
+		protected_router.POST("get_stream_key/", user_views.GetStreamKey)
 		protected_router.GET("get_subscriptions/", user_views.GetAvailableSubscriptionPackages)
-		protected_router.GET("enroll_to_subscription/", user_views.EnrollToSubscriptionPackage)
+		protected_router.POST("enroll_to_course/", user_views.EnrollToCourse)
 		protected_router.GET("confirm_payment_for_subscription/", user_views.PaymentConfirmationForSubscription)
 		protected_router.GET("get_playlist_from_subscription/", user_views.GetPlaylistAvailableOnSubscription)
-		protected_router.GET("get_videos_from_playlist/", user_views.GetPlaylistVideos)
 	}
 
 	{
