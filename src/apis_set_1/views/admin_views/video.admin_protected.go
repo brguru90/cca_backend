@@ -575,8 +575,8 @@ func CreatePlayList(c *gin.Context) {
 }
 
 type PlaylistVideoReqStruct struct {
-	PlaylistId string   `json:"playlist_id" binding:"required"`
-	Ids        []string `json:"videos_ids" binding:"required"`
+	PlaylistId string                       `json:"playlist_id" binding:"required"`
+	Ids        []mongo_modals.VideosInOrder `json:"videos_ids" binding:"required"`
 }
 
 // @BasePath /api/
@@ -618,17 +618,17 @@ func UpdatePlayList(c *gin.Context) {
 		return
 	}
 
-	video_ids := []primitive.ObjectID{}
-	for i := 0; i < len(videos_info.Ids); i++ {
-		video_id, _id_err := primitive.ObjectIDFromHex(videos_info.Ids[i])
-		if videos_info.Ids[i] == "" || _id_err != nil {
-			continue
-		}
-		video_ids = append(video_ids, video_id)
-	}
-	if len(video_ids) == 0 {
-		my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "No video provided", nil)
-	}
+	// video_ids := []primitive.ObjectID{}
+	// for i := 0; i < len(videos_info.Ids); i++ {
+	// 	video_id, _id_err := primitive.ObjectIDFromHex(videos_info.Ids[i])
+	// 	if videos_info.Ids[i] == "" || _id_err != nil {
+	// 		continue
+	// 	}
+	// 	video_ids = append(video_ids, video_id)
+	// }
+	// if len(video_ids) == 0 {
+	// 	my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "No video provided", nil)
+	// }
 
 	where := bson.M{
 		"_id":             playlist_id,
@@ -642,7 +642,7 @@ func UpdatePlayList(c *gin.Context) {
 		where,
 		bson.M{
 			"$set": bson.M{
-				"videos_ids": video_ids,
+				"videos_ids": videos_info.Ids,
 				"updatedAt":  time.Now(),
 			},
 		},

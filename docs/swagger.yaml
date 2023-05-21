@@ -63,7 +63,7 @@ definitions:
         type: string
       videos_ids:
         items:
-          type: string
+          $ref: '#/definitions/mongo_modals.VideosInOrder'
         type: array
     required:
     - playlist_id
@@ -152,8 +152,10 @@ definitions:
       title:
         type: string
       videos_ids:
+        description: VideosIDs     []primitive.ObjectID `json:"videos_ids,omitempty"
+          binding:"required"  bson:"videos_ids,omitempty"`
         items:
-          type: string
+          $ref: '#/definitions/mongo_modals.VideosInOrder'
         type: array
     required:
     - is_live
@@ -209,6 +211,16 @@ definitions:
     - duration
     - is_live
     - title
+    type: object
+  mongo_modals.VideosInOrder:
+    properties:
+      display_order:
+        type: integer
+      video_id:
+        type: string
+    required:
+    - display_order
+    - video_id
     type: object
   my_modules.ResponseFormat:
     properties:
@@ -307,8 +319,10 @@ definitions:
       title:
         type: string
       videos_ids:
+        description: VideosIDs     []primitive.ObjectID `json:"videos_ids,omitempty"
+          binding:"required"  bson:"videos_ids,omitempty"`
         items:
-          type: string
+          $ref: '#/definitions/mongo_modals.VideosInOrder'
         type: array
     required:
     - is_live

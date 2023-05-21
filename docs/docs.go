@@ -1410,7 +1410,7 @@ const docTemplate = `{
                 "videos_ids": {
                     "type": "array",
                     "items": {
-                        "type": "string"
+                        "$ref": "#/definitions/mongo_modals.VideosInOrder"
                     }
                 }
             }
@@ -1544,9 +1544,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "videos_ids": {
+                    "description": "VideosIDs     []primitive.ObjectID ` + "`" + `json:\"videos_ids,omitempty\" binding:\"required\"  bson:\"videos_ids,omitempty\"` + "`" + `",
                     "type": "array",
                     "items": {
-                        "type": "string"
+                        "$ref": "#/definitions/mongo_modals.VideosInOrder"
                     }
                 }
             }
@@ -1619,6 +1620,21 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "video_decryption_key": {
+                    "type": "string"
+                }
+            }
+        },
+        "mongo_modals.VideosInOrder": {
+            "type": "object",
+            "required": [
+                "display_order",
+                "video_id"
+            ],
+            "properties": {
+                "display_order": {
+                    "type": "integer"
+                },
+                "video_id": {
                     "type": "string"
                 }
             }
@@ -1775,9 +1791,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "videos_ids": {
+                    "description": "VideosIDs     []primitive.ObjectID ` + "`" + `json:\"videos_ids,omitempty\" binding:\"required\"  bson:\"videos_ids,omitempty\"` + "`" + `",
                     "type": "array",
                     "items": {
-                        "type": "string"
+                        "$ref": "#/definitions/mongo_modals.VideosInOrder"
                     }
                 }
             }
