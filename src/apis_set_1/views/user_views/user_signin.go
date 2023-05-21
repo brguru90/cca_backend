@@ -135,20 +135,22 @@ func Login(c *gin.Context) {
 	}
 	var userData mongo_modals.UsersModel
 	{
+		where := bson.M{
+			"email": userCredential.Email,
+		}
 		access_level, ok := c.GetQuery("access_level")
-		if !ok {
-			access_level = my_modules.AccessLevel.CUSTOMER.Label
-		} else {
+		if ok {
 			_, ok = my_modules.AllAccessLevel[access_level]
 			if !ok {
 				access_level = my_modules.AccessLevel.CUSTOMER.Label
 			}
+			where = bson.M{
+				"email":        userCredential.Email,
+				"access_level": access_level,
+			}
 		}
 
-		err := database_connections.MONGO_COLLECTIONS.Users.FindOne(ctx, bson.M{
-			"email":        userCredential.Email,
-			"access_level": access_level,
-		}).Decode(&userData)
+		err := database_connections.MONGO_COLLECTIONS.Users.FindOne(ctx, where).Decode(&userData)
 		if err != nil {
 			if err == mongo.ErrNoDocuments {
 				log.WithFields(log.Fields{
