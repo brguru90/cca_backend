@@ -297,6 +297,7 @@ func GenerateVideoStream(c *gin.Context) {
 							"path_to_video_stream": path_to_video_stream,
 							"link_to_video_stream": strings.Replace(path_to_video_stream, UNPROTECTED_UPLOAD_PATH, CDN_PATH, 1),
 							"video_decryption_key": video_decryption_key,
+							"is_live":              true,
 						},
 					},
 				)
@@ -641,18 +642,6 @@ func UpdatePlayList(c *gin.Context) {
 		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "UUID of user is not provided", _id_err)
 		return
 	}
-
-	// video_ids := []primitive.ObjectID{}
-	// for i := 0; i < len(videos_info.Ids); i++ {
-	// 	video_id, _id_err := primitive.ObjectIDFromHex(videos_info.Ids[i])
-	// 	if videos_info.Ids[i] == "" || _id_err != nil {
-	// 		continue
-	// 	}
-	// 	video_ids = append(video_ids, video_id)
-	// }
-	// if len(video_ids) == 0 {
-	// 	my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "No video provided", nil)
-	// }
 
 	where := bson.M{
 		"_id":             playlist_id,

@@ -13,8 +13,10 @@ import (
 )
 
 type VideosInOrder struct {
-	VideoID      primitive.ObjectID `json:"video_id,omitempty" binding:"required"  bson:"video_id,omitempty"`
-	DisplayOrder int                `json:"display_order" binding:"required"  bson:"display_order"`
+	VideoID                 primitive.ObjectID `json:"video_id,omitempty" binding:"required"  bson:"video_id,omitempty"`
+	DisplayOrder            int                `json:"display_order" binding:"required"  bson:"display_order"`
+	Title                   string             `json:"title"  binding:"required" bson:"title"`
+	LinkToVideoPreviewImage string             `json:"link_to_video_preview_image,omitempty"  binding:"required" bson:"link_to_video_preview_image,omitempty"`
 }
 
 type VideoPlayListModal struct {

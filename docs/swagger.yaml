@@ -195,11 +195,15 @@ definitions:
         type: integer
       is_live:
         type: boolean
-      link_to_original_video:
-        type: string
       link_to_video_preview_image:
         type: string
       link_to_video_stream:
+        type: string
+      path_to_original_video:
+        type: string
+      path_to_video_preview_image:
+        type: string
+      path_to_video_stream:
         type: string
       title:
         type: string
@@ -210,16 +214,24 @@ definitions:
     required:
     - duration
     - is_live
+    - path_to_original_video
+    - path_to_video_preview_image
     - title
     type: object
   mongo_modals.VideosInOrder:
     properties:
       display_order:
         type: integer
+      link_to_video_preview_image:
+        type: string
+      title:
+        type: string
       video_id:
         type: string
     required:
     - display_order
+    - link_to_video_preview_image
+    - title
     - video_id
     type: object
   my_modules.ResponseFormat:

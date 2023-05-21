@@ -1589,6 +1589,8 @@ const docTemplate = `{
             "required": [
                 "duration",
                 "is_live",
+                "path_to_original_video",
+                "path_to_video_preview_image",
                 "title"
             ],
             "properties": {
@@ -1604,13 +1606,19 @@ const docTemplate = `{
                 "is_live": {
                     "type": "boolean"
                 },
-                "link_to_original_video": {
-                    "type": "string"
-                },
                 "link_to_video_preview_image": {
                     "type": "string"
                 },
                 "link_to_video_stream": {
+                    "type": "string"
+                },
+                "path_to_original_video": {
+                    "type": "string"
+                },
+                "path_to_video_preview_image": {
+                    "type": "string"
+                },
+                "path_to_video_stream": {
                     "type": "string"
                 },
                 "title": {
@@ -1628,11 +1636,19 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "display_order",
+                "link_to_video_preview_image",
+                "title",
                 "video_id"
             ],
             "properties": {
                 "display_order": {
                     "type": "integer"
+                },
+                "link_to_video_preview_image": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
                 },
                 "video_id": {
                     "type": "string"
