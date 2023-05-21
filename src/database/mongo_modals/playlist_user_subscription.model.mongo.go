@@ -14,7 +14,7 @@ import (
 
 type SubsequentUserPlaylistSubscriptionStruct struct {
 	SubscribedOn   time.Time `json:"subscribed_on,omitempty" binding:"required" bson:"subscribed_on"`
-	AmountPaid     int64     `json:"amount_paid,omitempty" binding:"required" bson:"amount_paid"`
+	AmountPaid     int64     `json:"amount_paid,omitempty" bson:"amount_paid"`
 	DurationInDays int       `json:"duration_in_days,omitempty" binding:"required" bson:"duration_in_days"`
 }
 
@@ -38,8 +38,8 @@ type VideoPlayListUserSubscriptionModal struct {
 	ExpireOn                time.Time                                  `json:"expired_on,omitempty" bson:"expired_on,omitempty"`
 	IsEnabled               bool                                       `json:"is_enabled,omitempty"  binding:"required" bson:"is_enabled,omitempty"`
 	Subscriptions           []SubsequentUserPlaylistSubscriptionStruct `json:"subscriptions,omitempty" binding:"required" bson:"subscriptions"`
-	CreatedAt               time.Time                                  `json:"createdAt,omitempty" swaggerignore:"true"`
-	UpdatedAt               time.Time                                  `json:"updatedAt,omitempty" swaggerignore:"true"`
+	CreatedAt               time.Time                                  `json:"createdAt,omitempty" bson:"CreatedAt" swaggerignore:"true"`
+	UpdatedAt               time.Time                                  `json:"updatedAt,omitempty" bson:"UpdatedAt" swaggerignore:"true"`
 }
 
 func InitVideoPlayListUserSubscriptionCollection() {

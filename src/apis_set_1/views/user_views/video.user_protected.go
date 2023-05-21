@@ -364,11 +364,17 @@ func EnrollToCourse(c *gin.Context) {
 			err = database_connections.MONGO_COLLECTIONS.VideoPlayListUserSubscription.FindOne(context.Background(), bson.M{
 				"user_id":     user_id,
 				"playlist_id": playlis_id,
+				// AmountPaid: ,
 			}).Decode(&videoPlaylistUserSubscription)
 
 			if err == nil {
 				//? if its a renewal
 				//!Warning, enroll days will be not add up to existing subscriptions
+				previous_subscription := videoPlaylistUserSubscription.Subscriptions
+				previous_subscription = append(previous_subscription, mongo_modals.SubsequentUserPlaylistSubscriptionStruct{
+					SubscribedOn:   _time,
+					DurationInDays: int(videoPlaylist.EnrollDays),
+				})
 				update_status, err := database_connections.MONGO_COLLECTIONS.VideoPlayListUserSubscription.UpdateOne(
 					context.Background(),
 					bson.M{
@@ -377,8 +383,10 @@ func EnrollToCourse(c *gin.Context) {
 					},
 					bson.M{
 						"$set": bson.M{
-							"expired_on": _time.AddDate(0, 0, int(videoPlaylist.EnrollDays)),
-							"is_enabled": false,
+							"expired_on":    _time.AddDate(0, 0, int(videoPlaylist.EnrollDays)),
+							"is_enabled":    false,
+							"subscriptions": previous_subscription,
+							"UpdatedAt":     _time,
 						},
 					},
 				)
@@ -403,10 +411,16 @@ func EnrollToCourse(c *gin.Context) {
 					InitialSubscriptionDate: _time,
 					IsEnabled:               false,
 					ExpireOn:                _time.AddDate(0, 0, int(videoPlaylist.EnrollDays)),
-					Subscriptions:           []mongo_modals.SubsequentUserPlaylistSubscriptionStruct{},
-					SubscriptionPackageId:   subscription_package_id,
-					CreatedAt:               _time,
-					UpdatedAt:               _time,
+					Subscriptions: []mongo_modals.SubsequentUserPlaylistSubscriptionStruct{
+						{
+							SubscribedOn:   _time,
+							DurationInDays: int(videoPlaylist.EnrollDays),
+							// AmountPaid: ,
+						},
+					},
+					SubscriptionPackageId: subscription_package_id,
+					CreatedAt:             _time,
+					UpdatedAt:             _time,
 				})
 				if ins_err != nil {
 					log.WithFields(log.Fields{
