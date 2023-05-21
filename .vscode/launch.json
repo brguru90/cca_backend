@@ -64,7 +64,10 @@
         "FIREBASE_PUBLIC_API_KEY":"AIzaSyAJwqFWjDt45O1kJVqRNt2SYt7aZZZsTFI",
         "FIREBASE_AUTH_DOMAIN":"crud-eb4cc.firebaseapp.com",
         "FIREBASE_PROJECT_ID":"crud-eb4cc",
-        "VIDEO_UPLOAD_PATH":"uploads",
+        "PROTECTED_UPLOAD_PATH":"uploads/private/",
+        "PROTECTED_UPLOAD_PATH_ROUTE":"private",
+        "UNPROTECTED_UPLOAD_PATH":"uploads/public/",
+        "UNPROTECTED_UPLOAD_PATH_ROUTE":"cdn",
       }
     },
     {

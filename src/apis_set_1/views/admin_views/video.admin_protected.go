@@ -67,9 +67,23 @@ func UploadVideo(c *gin.Context) {
 
 	var uploadForm VideoUploadReqStruct
 	var infoForm VideoInfoReqStruct
-	protected_video := fmt.Sprintf("%s/private/video", configs.EnvConfigs.VIDEO_UPLOAD_PATH)
+	PROTECTED_UPLOAD_PATH := configs.EnvConfigs.PROTECTED_UPLOAD_PATH
+	UNPROTECTED_UPLOAD_PATH := configs.EnvConfigs.UNPROTECTED_UPLOAD_PATH
+	if strings.HasSuffix(PROTECTED_UPLOAD_PATH, "/") {
+		PROTECTED_UPLOAD_PATH = PROTECTED_UPLOAD_PATH[:len(PROTECTED_UPLOAD_PATH)-1]
+	}
+	if strings.HasSuffix(UNPROTECTED_UPLOAD_PATH, "/") {
+		UNPROTECTED_UPLOAD_PATH = UNPROTECTED_UPLOAD_PATH[:len(UNPROTECTED_UPLOAD_PATH)-1]
+	}
+	CDN_PATH := "/" + configs.EnvConfigs.UNPROTECTED_UPLOAD_PATH_ROUTE
+	unprotected_image := fmt.Sprintf("%s/image", UNPROTECTED_UPLOAD_PATH)
+	protected_video := fmt.Sprintf("%s/video", PROTECTED_UPLOAD_PATH)
 	upload_path := fmt.Sprintf("%s/original_video", protected_video)
 	if err := os.MkdirAll(upload_path, 0755); err != nil {
+		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Error creating directory", nil)
+		return
+	}
+	if err := os.MkdirAll(unprotected_image, 0755); err != nil {
 		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Error creating directory", nil)
 		return
 	}
@@ -93,13 +107,14 @@ func UploadVideo(c *gin.Context) {
 	non_alphaNumeric := regexp.MustCompile(`[^a-zA-Z0-9]`)
 	dst_file_name := non_alphaNumeric.ReplaceAllString(infoForm.Title, "")
 	dst_file_path := fmt.Sprintf("%s/%s_%d", upload_path, dst_file_name, time.Now().UnixMilli())
+	dst_image_file_path_public := fmt.Sprintf("%s/%s_%d", unprotected_image, dst_file_name, time.Now().UnixMilli())
 	dst_video_file_path := fmt.Sprintf("%s.mp4", dst_file_path)
 	preview_image_file_part := strings.Split(uploadForm.PreviewImageFile.Filename, ".")
 	if len(preview_image_file_part) <= 1 {
 		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "File name doesn't contain file extension", nil)
 		return
 	}
-	dst_preview_image_file_path := fmt.Sprintf("%s.%s", dst_file_path, preview_image_file_part[len(preview_image_file_part)-1])
+	dst_preview_image_file_path := fmt.Sprintf("%s.%s", dst_image_file_path_public, preview_image_file_part[len(preview_image_file_part)-1])
 
 	if err := c.SaveUploadedFile(uploadForm.VideoFile, dst_video_file_path); err != nil {
 		log.Errorln(err)
@@ -118,8 +133,9 @@ func UploadVideo(c *gin.Context) {
 		Title:                   infoForm.Title,
 		CreatedByUser:           infoForm.CreatedBy,
 		Description:             infoForm.Description,
-		LinkToOriginalVideo:     dst_video_file_path,
-		LinkToVideoPreviewImage: dst_preview_image_file_path,
+		PathToOriginalVideo:     dst_video_file_path,
+		PathToVideoPreviewImage: dst_preview_image_file_path,
+		LinkToVideoPreviewImage: strings.Replace(dst_preview_image_file_path, UNPROTECTED_UPLOAD_PATH, CDN_PATH, 1),
 		IsLive:                  infoForm.IsLive,
 		UploadedByUser:          _id,
 		CreatedAt:               _time,
@@ -197,8 +213,12 @@ func GenerateVideoStream(c *gin.Context) {
 			videos_doc_id = append(videos_doc_id, objID)
 		}
 	}
-
-	unprotected_video := fmt.Sprintf("%s/public/video", configs.EnvConfigs.VIDEO_UPLOAD_PATH)
+	UNPROTECTED_UPLOAD_PATH := configs.EnvConfigs.UNPROTECTED_UPLOAD_PATH
+	if strings.HasSuffix(UNPROTECTED_UPLOAD_PATH, "/") {
+		UNPROTECTED_UPLOAD_PATH = UNPROTECTED_UPLOAD_PATH[:len(UNPROTECTED_UPLOAD_PATH)-1]
+	}
+	CDN_PATH := "/" + configs.EnvConfigs.UNPROTECTED_UPLOAD_PATH_ROUTE
+	unprotected_video := fmt.Sprintf("%s/video", UNPROTECTED_UPLOAD_PATH)
 
 	where := bson.M{"_id": bson.M{"$in": videos_doc_id}, "uploaded_by_user": user_id}
 
@@ -248,22 +268,22 @@ func GenerateVideoStream(c *gin.Context) {
 					log.Errorln(fmt.Sprintf("Scan failed: %v\n", err))
 					return
 				}
-				path_split := strings.Split(videoData.LinkToOriginalVideo, "/")
+				path_split := strings.Split(videoData.PathToOriginalVideo, "/")
 				file_full_name := strings.Split(path_split[len(path_split)-1], ".")
 				file_name := strings.Join(file_full_name[:len(file_full_name)-1], "_")
-				// my_modules.UploadVideoForStream(path_split[len(path_split)-1], unprotected_video, v.LinkToOriginalVideo)
-				link_to_video_stream := ""
+				path_to_video_stream := ""
 				video_decryption_key := ""
 				var data my_modules.UploadedVideoInfoStruct
-				if data, err = my_modules.UploadVideoForStream(videoData.ID.Hex(), unprotected_video, file_name, videoData.LinkToOriginalVideo); err == nil {
-					link_to_video_stream = data.StreamGeneratedLocation
+				if data, err = my_modules.UploadVideoForStream(videoData.ID.Hex(), unprotected_video, file_name, videoData.PathToOriginalVideo); err == nil {
+					path_to_video_stream = data.StreamGeneratedLocation
 					video_decryption_key = data.DecryptionKey
 				} else {
 					os.Remove(data.OutputDir)
 				}
 
 				log.WithFields(log.Fields{
-					"link_to_video_stream": link_to_video_stream,
+					"path_to_video_stream": path_to_video_stream,
+					"link_to_video_stream": strings.Replace(path_to_video_stream, UNPROTECTED_UPLOAD_PATH, CDN_PATH, 1),
 					"video_decryption_key": video_decryption_key,
 				}).Debugln("Unable to write into redis pool")
 
@@ -273,7 +293,11 @@ func GenerateVideoStream(c *gin.Context) {
 						"_id": videoData.ID,
 					},
 					bson.M{
-						"$set": bson.M{"link_to_video_stream": link_to_video_stream, "video_decryption_key": video_decryption_key},
+						"$set": bson.M{
+							"path_to_video_stream": path_to_video_stream,
+							"link_to_video_stream": strings.Replace(path_to_video_stream, UNPROTECTED_UPLOAD_PATH, CDN_PATH, 1),
+							"video_decryption_key": video_decryption_key,
+						},
 					},
 				)
 			}
@@ -418,9 +442,9 @@ func RemoveVideos(c *gin.Context) {
 				"original_video": false,
 				"stream_video":   false,
 			}
-			video_stream_path := strings.Split(videoData.LinkToVideoStream, "/")
+			video_stream_path := strings.Split(videoData.PathToVideoStream, "/")
 			video_stream_path = video_stream_path[:len(video_stream_path)-1]
-			err1 := os.Remove(videoData.LinkToOriginalVideo)
+			err1 := os.Remove(videoData.PathToOriginalVideo)
 			err2 := os.RemoveAll(strings.Join(video_stream_path, "/"))
 			files_deleted[videoData.Title] = map[string]interface{}{
 				"original_video": err1 == nil,

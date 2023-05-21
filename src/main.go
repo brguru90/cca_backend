@@ -72,7 +72,7 @@ func main() {
 	file_upload_size_mb := 1024 * 2
 	all_router.MaxMultipartMemory = int64(file_upload_size_mb) << 20
 	all_router.Use(static.Serve("/", static.LocalFile("../frontend/build", true)))
-	all_router.StaticFS("/cdn", http.Dir("./uploads/public/"))
+	all_router.StaticFS(configs.EnvConfigs.UNPROTECTED_UPLOAD_PATH_ROUTE, http.Dir(configs.EnvConfigs.UNPROTECTED_UPLOAD_PATH))
 	if configs.EnvConfigs.GIN_MODE != "release" {
 		all_router.Use(cors.Default())
 	}

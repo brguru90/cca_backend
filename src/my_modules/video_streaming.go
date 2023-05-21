@@ -38,7 +38,7 @@ func CreateHLS(video_id string, inputFile string, outputDir string, segmentDurat
 
 	key_file_path := fmt.Sprintf("%s/key.txt", outputDir)
 	key_info_file_path := fmt.Sprintf("%s/key_info.txt", outputDir)
-	key_info := fmt.Sprintf("/api/get_video_key?video_id=%s\n%s", video_id, key_file_path)
+	key_info := fmt.Sprintf("/api/user/get_stream_key?video_id=%s\n%s", video_id, key_file_path)
 	if err := ioutil.WriteFile(key_file_path, []byte(random_string), 0755); err != nil {
 		return UploadedVideoInfoStruct{}, err
 	}
@@ -127,7 +127,7 @@ func CreateHLS(video_id string, inputFile string, outputDir string, segmentDurat
 	}
 	log.Debugf("failed to create HLS: %v\nOutput: %s", err, string(output))
 	return UploadedVideoInfoStruct{
-		StreamGeneratedLocation: fmt.Sprintf("%s/manifest.m3u8", outputDir),
+		StreamGeneratedLocation: fmt.Sprintf("%s/playlist.m3u8", outputDir),
 		DecryptionKey:           random_string,
 		OutputDir:               outputDir,
 	}, err
