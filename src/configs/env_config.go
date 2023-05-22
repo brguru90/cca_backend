@@ -29,6 +29,8 @@ type ENV_CONFIGS struct {
 	PROTECTED_UPLOAD_PATH_ROUTE   string
 	UNPROTECTED_UPLOAD_PATH       string
 	UNPROTECTED_UPLOAD_PATH_ROUTE string
+	RAZORPAY_KEY_ID               string
+	RAZORPAY_KEY_SECRET           string
 }
 
 var EnvConfigs ENV_CONFIGS
@@ -60,6 +62,8 @@ func InitEnv() {
 		PROTECTED_UPLOAD_PATH_ROUTE:   os.Getenv("PROTECTED_UPLOAD_PATH_ROUTE"),
 		UNPROTECTED_UPLOAD_PATH:       os.Getenv("UNPROTECTED_UPLOAD_PATH"),
 		UNPROTECTED_UPLOAD_PATH_ROUTE: os.Getenv("UNPROTECTED_UPLOAD_PATH_ROUTE"),
+		RAZORPAY_KEY_ID:               os.Getenv("RAZORPAY_KEY_ID"),
+		RAZORPAY_KEY_SECRET:           os.Getenv("RAZORPAY_KEY_SECRET"),
 	}
 
 	a, _ := json.MarshalIndent(EnvConfigs, "\t", "")

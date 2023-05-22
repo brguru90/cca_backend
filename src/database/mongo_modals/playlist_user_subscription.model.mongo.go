@@ -34,6 +34,7 @@ type VideoPlayListUserSubscriptionModal struct {
 	UserID                  primitive.ObjectID                         `json:"user_id,omitempty" binding:"required" bson:"user_id,omitempty"`
 	SubscriptionPackageId   primitive.ObjectID                         `json:"subscription_package_id,omitempty" binding:"required" bson:"subscription_package_id,omitempty"`
 	PlaylistID              primitive.ObjectID                         `json:"playlist_id,omitempty" binding:"required" bson:"playlist_id,omitempty"`
+	Price                   int64                                      `json:"price,omitempty"  binding:"required" bson:"price,omitempty"`
 	InitialSubscriptionDate time.Time                                  `json:"initial_subscription_date"  binding:"required" bson:"initial_subscription_date"`
 	ExpireOn                time.Time                                  `json:"expired_on,omitempty" bson:"expired_on,omitempty"`
 	IsEnabled               bool                                       `json:"is_enabled,omitempty"  binding:"required" bson:"is_enabled,omitempty"`

@@ -1,15 +1,20 @@
 package user_views
 
 import (
+	"cca/src/configs"
 	"cca/src/database/database_connections"
 	"cca/src/database/mongo_modals"
 	"cca/src/my_modules"
 	"context"
+	"crypto/sha1"
+	"encoding/hex"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	razorpay "github.com/razorpay/razorpay-go"
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -300,9 +305,57 @@ func GetStreamKey(c *gin.Context) {
 	})
 }
 
+func createOrderForPaymentToEnrollCourse(user_id primitive.ObjectID, user_subscriptions_ids []primitive.ObjectID, amount int64, receipt_id string) (mongo_modals.PaymentOrderModal, error) {
+	client := razorpay.NewClient(configs.EnvConfigs.RAZORPAY_KEY_ID, configs.EnvConfigs.RAZORPAY_KEY_SECRET)
+
+	h := sha1.New()
+	h.Write([]byte(receipt_id))
+	sha1_hash := hex.EncodeToString(h.Sum(nil))
+
+	data := map[string]interface{}{
+		"amount":          amount * 100,
+		"currency":        "INR",
+		"receipt":         sha1_hash,
+		"partial_payment": false,
+		"notes": map[string]interface{}{
+			"receipt_id": receipt_id,
+		},
+	}
+	order_data, err := client.Order.Create(data, nil)
+	if err != nil {
+		return mongo_modals.PaymentOrderModal{}, err
+	}
+
+	_time := time.Now()
+	ins_data := mongo_modals.PaymentOrderModal{
+		UserID:               user_id,
+		UserSubscriptionsIDs: user_subscriptions_ids,
+		OrderID:              order_data["id"].(string),
+		Amount:               amount,
+		CreatedAt:            _time,
+		UpdatedAt:            _time,
+	}
+	order_tbl, ins_err := database_connections.MONGO_COLLECTIONS.PaymentOrder.InsertOne(context.Background(), ins_data)
+	if ins_err != nil {
+		return mongo_modals.PaymentOrderModal{}, ins_err
+	}
+	ins_data.ID = order_tbl.InsertedID.(primitive.ObjectID)
+	return ins_data, nil
+}
+
+func fetchOrderStatusForPaymentToEnrollCourse(order_id string) (map[string]interface{}, error) {
+	client := razorpay.NewClient(configs.EnvConfigs.RAZORPAY_KEY_ID, configs.EnvConfigs.RAZORPAY_KEY_SECRET)
+	return client.Order.Fetch(order_id, nil, nil)
+}
+
 type EnrollToCourseReqStruct struct {
 	PlaylistIDs           []string `json:"playlist_ids" binding:"required"`
 	SubscriptionPackageID string   `json:"subscription_package_id"`
+}
+
+type EnrollToCourseRespStruct struct {
+	my_modules.ResponseFormat
+	Data mongo_modals.PaymentOrderModal `json:"data"`
 }
 
 // @BasePath /api/
@@ -313,7 +366,7 @@ type EnrollToCourseReqStruct struct {
 // @Accept json
 // @Produce json
 // @Param video_id body EnrollToCourseReqStruct true "Video ID"
-// @Success 200 {object} my_modules.ResponseFormat
+// @Success 200 {object} EnrollToCourseRespStruct
 // @Failure 400 {object} my_modules.ResponseFormat
 // @Failure 403 {object} my_modules.ResponseFormat
 // @Failure 500 {object} my_modules.ResponseFormat
@@ -338,6 +391,8 @@ func EnrollToCourse(c *gin.Context) {
 	}
 	subscription_package_id, _id_err := primitive.ObjectIDFromHex(subscriptionInfo.SubscriptionPackageID)
 
+	user_subscriptions := make(map[primitive.ObjectID]int64)
+
 	_time := time.Now()
 	for i := 0; i < len(subscriptionInfo.PlaylistIDs); i++ {
 		playlis_id, _id_err := primitive.ObjectIDFromHex(subscriptionInfo.PlaylistIDs[i])
@@ -360,6 +415,7 @@ func EnrollToCourse(c *gin.Context) {
 		}
 
 		{
+
 			var videoPlaylistUserSubscription mongo_modals.VideoPlayListUserSubscriptionModal
 			err = database_connections.MONGO_COLLECTIONS.VideoPlayListUserSubscription.FindOne(context.Background(), bson.M{
 				"user_id":     user_id,
@@ -387,6 +443,7 @@ func EnrollToCourse(c *gin.Context) {
 							"is_enabled":    false,
 							"subscriptions": previous_subscription,
 							"UpdatedAt":     _time,
+							"price":         videoPlaylist.Price,
 						},
 					},
 				)
@@ -403,14 +460,17 @@ func EnrollToCourse(c *gin.Context) {
 						"match_count":    update_status.MatchedCount,
 						"modified_count": update_status.ModifiedCount,
 					}).Errorln("Failed to enroll to existing subscription")
+				} else {
+					user_subscriptions[videoPlaylistUserSubscription.ID] = videoPlaylist.Price
 				}
 			} else {
-				_, ins_err := database_connections.MONGO_COLLECTIONS.VideoPlayListUserSubscription.InsertOne(context.Background(), mongo_modals.VideoPlayListUserSubscriptionModal{
+				user_sub_tbl, ins_err := database_connections.MONGO_COLLECTIONS.VideoPlayListUserSubscription.InsertOne(context.Background(), mongo_modals.VideoPlayListUserSubscriptionModal{
 					UserID:                  user_id,
 					PlaylistID:              playlis_id,
 					InitialSubscriptionDate: _time,
 					IsEnabled:               false,
 					ExpireOn:                _time.AddDate(0, 0, int(videoPlaylist.EnrollDays)),
+					Price:                   videoPlaylist.Price,
 					Subscriptions: []mongo_modals.SubsequentUserPlaylistSubscriptionStruct{
 						{
 							SubscribedOn:   _time,
@@ -426,22 +486,120 @@ func EnrollToCourse(c *gin.Context) {
 					log.WithFields(log.Fields{
 						"ins_err": ins_err,
 					}).Errorln("Error in inserting data to mongo users")
-					my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Error in Regestering new user while marking active", nil)
-					return
+					// my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Error in Regestering new user while marking active", nil)
+					continue
 				}
+				videoPlaylistUserSubscription.ID = user_sub_tbl.InsertedID.(primitive.ObjectID)
+				user_subscriptions[videoPlaylistUserSubscription.ID] = videoPlaylist.Price
 			}
-			my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "success", nil)
 		}
+	}
 
+	var total_amount int64 = 0
+	subscriptions_ids_hex := []string{}
+	subscriptions_ids := []primitive.ObjectID{}
+
+	for subscription_id, amount := range user_subscriptions {
+		total_amount += amount
+		subscriptions_ids_hex = append(subscriptions_ids_hex, subscription_id.Hex())
+		subscriptions_ids = append(subscriptions_ids, subscription_id)
+	}
+	receipt_id := fmt.Sprintf("%s-%d", strings.Join(subscriptions_ids_hex, ","), total_amount)
+
+	order_data, order_err := createOrderForPaymentToEnrollCourse(user_id, subscriptions_ids, total_amount, receipt_id)
+	if order_err != nil {
+		log.WithFields(log.Fields{
+			"order_err":  order_err,
+			"receipt_id": receipt_id,
+		}).Errorln("Error creating order")
+		// need to roll back subscription changes
+		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Error in creating order", nil)
+		return
+	}
+
+	my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "success", order_data)
+
+}
+
+type GetUserSubscriptionListStruct struct {
+	ID                    primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
+	SubscriptionPackageId primitive.ObjectID `json:"subscription_package_id,omitempty" bson:"subscription_package_id,omitempty"`
+	PlaylistID            primitive.ObjectID `json:"playlist_id,omitempty"  bson:"playlist_id,omitempty"`
+	ExpireOn              time.Time          `json:"expired_on,omitempty" bson:"expired_on,omitempty"`
+}
+
+type GetUserSubscriptionListRespPayload struct {
+	my_modules.ResponseFormat
+	Data GetUserSubscriptionListStruct `json:"data"`
+}
+
+// @BasePath /api/
+// @Summary Get user subscriptions
+// @Schemes
+// @Description api to get user subscriptions
+// @Tags Customer side
+// @Produce json
+// @Success 200 {object} GetUserSubscriptionListRespPayload
+// @Failure 400 {object} my_modules.ResponseFormat
+// @Failure 403 {object} my_modules.ResponseFormat
+// @Failure 500 {object} my_modules.ResponseFormat
+// @Router /user/get_user_subscriptions/ [get]
+func GetUserSubscriptionList(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	payload, ok := my_modules.ExtractTokenPayload(c)
+	if !ok {
+		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "Unable to get user info", nil)
+		return
+	}
+	user_id, _id_err := primitive.ObjectIDFromHex(payload.Data.ID)
+	if payload.Data.ID == "" || _id_err != nil {
+		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "UUID of user is not provided", _id_err)
+		return
+	}
+
+	where := bson.M{
+		"is_enabled": true,
+		"user_id":    user_id,
+	}
+	cursor, err := database_connections.MONGO_COLLECTIONS.VideoPlayListUserSubscription.Find(ctx, where)
+	if err != nil {
+		if err != mongo.ErrNoDocuments {
+			log.WithFields(log.Fields{
+				"err": err,
+			}).Errorln("Failed to load session data")
+		}
+		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "No record found", nil)
+		return
+	} else {
+		defer cursor.Close(ctx)
+		var user_subscriptions []GetUserSubscriptionListStruct = []GetUserSubscriptionListStruct{}
+		// cursor.All(ctx,sessionsData);
+		for cursor.Next(c.Request.Context()) {
+			var user_subscription mongo_modals.VideoPlayListUserSubscriptionModal
+			if err = cursor.Decode(&user_subscription); err != nil {
+				my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Error in retrieving video playlist data", nil)
+				return
+			}
+			user_subscriptions = append(user_subscriptions, GetUserSubscriptionListStruct{
+				ID:                    user_subscription.ID,
+				PlaylistID:            user_subscription.PlaylistID,
+				SubscriptionPackageId: user_subscription.SubscriptionPackageId,
+				ExpireOn:              user_subscription.ExpireOn,
+			})
+
+		}
+		my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "Record found", user_subscriptions)
+		return
 	}
 
 }
 
-func GetAvailableSubscriptionPackages(c *gin.Context) {
+func PaymentConfirmationForSubscription(c *gin.Context) {
 
 }
 
-func PaymentConfirmationForSubscription(c *gin.Context) {
+func GetAvailableSubscriptionPackages(c *gin.Context) {
 
 }
 

@@ -1165,6 +1165,44 @@ const docTemplate = `{
                 }
             }
         },
+        "/user/get_user_subscriptions/": {
+            "get": {
+                "description": "api to get user subscriptions",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customer side"
+                ],
+                "summary": "Get user subscriptions",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/user_views.GetUserSubscriptionListRespPayload"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            }
+        },
         "/user/get_videos/": {
             "post": {
                 "description": "api to fetch videos by providing ID",
@@ -1707,6 +1745,42 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "user_views.GetUserSubscriptionListRespPayload": {
+            "type": "object",
+            "required": [
+                "data",
+                "msg",
+                "status"
+            ],
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/user_views.GetUserSubscriptionListStruct"
+                },
+                "msg": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "user_views.GetUserSubscriptionListStruct": {
+            "type": "object",
+            "properties": {
+                "_id": {
+                    "type": "string"
+                },
+                "expired_on": {
+                    "type": "string"
+                },
+                "playlist_id": {
+                    "type": "string"
+                },
+                "subscription_package_id": {
                     "type": "string"
                 }
             }

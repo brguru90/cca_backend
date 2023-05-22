@@ -272,6 +272,30 @@ definitions:
     - msg
     - status
     type: object
+  user_views.GetUserSubscriptionListRespPayload:
+    properties:
+      data:
+        $ref: '#/definitions/user_views.GetUserSubscriptionListStruct'
+      msg:
+        type: string
+      status:
+        type: string
+    required:
+    - data
+    - msg
+    - status
+    type: object
+  user_views.GetUserSubscriptionListStruct:
+    properties:
+      _id:
+        type: string
+      expired_on:
+        type: string
+      playlist_id:
+        type: string
+      subscription_package_id:
+        type: string
+    type: object
   user_views.GetVideosReqStruct:
     properties:
       video_ids:
@@ -1110,6 +1134,31 @@ paths:
           schema:
             $ref: '#/definitions/my_modules.ResponseFormat'
       summary: get video decode key
+      tags:
+      - Customer side
+  /user/get_user_subscriptions/:
+    get:
+      description: api to get user subscriptions
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user_views.GetUserSubscriptionListRespPayload'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: Get user subscriptions
       tags:
       - Customer side
   /user/get_videos/:
