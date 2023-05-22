@@ -323,6 +323,11 @@ func createOrderForPaymentToEnrollCourse(user_id primitive.ObjectID, user_subscr
 	}
 	order_data, err := client.Order.Create(data, nil)
 	if err != nil {
+		log.WithFields(log.Fields{
+			"receipt_id": receipt_id,
+			"user_id":    user_id,
+			"err":        err,
+		}).Errorln("Create razorpay PaymentOrder")
 		return mongo_modals.PaymentOrderModal{}, err
 	}
 
@@ -332,20 +337,85 @@ func createOrderForPaymentToEnrollCourse(user_id primitive.ObjectID, user_subscr
 		UserSubscriptionsIDs: user_subscriptions_ids,
 		OrderID:              order_data["id"].(string),
 		Amount:               amount,
+		PaymentStatus:        false,
 		CreatedAt:            _time,
 		UpdatedAt:            _time,
 	}
 	order_tbl, ins_err := database_connections.MONGO_COLLECTIONS.PaymentOrder.InsertOne(context.Background(), ins_data)
 	if ins_err != nil {
+		log.WithFields(log.Fields{
+			"receipt_id": receipt_id,
+			"user_id":    user_id,
+			"ins_err":    ins_err,
+		}).Errorln("Insert PaymentOrder")
 		return mongo_modals.PaymentOrderModal{}, ins_err
 	}
 	ins_data.ID = order_tbl.InsertedID.(primitive.ObjectID)
 	return ins_data, nil
 }
 
-func fetchOrderStatusForPaymentToEnrollCourse(order_id string) (map[string]interface{}, error) {
+func getAndUpdateOrderStatusForPaymentToEnrollCourse(user_id primitive.ObjectID, order_id primitive.ObjectID) (mongo_modals.PaymentOrderModal, error) {
 	client := razorpay.NewClient(configs.EnvConfigs.RAZORPAY_KEY_ID, configs.EnvConfigs.RAZORPAY_KEY_SECRET)
-	return client.Order.Fetch(order_id, nil, nil)
+
+	var paymentForOrder mongo_modals.PaymentOrderModal
+	err := database_connections.MONGO_COLLECTIONS.PaymentOrder.FindOne(context.Background(), bson.M{
+		"_id":     order_id,
+		"user_id": user_id,
+	}).Decode(&paymentForOrder)
+
+	if err != nil {
+		log.WithFields(log.Fields{
+			"_id":     order_id,
+			"user_id": user_id,
+			"err":     err,
+		}).Errorln("Find PaymentOrder")
+		return mongo_modals.PaymentOrderModal{}, err
+	}
+
+	order_data, err := client.Order.Fetch(paymentForOrder.OrderID, nil, nil)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"_id":     order_id,
+			"user_id": user_id,
+			"err":     err,
+		}).Errorln("Fetch razorpay PaymentOrder")
+		return mongo_modals.PaymentOrderModal{}, err
+	}
+
+	log.Debugln(order_data)
+	_time := time.Now()
+	paymentForOrder.PaymentStatus = order_data["status"] == "paid"
+	if paymentForOrder.PaymentStatus {
+		update_status, err := database_connections.MONGO_COLLECTIONS.PaymentOrder.UpdateOne(
+			context.Background(),
+			bson.M{
+				"_id":     order_id,
+				"user_id": user_id,
+			},
+			bson.M{
+				"$set": bson.M{
+					"payment_status": paymentForOrder.PaymentStatus,
+					"UpdatedAt":      _time,
+				},
+			},
+		)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"_id":     order_id,
+				"user_id": user_id,
+				"err":     err,
+			}).Errorln("Update PaymentOrder")
+		} else if update_status.ModifiedCount == 0 {
+			log.WithFields(log.Fields{
+				"_id":            order_id,
+				"user_id":        user_id,
+				"match_count":    update_status.MatchedCount,
+				"modified_count": update_status.ModifiedCount,
+			}).Errorln("Update PaymentOrder")
+		}
+	}
+
+	return paymentForOrder, nil
 }
 
 type EnrollToCourseReqStruct struct {
@@ -521,6 +591,81 @@ func EnrollToCourse(c *gin.Context) {
 
 }
 
+// @BasePath /api
+// @Summary Confirm payment on Order
+// @Schemes
+// @Description allow confirm payment on order created & payment status will be verified on server side
+// @Tags Customer side
+// @Produce json
+// @Param order_id query string true "Order ID"
+// @Success 200 {object} my_modules.ResponseFormat
+// @Failure 400 {object} my_modules.ResponseFormat
+// @Failure 500 {object} my_modules.ResponseFormat
+// @Router /user/confirm_payment_for_subscription/ [get]
+func PaymentConfirmationForSubscription(c *gin.Context) {
+	order_id_str := c.Query("order_id")
+	if order_id_str == "" {
+		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "'order_id' is not provided", nil)
+	}
+
+	order_id, _id_err := primitive.ObjectIDFromHex(order_id_str)
+	if order_id_str == "" || _id_err != nil {
+		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "Invalid order id payload", _id_err)
+		return
+	}
+
+	payload, ok := my_modules.ExtractTokenPayload(c)
+	if !ok {
+		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "Unable to get user info", nil)
+		return
+	}
+	user_id, _id_err := primitive.ObjectIDFromHex(payload.Data.ID)
+	if payload.Data.ID == "" || _id_err != nil {
+		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "UUID of user is not provided", _id_err)
+		return
+	}
+
+	order_data, err := getAndUpdateOrderStatusForPaymentToEnrollCourse(user_id, order_id)
+
+	if err != nil {
+		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "Error while verifying payment status", nil)
+		return
+	}
+
+	if true {
+		_time := time.Now()
+		update_status, err := database_connections.MONGO_COLLECTIONS.VideoPlayListUserSubscription.UpdateMany(
+			context.Background(),
+			bson.M{
+				"_id":     bson.M{"$in": order_data.UserSubscriptionsIDs},
+				"user_id": user_id,
+			},
+			bson.M{
+				"$set": bson.M{
+					"is_enabled": order_data.PaymentStatus,
+					"UpdatedAt":  _time,
+				},
+			},
+		)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"user_id":  user_id,
+				"order_id": order_data.UserSubscriptionsIDs,
+				"err":      err,
+			}).Errorln("Failed to enroll to existing subscription")
+		} else if update_status.ModifiedCount == 0 {
+			log.WithFields(log.Fields{
+				"user_id":        user_id,
+				"order_id":       order_data.UserSubscriptionsIDs,
+				"match_count":    update_status.MatchedCount,
+				"modified_count": update_status.ModifiedCount,
+			}).Errorln("Failed to enroll to existing subscription")
+		}
+	}
+
+	my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "success", order_data)
+}
+
 type GetUserSubscriptionListStruct struct {
 	ID                    primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	SubscriptionPackageId primitive.ObjectID `json:"subscription_package_id,omitempty" bson:"subscription_package_id,omitempty"`
@@ -592,10 +737,6 @@ func GetUserSubscriptionList(c *gin.Context) {
 		my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "Record found", user_subscriptions)
 		return
 	}
-
-}
-
-func PaymentConfirmationForSubscription(c *gin.Context) {
 
 }
 

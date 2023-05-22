@@ -18,6 +18,7 @@ type PaymentOrderModal struct {
 	UserSubscriptionsIDs []primitive.ObjectID `json:"user_subscriptions_ids,omitempty" binding:"required" bson:"user_subscriptions_ids,omitempty"`
 	OrderID              string               `json:"order_id"  binding:"required" bson:"order_id"`
 	Amount               int64                `json:"amount,omitempty"  binding:"required" bson:"amount,omitempty"`
+	PaymentStatus        bool                 `json:"payment_status"  binding:"required" bson:"payment_status"`
 	CreatedAt            time.Time            `json:"createdAt,omitempty" bson:"CreatedAt" swaggerignore:"true"`
 	UpdatedAt            time.Time            `json:"updatedAt,omitempty" bson:"UpdatedAt" swaggerignore:"true"`
 }

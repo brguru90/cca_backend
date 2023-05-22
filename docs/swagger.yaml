@@ -111,6 +111,27 @@ definitions:
       user_id:
         type: string
     type: object
+  mongo_modals.PaymentOrderModal:
+    properties:
+      amount:
+        type: integer
+      order_id:
+        type: string
+      payment_status:
+        type: boolean
+      user_id:
+        type: string
+      user_subscriptions_ids:
+        items:
+          type: string
+        type: array
+    required:
+    - amount
+    - order_id
+    - payment_status
+    - user_id
+    - user_subscriptions_ids
+    type: object
   mongo_modals.UsersModel:
     properties:
       access_level:
@@ -256,6 +277,19 @@ definitions:
         type: string
     required:
     - playlist_ids
+    type: object
+  user_views.EnrollToCourseRespStruct:
+    properties:
+      data:
+        $ref: '#/definitions/mongo_modals.PaymentOrderModal'
+      msg:
+        type: string
+      status:
+        type: string
+    required:
+    - data
+    - msg
+    - status
     type: object
   user_views.GetAllPlayListsRespStruct:
     properties:
@@ -1041,6 +1075,34 @@ paths:
       summary: Block specified session
       tags:
       - Session
+  /user/confirm_payment_for_subscription/:
+    get:
+      description: allow confirm payment on order created & payment status will be
+        verified on server side
+      parameters:
+      - description: Order ID
+        in: query
+        name: order_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: Confirm payment on Order
+      tags:
+      - Customer side
   /user/enroll_to_course/:
     post:
       consumes:
@@ -1059,7 +1121,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/my_modules.ResponseFormat'
+            $ref: '#/definitions/user_views.EnrollToCourseRespStruct'
         "400":
           description: Bad Request
           schema:

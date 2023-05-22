@@ -1020,6 +1020,47 @@ const docTemplate = `{
                 }
             }
         },
+        "/user/confirm_payment_for_subscription/": {
+            "get": {
+                "description": "allow confirm payment on order created \u0026 payment status will be verified on server side",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customer side"
+                ],
+                "summary": "Confirm payment on Order",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "order_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            }
+        },
         "/user/enroll_to_course/": {
             "post": {
                 "description": "api to enroll playlist/subscription",
@@ -1048,7 +1089,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                            "$ref": "#/definitions/user_views.EnrollToCourseRespStruct"
                         }
                     },
                     "400": {
@@ -1517,6 +1558,36 @@ const docTemplate = `{
                 }
             }
         },
+        "mongo_modals.PaymentOrderModal": {
+            "type": "object",
+            "required": [
+                "amount",
+                "order_id",
+                "payment_status",
+                "user_id",
+                "user_subscriptions_ids"
+            ],
+            "properties": {
+                "amount": {
+                    "type": "integer"
+                },
+                "order_id": {
+                    "type": "string"
+                },
+                "payment_status": {
+                    "type": "boolean"
+                },
+                "user_id": {
+                    "type": "string"
+                },
+                "user_subscriptions_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "mongo_modals.UsersModel": {
             "type": "object",
             "required": [
@@ -1723,6 +1794,25 @@ const docTemplate = `{
                     }
                 },
                 "subscription_package_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "user_views.EnrollToCourseRespStruct": {
+            "type": "object",
+            "required": [
+                "data",
+                "msg",
+                "status"
+            ],
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/mongo_modals.PaymentOrderModal"
+                },
+                "msg": {
+                    "type": "string"
+                },
+                "status": {
                     "type": "string"
                 }
             }
