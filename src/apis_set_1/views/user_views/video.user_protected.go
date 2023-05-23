@@ -198,6 +198,7 @@ func GetVideos(c *gin.Context) {
 				my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Error in retrieving video playlist data", nil)
 				return
 			}
+			video.VideoDecryptionKey = ""
 			videos = append(videos, video)
 
 		}
@@ -277,13 +278,13 @@ func GetStreamKey(c *gin.Context) {
 		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Error in finding video", nil)
 		return
 	}
-
+	// 646b8cc5a1d3db25782498df
+	// {videos_ids:{"$elemMatch":{video_id:ObjectId('646a499150b48a442558cf7e')}}}
+	// {"videos_ids.video_id":ObjectId('646a499150b48a442558cf7e')}
 	var videoPlaylist mongo_modals.VideoPlayListModal
-	objIDArr := []primitive.ObjectID{objID}
 	err = database_connections.MONGO_COLLECTIONS.VideoPlayList.FindOne(ctx, bson.M{
-		"videos_ids": bson.M{"$in": objIDArr},
-		"is_live":    true,
-		// "access_level": access_level,
+		"videos_ids.video_id": objID,
+		"is_live":             true,
 	}).Decode(&videoPlaylist)
 	if err != nil {
 		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Error in finding video in playlist", nil)
@@ -300,8 +301,10 @@ func GetStreamKey(c *gin.Context) {
 		my_modules.CreateAndSendResponse(c, http.StatusForbidden, "error", "Error in finding package in user subscription ", nil)
 	}
 
+	key, block_size := my_modules.EncryptWithPKCS(appBuildInfo.AppSecret, videoData.VideoDecryptionKey)
 	my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "found", map[string]interface{}{
-		"key": my_modules.EncryptAES(videoData.VideoDecryptionKey, appBuildInfo.AppSecret),
+		"key":        key,
+		"block_size": block_size,
 	})
 }
 
