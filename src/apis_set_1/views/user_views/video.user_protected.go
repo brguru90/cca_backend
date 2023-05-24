@@ -549,7 +549,7 @@ func EnrollToCourse(c *gin.Context) {
 						{
 							SubscribedOn:   _time,
 							DurationInDays: int(videoPlaylist.EnrollDays),
-							// AmountPaid: ,
+							AmountPaid:     videoPlaylist.Price,
 						},
 					},
 					SubscriptionPackageId: subscription_package_id,

@@ -47,7 +47,7 @@ func InitVideoUploadCollection() {
 					Value: 1,
 				},
 				{
-					Key:   "link_to_original_video",
+					Key:   "path_to_original_video",
 					Value: 1,
 				},
 			},
@@ -61,7 +61,7 @@ func InitVideoUploadCollection() {
 					Value: 1,
 				},
 				{
-					Key:   "link_to_video_stream",
+					Key:   "path_to_video_stream",
 					Value: 1,
 				},
 			},

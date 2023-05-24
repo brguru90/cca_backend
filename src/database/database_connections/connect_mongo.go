@@ -25,6 +25,7 @@ type MongoCollections struct {
 	VideoPlayListUserSubscription    *mongo.Collection
 	AppBuildRegistration             *mongo.Collection
 	PaymentOrder                     *mongo.Collection
+	StudyMaterial                    *mongo.Collection
 }
 
 var MONGO_COLLECTIONS MongoCollections
@@ -67,7 +68,7 @@ func InitMongoDB() {
 	MONGO_COLLECTIONS.VideoPlayListSubscriptionPackage = MONGO_DATABASE.Collection("video_playlist_subscription_package")
 	MONGO_COLLECTIONS.VideoPlayListUserSubscription = MONGO_DATABASE.Collection("video_playlist_user_subscription")
 	MONGO_COLLECTIONS.PaymentOrder = MONGO_DATABASE.Collection("payment_order")
-
+	MONGO_COLLECTIONS.StudyMaterial = MONGO_DATABASE.Collection("study_material")
 	createSampleCollection()
 }
 
