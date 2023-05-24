@@ -35,7 +35,7 @@ func CreateHLS(video_id string, inputFile string, outputDir string, segmentDurat
 	if _rand, r_err := randomBytes(16); r_err != nil {
 		return UploadedVideoInfoStruct{}, r_err
 	} else {
-		random_string = hex.EncodeToString(_rand)
+		random_string = hex.EncodeToString(_rand)[0:16]
 	}
 
 	key_file_path := fmt.Sprintf("%s/key.txt", outputDir)
