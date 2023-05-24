@@ -181,10 +181,6 @@ type VideoStreamReqStruct struct {
 // @Router /admin/generate_video_stream/ [post]
 func GenerateVideoStream(c *gin.Context) {
 	ctx := c.Request.Context()
-	if _, err := database_connections.REDIS_DB_CONNECTION.Get(ctx, "video_stream_generation_in_progress").Result(); err == nil {
-		my_modules.CreateAndSendResponse(c, http.StatusOK, "warning", "Process is already running", nil)
-		return
-	}
 
 	var videoStreamInfo VideoStreamReqStruct
 	if err := c.ShouldBind(&videoStreamInfo); err != nil {
@@ -203,6 +199,11 @@ func GenerateVideoStream(c *gin.Context) {
 
 	if payload.Data.ID == "" || _id_err != nil {
 		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "UUID of user is not provided", _id_err)
+		return
+	}
+
+	if _, err := database_connections.REDIS_DB_CONNECTION.Get(ctx, "video_stream_generation_in_progress").Result(); err == nil {
+		my_modules.CreateAndSendResponse(c, http.StatusOK, "warning", "Process is already running", nil)
 		return
 	}
 

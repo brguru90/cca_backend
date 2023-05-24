@@ -209,8 +209,7 @@ func GetVideos(c *gin.Context) {
 }
 
 type VideoStreamKeyReqStruct struct {
-	AppID   string `json:"app_id" binding:"required"`
-	VideoId string `json:"video_id" binding:"required"`
+	AppID string `json:"app_id" binding:"required"`
 }
 
 // @BasePath /api/
@@ -220,7 +219,8 @@ type VideoStreamKeyReqStruct struct {
 // @Tags Customer side
 // @Accept json
 // @Produce json
-// @Param video_id body VideoStreamKeyReqStruct true "Video ID"
+// @Param additionalInfo body VideoStreamKeyReqStruct true "Additional info"
+// @Param video_id query string true "Video ID"
 // @Success 200 {object} my_modules.ResponseFormat
 // @Failure 400 {object} my_modules.ResponseFormat
 // @Failure 403 {object} my_modules.ResponseFormat
@@ -228,8 +228,9 @@ type VideoStreamKeyReqStruct struct {
 // @Router /user/get_stream_key/ [post]
 func GetStreamKey(c *gin.Context) {
 	ctx := c.Request.Context()
+	video_id_str := c.Query("video_id")
 	var videoStreamInfo VideoStreamKeyReqStruct
-	if err := c.ShouldBind(&videoStreamInfo); err != nil {
+	if err := c.ShouldBind(&videoStreamInfo); err != nil || video_id_str == "" {
 		log.Errorln(err)
 		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Invalid payload", nil)
 		return
@@ -246,7 +247,7 @@ func GetStreamKey(c *gin.Context) {
 		return
 	}
 
-	objID, err := primitive.ObjectIDFromHex(videoStreamInfo.VideoId)
+	objID, err := primitive.ObjectIDFromHex(video_id_str)
 	if err != nil {
 		log.Errorln(err)
 		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Invalid key", nil)

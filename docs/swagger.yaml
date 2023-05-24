@@ -405,11 +405,8 @@ definitions:
     properties:
       app_id:
         type: string
-      video_id:
-        type: string
     required:
     - app_id
-    - video_id
     type: object
 info:
   contact: {}
@@ -1170,12 +1167,17 @@ paths:
       - application/json
       description: api to get video decryption key for hls stream
       parameters:
-      - description: Video ID
+      - description: Additional info
         in: body
-        name: video_id
+        name: additionalInfo
         required: true
         schema:
           $ref: '#/definitions/user_views.VideoStreamKeyReqStruct'
+      - description: Video ID
+        in: query
+        name: video_id
+        required: true
+        type: string
       produces:
       - application/json
       responses:

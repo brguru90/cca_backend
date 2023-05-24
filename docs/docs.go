@@ -1169,13 +1169,20 @@ const docTemplate = `{
                 "summary": "get video decode key",
                 "parameters": [
                     {
-                        "description": "Video ID",
-                        "name": "video_id",
+                        "description": "Additional info",
+                        "name": "additionalInfo",
                         "in": "body",
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/user_views.VideoStreamKeyReqStruct"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Video ID",
+                        "name": "video_id",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -1982,14 +1989,10 @@ const docTemplate = `{
         "user_views.VideoStreamKeyReqStruct": {
             "type": "object",
             "required": [
-                "app_id",
-                "video_id"
+                "app_id"
             ],
             "properties": {
                 "app_id": {
-                    "type": "string"
-                },
-                "video_id": {
                     "type": "string"
                 }
             }

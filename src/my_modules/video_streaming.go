@@ -1,9 +1,11 @@
 package my_modules
 
 import (
+	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"os/exec"
 	"strings"
@@ -38,7 +40,9 @@ func CreateHLS(video_id string, inputFile string, outputDir string, segmentDurat
 
 	key_file_path := fmt.Sprintf("%s/key.txt", outputDir)
 	key_info_file_path := fmt.Sprintf("%s/key_info.txt", outputDir)
-	key_info := fmt.Sprintf("/api/user/get_stream_key?video_id=%s\n%s", video_id, key_file_path)
+	key_info := fmt.Sprintf("/api/user/get_stream_key/?video_id=%s", video_id)
+	key_info = fmt.Sprintf("http://127.0.0.1:8898/forward?url=%s\n%s", url.QueryEscape(base64.StdEncoding.EncodeToString([]byte(key_info))), key_file_path)
+
 	if err := ioutil.WriteFile(key_file_path, []byte(random_string), 0755); err != nil {
 		return UploadedVideoInfoStruct{}, err
 	}
