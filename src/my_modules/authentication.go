@@ -51,7 +51,7 @@ type AccessTokenClaims struct {
 	AccessToken        `json:"accessToken" binding:"required"`
 }
 
-func randomBytes(size int) (blk []byte, err error) {
+func RandomBytes(size int) (blk []byte, err error) {
 	blk = make([]byte, size)
 	_, err = rand.Read(blk)
 	return
@@ -105,7 +105,7 @@ func GenerateAccessToken(uname string, csrf_token string, data TokenPayload, enc
 	time_now := time.Now().UnixMilli()
 	token_id := ""
 
-	if _rand, r_err := randomBytes(100); r_err == nil {
+	if _rand, r_err := RandomBytes(100); r_err == nil {
 		token_id = data.ID + "_" + base64.StdEncoding.EncodeToString(_rand) + "_" + strconv.FormatInt(int64(time_now), 10)
 	}
 
@@ -169,7 +169,7 @@ func DeleteCookie(c *gin.Context, key string) {
 
 func EnsureCsrfToken(c *gin.Context) string {
 	var csrf_token string = ""
-	if _rand, r_err := randomBytes(100); r_err == nil {
+	if _rand, r_err := RandomBytes(100); r_err == nil {
 		csrf_token = base64.StdEncoding.EncodeToString(_rand)
 		c.Header("csrf_token", csrf_token)
 	} else {

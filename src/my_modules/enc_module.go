@@ -11,6 +11,16 @@ import (
 )
 
 func EncryptWithPKCS(aeskey string, text string) (string, int) {
+	data, blk_size := EncryptBytesWithPKCS(aeskey, []byte(text))
+	return base64.URLEncoding.EncodeToString(data), blk_size
+}
+
+func DecryptWithPKCS(aesKey string, encrypted_text string) string {
+	ciphertext, _ := base64.URLEncoding.DecodeString(encrypted_text)
+	return string(DecryptBytesWithPKCS(aesKey, ciphertext))
+}
+
+func EncryptBytesWithPKCS(aeskey string, data []byte) ([]byte, int) {
 	key := []byte(aeskey)
 
 	// Create the AES cipher
@@ -19,7 +29,7 @@ func EncryptWithPKCS(aeskey string, text string) (string, int) {
 		panic(err)
 	}
 	block_size := block.BlockSize()
-	plaintext, _ := pkcs7Pad([]byte(text), block_size)
+	plaintext, _ := pkcs7Pad(data, block_size)
 	// The IV needs to be unique, but not secure. Therefore it's common to
 	// include it at the beginning of the ciphertext.
 	ciphertext := make([]byte, aes.BlockSize+len(plaintext))
@@ -29,11 +39,10 @@ func EncryptWithPKCS(aeskey string, text string) (string, int) {
 	}
 	bm := cipher.NewCBCEncrypter(block, iv)
 	bm.CryptBlocks(ciphertext[aes.BlockSize:], plaintext)
-	return base64.URLEncoding.EncodeToString(ciphertext), block_size
+	return ciphertext, block_size
 }
 
-func DecryptWithPKCS(aesKey string, encrypted_text string) string {
-	ciphertext, _ := base64.URLEncoding.DecodeString(encrypted_text)
+func DecryptBytesWithPKCS(aesKey string, ciphertext []byte) []byte {
 	key := []byte(aesKey)
 	// Create the AES cipher
 	block, err := aes.NewCipher(key)
@@ -45,8 +54,46 @@ func DecryptWithPKCS(aesKey string, encrypted_text string) string {
 	bm := cipher.NewCBCDecrypter(block, iv)
 	bm.CryptBlocks(ciphertext, ciphertext)
 	ciphertext, _ = pkcs7Unpad(ciphertext, aes.BlockSize)
-	return string(ciphertext)
+	return ciphertext
 }
+
+// func EncryptWithPKCS(aeskey string, text string) (string, int) {
+// 	key := []byte(aeskey)
+
+// 	// Create the AES cipher
+// 	block, err := aes.NewCipher(key)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	block_size := block.BlockSize()
+// 	plaintext, _ := pkcs7Pad([]byte(text), block_size)
+// 	// The IV needs to be unique, but not secure. Therefore it's common to
+// 	// include it at the beginning of the ciphertext.
+// 	ciphertext := make([]byte, aes.BlockSize+len(plaintext))
+// 	iv := ciphertext[:aes.BlockSize]
+// 	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
+// 		panic(err)
+// 	}
+// 	bm := cipher.NewCBCEncrypter(block, iv)
+// 	bm.CryptBlocks(ciphertext[aes.BlockSize:], plaintext)
+// 	return base64.URLEncoding.EncodeToString(ciphertext), block_size
+// }
+
+// func DecryptWithPKCS(aesKey string, encrypted_text string) string {
+// 	ciphertext, _ := base64.URLEncoding.DecodeString(encrypted_text)
+// 	key := []byte(aesKey)
+// 	// Create the AES cipher
+// 	block, err := aes.NewCipher(key)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	iv := ciphertext[:aes.BlockSize]
+// 	ciphertext = ciphertext[aes.BlockSize:]
+// 	bm := cipher.NewCBCDecrypter(block, iv)
+// 	bm.CryptBlocks(ciphertext, ciphertext)
+// 	ciphertext, _ = pkcs7Unpad(ciphertext, aes.BlockSize)
+// 	return string(ciphertext)
+// }
 
 func PKCS5Padding(ciphertext []byte, blockSize int) []byte {
 	padding := blockSize - len(ciphertext)%blockSize

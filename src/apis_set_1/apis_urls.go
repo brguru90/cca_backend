@@ -67,9 +67,12 @@ func InitApiTest(router *gin.RouterGroup) {
 	{
 		admin_router := router.Group("admin/", middlewares.ValidateToken(my_modules.AccessLevel.ADMIN))
 		admin_router.POST("upload_streaming_video/", admin_views.UploadVideo)
+		admin_router.POST("upload_study_material/", admin_views.UploadStudyMaterials)
 		admin_router.POST("generate_video_stream/", admin_views.GenerateVideoStream)
 		admin_router.GET("upload_list/", admin_views.GetAllUploadedVideos)
+		admin_router.GET("doc_upload_list/", admin_views.GetAllUploadedStudyMaterials)
 		admin_router.DELETE("delete_streaming_video/", admin_views.RemoveVideos)
+		admin_router.DELETE("delete_study_material/", admin_views.RemoveStudyMaterial)
 
 		// Todo, pending APIs
 		admin_router.GET("playlist/", admin_views.GetAllPlayLists)

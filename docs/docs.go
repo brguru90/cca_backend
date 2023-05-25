@@ -68,6 +68,96 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/delete_study_material/": {
+            "delete": {
+                "description": "api delete a document from study material",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Manage Study material"
+                ],
+                "summary": "Delete study material",
+                "parameters": [
+                    {
+                        "description": "Remove documents",
+                        "name": "docs_ids",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/admin_views.StudyMaterialIDs"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/doc_upload_list/": {
+            "get": {
+                "description": "api to get all uploaded documents",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Manage Study material"
+                ],
+                "summary": "get all uploaded documents",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/admin_views.GetAllUploadedStudyMaterialsRespStruct"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/generate_video_stream/": {
             "post": {
                 "description": "api to get the list of all the videos uploaded by the logged user",
@@ -482,6 +572,95 @@ const docTemplate = `{
                     {
                         "type": "boolean",
                         "name": "is_live",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "name": "title",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/upload_study_material/": {
+            "post": {
+                "description": "api Upload study material",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Manage Study material"
+                ],
+                "summary": "Upload study material",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Document file",
+                        "name": "doc_file",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Preview image file",
+                        "name": "preview_image_file",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "author",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "category",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "name": "description",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "boolean",
+                        "name": "is_live",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "price",
                         "in": "formData"
                     },
                     {
@@ -1461,6 +1640,28 @@ const docTemplate = `{
                 }
             }
         },
+        "admin_views.GetAllUploadedStudyMaterialsRespStruct": {
+            "type": "object",
+            "required": [
+                "data",
+                "msg",
+                "status"
+            ],
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/mongo_modals.StudyMaterialsModal"
+                    }
+                },
+                "msg": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
         "admin_views.GetAllUploadedVideosRespStruct": {
             "type": "object",
             "required": [
@@ -1497,6 +1698,20 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/mongo_modals.VideosInOrder"
+                    }
+                }
+            }
+        },
+        "admin_views.StudyMaterialIDs": {
+            "type": "object",
+            "required": [
+                "docs_ids"
+            ],
+            "properties": {
+                "docs_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
                     }
                 }
             }
@@ -1592,6 +1807,57 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "mongo_modals.StudyMaterialsModal": {
+            "type": "object",
+            "required": [
+                "is_live",
+                "path_to_cover_image",
+                "path_to_doc_file",
+                "price",
+                "title"
+            ],
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "created_by_user": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "file_decryption_key": {
+                    "type": "string"
+                },
+                "file_decryption_key_blk_size": {
+                    "type": "integer"
+                },
+                "is_live": {
+                    "type": "boolean"
+                },
+                "link_to_book_cover_image": {
+                    "type": "string"
+                },
+                "link_to_doc_file": {
+                    "type": "string"
+                },
+                "path_to_cover_image": {
+                    "type": "string"
+                },
+                "path_to_doc_file": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "uploaded_by_user": {
+                    "type": "string"
                 }
             }
         },

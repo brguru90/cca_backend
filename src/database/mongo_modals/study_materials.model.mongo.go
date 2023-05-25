@@ -13,20 +13,22 @@ import (
 )
 
 type StudyMaterialsModal struct {
-	ID                   primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty" swaggerignore:"true"`
-	Title                string             `json:"title"  binding:"required" bson:"title"`
-	Description          string             `json:"description,omitempty" bson:"description,omitempty"`
-	IsLive               bool               `json:"is_live,omitempty" binding:"required" bson:"is_live"`
-	CreatedByUser        string             `json:"created_by_user,omitempty" bson:"created_by_user,omitempty"`
-	UploadedByUser       primitive.ObjectID `json:"uploaded_by_user,omitempty" bson:"uploaded_by_user,omitempty"`
-	PathToBookCoverImage string             `json:"path_to_cover_image,omitempty" binding:"required" bson:"path_to_cover_image,omitempty"`
-	PathToDocFile        string             `json:"path_to_doc_file,omitempty" binding:"required" bson:"path_to_doc_file,omitempty"`
-	FileDecryptionKey    string             `json:"file_decryption_key,omitempty" bson:"file_decryption_key,omitempty"`
-	LinkToBookCoverImage string             `json:"link_to_book_cover_image,omitempty" bson:"link_to_book_cover_image,omitempty"`
-	LinkToDocFile        string             `json:"link_to_doc_file,omitempty" bson:"link_to_doc_file,omitempty"`
-	Price                int64              `json:"price,omitempty"  binding:"required" bson:"price,omitempty"`
-	CreatedAt            time.Time          `json:"createdAt,omitempty" swaggerignore:"true"`
-	UpdatedAt            time.Time          `json:"updatedAt,omitempty" swaggerignore:"true"`
+	ID                       primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty" swaggerignore:"true"`
+	Title                    string             `json:"title"  binding:"required" bson:"title"`
+	Description              string             `json:"description,omitempty" bson:"description,omitempty"`
+	Category                 string             `json:"category,omitempty" bson:"category,omitempty"`
+	IsLive                   bool               `json:"is_live,omitempty" binding:"required" bson:"is_live"`
+	CreatedByUser            string             `json:"created_by_user,omitempty" bson:"created_by_user,omitempty"`
+	UploadedByUser           primitive.ObjectID `json:"uploaded_by_user,omitempty" bson:"uploaded_by_user,omitempty"`
+	PathToBookCoverImage     string             `json:"path_to_cover_image,omitempty" binding:"required" bson:"path_to_cover_image,omitempty"`
+	PathToDocFile            string             `json:"path_to_doc_file,omitempty" binding:"required" bson:"path_to_doc_file,omitempty"`
+	FileDecryptionKey        string             `json:"file_decryption_key,omitempty" bson:"file_decryption_key,omitempty"`
+	FileDecryptionKeyBlkSize int                `json:"file_decryption_key_blk_size,omitempty" bson:"file_decryption_key_blk_size,omitempty"`
+	LinkToBookCoverImage     string             `json:"link_to_book_cover_image,omitempty" bson:"link_to_book_cover_image,omitempty"`
+	LinkToDocFile            string             `json:"link_to_doc_file,omitempty" bson:"link_to_doc_file,omitempty"`
+	Price                    int64              `json:"price,omitempty"  binding:"required" bson:"price,omitempty"`
+	CreatedAt                time.Time          `json:"createdAt,omitempty" swaggerignore:"true"`
+	UpdatedAt                time.Time          `json:"updatedAt,omitempty" swaggerignore:"true"`
 }
 
 func InitStudyMaterialCollection() {

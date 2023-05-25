@@ -416,9 +416,9 @@ func RemoveVideos(c *gin.Context) {
 
 	where := bson.M{"_id": bson.M{"$in": videos_doc_id}, "uploaded_by_user": user_id}
 
-	// if payload.Data.AccessLevel == "super_admin" {
-	// 	where = bson.M{"_id": bson.M{"$in": videos_doc_id}}
-	// }
+	if payload.Data.AccessLevel == "super_admin" {
+		where = bson.M{"_id": bson.M{"$in": videos_doc_id}}
+	}
 
 	var response_data = make(map[string]interface{})
 	var files_deleted = make(map[string]interface{})

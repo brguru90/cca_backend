@@ -42,6 +42,21 @@ definitions:
     - msg
     - status
     type: object
+  admin_views.GetAllUploadedStudyMaterialsRespStruct:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/mongo_modals.StudyMaterialsModal'
+        type: array
+      msg:
+        type: string
+      status:
+        type: string
+    required:
+    - data
+    - msg
+    - status
+    type: object
   admin_views.GetAllUploadedVideosRespStruct:
     properties:
       data:
@@ -68,6 +83,15 @@ definitions:
     required:
     - playlist_id
     - videos_ids
+    type: object
+  admin_views.StudyMaterialIDs:
+    properties:
+      docs_ids:
+        items:
+          type: string
+        type: array
+    required:
+    - docs_ids
     type: object
   admin_views.VideoPlayListSubscriptionPackageModalReqStruct:
     properties:
@@ -131,6 +155,41 @@ definitions:
     - payment_status
     - user_id
     - user_subscriptions_ids
+    type: object
+  mongo_modals.StudyMaterialsModal:
+    properties:
+      category:
+        type: string
+      created_by_user:
+        type: string
+      description:
+        type: string
+      file_decryption_key:
+        type: string
+      file_decryption_key_blk_size:
+        type: integer
+      is_live:
+        type: boolean
+      link_to_book_cover_image:
+        type: string
+      link_to_doc_file:
+        type: string
+      path_to_cover_image:
+        type: string
+      path_to_doc_file:
+        type: string
+      price:
+        type: integer
+      title:
+        type: string
+      uploaded_by_user:
+        type: string
+    required:
+    - is_live
+    - path_to_cover_image
+    - path_to_doc_file
+    - price
+    - title
     type: object
   mongo_modals.UsersModel:
     properties:
@@ -445,6 +504,65 @@ paths:
       summary: Delete videos
       tags:
       - Manage Videos
+  /admin/delete_study_material/:
+    delete:
+      consumes:
+      - application/json
+      description: api delete a document from study material
+      parameters:
+      - description: Remove documents
+        in: body
+        name: docs_ids
+        required: true
+        schema:
+          $ref: '#/definitions/admin_views.StudyMaterialIDs'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: Delete study material
+      tags:
+      - Manage Study material
+  /admin/doc_upload_list/:
+    get:
+      description: api to get all uploaded documents
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/admin_views.GetAllUploadedStudyMaterialsRespStruct'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: get all uploaded documents
+      tags:
+      - Manage Study material
   /admin/generate_video_stream/:
     post:
       consumes:
@@ -742,6 +860,64 @@ paths:
       summary: video upload
       tags:
       - Manage Videos
+  /admin/upload_study_material/:
+    post:
+      consumes:
+      - multipart/form-data
+      description: api Upload study material
+      parameters:
+      - description: Document file
+        in: formData
+        name: doc_file
+        required: true
+        type: file
+      - description: Preview image file
+        in: formData
+        name: preview_image_file
+        required: true
+        type: file
+      - in: formData
+        name: author
+        required: true
+        type: string
+      - in: formData
+        name: category
+        type: string
+      - in: formData
+        name: description
+        type: string
+      - in: formData
+        name: is_live
+        type: boolean
+      - in: formData
+        name: price
+        type: integer
+      - in: formData
+        name: title
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: Upload study material
+      tags:
+      - Manage Study material
   /login:
     post:
       consumes:

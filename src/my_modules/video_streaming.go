@@ -32,7 +32,7 @@ func CreateHLS(video_id string, inputFile string, outputDir string, segmentDurat
 	// Create the HLS playlist and segment the video using ffmpeg
 
 	var random_string string
-	if _rand, r_err := randomBytes(16); r_err != nil {
+	if _rand, r_err := RandomBytes(16); r_err != nil {
 		return UploadedVideoInfoStruct{}, r_err
 	} else {
 		random_string = hex.EncodeToString(_rand)[0:16]
