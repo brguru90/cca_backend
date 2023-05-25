@@ -365,6 +365,45 @@ definitions:
     - msg
     - status
     type: object
+  user_views.GetAllUploadedStudyMaterialsRespStruct:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/mongo_modals.StudyMaterialsModal'
+        type: array
+      msg:
+        type: string
+      status:
+        type: string
+    required:
+    - data
+    - msg
+    - status
+    type: object
+  user_views.GetUserStudyMaterialSubscriptionListRespPayload:
+    properties:
+      data:
+        $ref: '#/definitions/user_views.GetUserStudyMaterialSubscriptionListStruct'
+      msg:
+        type: string
+      status:
+        type: string
+    required:
+    - data
+    - msg
+    - status
+    type: object
+  user_views.GetUserStudyMaterialSubscriptionListStruct:
+    properties:
+      _id:
+        type: string
+      expired_on:
+        type: string
+      study_material_id:
+        type: string
+      subscription_package_id:
+        type: string
+    type: object
   user_views.GetUserSubscriptionListRespPayload:
     properties:
       data:
@@ -1275,7 +1314,7 @@ paths:
             $ref: '#/definitions/my_modules.ResponseFormat'
       summary: Confirm payment on Order
       tags:
-      - Customer side
+      - Customer side(Video)
   /user/enroll_to_course/:
     post:
       consumes:
@@ -1309,7 +1348,7 @@ paths:
             $ref: '#/definitions/my_modules.ResponseFormat'
       summary: enroll to course
       tags:
-      - Customer side
+      - Customer side(Video)
   /user/get_playlists/:
     get:
       consumes:
@@ -1336,7 +1375,7 @@ paths:
             $ref: '#/definitions/my_modules.ResponseFormat'
       summary: Get list of playlist
       tags:
-      - Customer side
+      - Customer side(Video)
   /user/get_stream_key/:
     post:
       consumes:
@@ -1375,7 +1414,32 @@ paths:
             $ref: '#/definitions/my_modules.ResponseFormat'
       summary: get video decode key
       tags:
-      - Customer side
+      - Customer side(Video)
+  /user/get_user_study_material_subscriptions/:
+    get:
+      description: api to get  user subscriptions for study material
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user_views.GetUserStudyMaterialSubscriptionListRespPayload'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: Get user subscriptions for study material
+      tags:
+      - Customer side(Study materials)
   /user/get_user_subscriptions/:
     get:
       description: api to get user subscriptions
@@ -1400,7 +1464,7 @@ paths:
             $ref: '#/definitions/my_modules.ResponseFormat'
       summary: Get user subscriptions
       tags:
-      - Customer side
+      - Customer side(Video)
   /user/get_videos/:
     post:
       consumes:
@@ -1434,7 +1498,7 @@ paths:
             $ref: '#/definitions/my_modules.ResponseFormat'
       summary: Get list of videos
       tags:
-      - Customer side
+      - Customer side(Video)
   /user/logout/:
     get:
       consumes:
@@ -1463,6 +1527,31 @@ paths:
       summary: allow user to logout
       tags:
       - Session
+  /user/study_materials/:
+    get:
+      description: api to get all uploaded documents
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user_views.GetAllUploadedStudyMaterialsRespStruct'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: get all uploaded documents
+      tags:
+      - Customer side(Study materials)
   /verify_social_auth:
     post:
       consumes:

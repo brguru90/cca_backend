@@ -73,7 +73,7 @@ type GetAllPlayListsRespStruct struct {
 // @Summary Get list of playlist
 // @Schemes
 // @Description api to fetch existing playlist
-// @Tags Customer side
+// @Tags Customer side(Video)
 // @Accept json
 // @Produce json
 // @Success 200 {object} GetAllPlayListsRespStruct
@@ -140,7 +140,7 @@ type GetVideosReqStruct struct {
 // @Summary Get list of videos
 // @Schemes
 // @Description api to fetch videos by providing ID
-// @Tags Customer side
+// @Tags Customer side(Video)
 // @Accept json
 // @Produce json
 // @Param videos body GetVideosReqStruct true "Videos IDS"
@@ -216,7 +216,7 @@ type VideoStreamKeyReqStruct struct {
 // @Summary get video decode key
 // @Schemes
 // @Description api to get video decryption key for hls stream
-// @Tags Customer side
+// @Tags Customer side(Video)
 // @Accept json
 // @Produce json
 // @Param additionalInfo body VideoStreamKeyReqStruct true "Additional info"
@@ -436,7 +436,7 @@ type EnrollToCourseRespStruct struct {
 // @Summary enroll to course
 // @Schemes
 // @Description api to enroll playlist/subscription
-// @Tags Customer side
+// @Tags Customer side(Video)
 // @Accept json
 // @Produce json
 // @Param video_id body EnrollToCourseReqStruct true "Video ID"
@@ -599,7 +599,7 @@ func EnrollToCourse(c *gin.Context) {
 // @Summary Confirm payment on Order
 // @Schemes
 // @Description allow confirm payment on order created & payment status will be verified on server side
-// @Tags Customer side
+// @Tags Customer side(Video)
 // @Produce json
 // @Param order_id query string true "Order ID"
 // @Success 200 {object} my_modules.ResponseFormat
@@ -686,14 +686,14 @@ type GetUserSubscriptionListRespPayload struct {
 // @Summary Get user subscriptions
 // @Schemes
 // @Description api to get user subscriptions
-// @Tags Customer side
+// @Tags Customer side(Video)
 // @Produce json
 // @Success 200 {object} GetUserSubscriptionListRespPayload
 // @Failure 400 {object} my_modules.ResponseFormat
 // @Failure 403 {object} my_modules.ResponseFormat
 // @Failure 500 {object} my_modules.ResponseFormat
 // @Router /user/get_user_subscriptions/ [get]
-func GetUserSubscriptionList(c *gin.Context) {
+func GetUserPlaylistSubscriptionList(c *gin.Context) {
 	ctx := c.Request.Context()
 
 	payload, ok := my_modules.ExtractTokenPayload(c)

@@ -49,11 +49,14 @@ func InitApiTest(router *gin.RouterGroup) {
 		protected_router.GET("get_playlists/", user_views.GetAvailablePlaylist)
 		protected_router.POST("get_videos/", user_views.GetVideos)
 		protected_router.POST("get_stream_key/", user_views.GetStreamKey)
-		protected_router.GET("get_user_subscriptions/", user_views.GetUserSubscriptionList)
+		protected_router.GET("get_user_subscriptions/", user_views.GetUserPlaylistSubscriptionList)
 		protected_router.GET("get_subscriptions/", user_views.GetAvailableSubscriptionPackages)
 		protected_router.POST("enroll_to_course/", user_views.EnrollToCourse)
 		protected_router.GET("confirm_payment_for_subscription/", user_views.PaymentConfirmationForSubscription)
 		protected_router.GET("get_playlist_from_subscription/", user_views.GetPlaylistAvailableOnSubscription)
+
+		protected_router.GET("study_materials/", user_views.GetStudyMaterials)
+		protected_router.GET("get_user_study_material_subscriptions/", user_views.GetUserStudyMaterialSubscriptionList)
 	}
 
 	{

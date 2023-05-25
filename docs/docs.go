@@ -1206,7 +1206,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Customer side"
+                    "Customer side(Video)"
                 ],
                 "summary": "Confirm payment on Order",
                 "parameters": [
@@ -1250,7 +1250,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Customer side"
+                    "Customer side(Video)"
                 ],
                 "summary": "enroll to course",
                 "parameters": [
@@ -1302,7 +1302,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Customer side"
+                    "Customer side(Video)"
                 ],
                 "summary": "Get list of playlist",
                 "responses": {
@@ -1343,7 +1343,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Customer side"
+                    "Customer side(Video)"
                 ],
                 "summary": "get video decode key",
                 "parameters": [
@@ -1392,6 +1392,44 @@ const docTemplate = `{
                 }
             }
         },
+        "/user/get_user_study_material_subscriptions/": {
+            "get": {
+                "description": "api to get  user subscriptions for study material",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customer side(Study materials)"
+                ],
+                "summary": "Get user subscriptions for study material",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/user_views.GetUserStudyMaterialSubscriptionListRespPayload"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            }
+        },
         "/user/get_user_subscriptions/": {
             "get": {
                 "description": "api to get user subscriptions",
@@ -1399,7 +1437,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Customer side"
+                    "Customer side(Video)"
                 ],
                 "summary": "Get user subscriptions",
                 "responses": {
@@ -1440,7 +1478,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Customer side"
+                    "Customer side(Video)"
                 ],
                 "summary": "Get list of videos",
                 "parameters": [
@@ -1500,6 +1538,44 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/study_materials/": {
+            "get": {
+                "description": "api to get all uploaded documents",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customer side(Study materials)"
+                ],
+                "summary": "get all uploaded documents",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/user_views.GetAllUploadedStudyMaterialsRespStruct"
                         }
                     },
                     "400": {
@@ -2108,6 +2184,64 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "user_views.GetAllUploadedStudyMaterialsRespStruct": {
+            "type": "object",
+            "required": [
+                "data",
+                "msg",
+                "status"
+            ],
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/mongo_modals.StudyMaterialsModal"
+                    }
+                },
+                "msg": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "user_views.GetUserStudyMaterialSubscriptionListRespPayload": {
+            "type": "object",
+            "required": [
+                "data",
+                "msg",
+                "status"
+            ],
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/user_views.GetUserStudyMaterialSubscriptionListStruct"
+                },
+                "msg": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "user_views.GetUserStudyMaterialSubscriptionListStruct": {
+            "type": "object",
+            "properties": {
+                "_id": {
+                    "type": "string"
+                },
+                "expired_on": {
+                    "type": "string"
+                },
+                "study_material_id": {
+                    "type": "string"
+                },
+                "subscription_package_id": {
                     "type": "string"
                 }
             }

@@ -19,4 +19,5 @@ func InitDataBases() {
 	mongo_modals.InitVideoPlayListUserSubscriptionCollection()
 	mongo_modals.InitPaymentOrderCollection()
 	mongo_modals.InitStudyMaterialCollection()
+	mongo_modals.InitStudyMaterialUserSubscriptionCollection()
 }
