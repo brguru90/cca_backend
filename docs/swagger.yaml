@@ -164,6 +164,8 @@ definitions:
         type: string
       description:
         type: string
+      enroll_days:
+        type: integer
       file_decryption_key:
         type: string
       file_decryption_key_blk_size:
@@ -338,6 +340,28 @@ definitions:
     - playlist_ids
     type: object
   user_views.EnrollToCourseRespStruct:
+    properties:
+      data:
+        $ref: '#/definitions/mongo_modals.PaymentOrderModal'
+      msg:
+        type: string
+      status:
+        type: string
+    required:
+    - data
+    - msg
+    - status
+    type: object
+  user_views.EnrollToStudyMaterialReqStruct:
+    properties:
+      document_ids:
+        items:
+          type: string
+        type: array
+    required:
+    - document_ids
+    type: object
+  user_views.EnrollToStudyMaterialRespStruct:
     properties:
       data:
         $ref: '#/definitions/mongo_modals.PaymentOrderModal'
@@ -1287,6 +1311,34 @@ paths:
       summary: Block specified session
       tags:
       - Session
+  /user/confirm_payment_for_study_material_subscription/:
+    get:
+      description: allow confirm payment on order created & payment status will be
+        verified on server side
+      parameters:
+      - description: Order ID
+        in: query
+        name: order_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: Confirm payment on Order for study material
+      tags:
+      - Customer side(Study materials)
   /user/confirm_payment_for_subscription/:
     get:
       description: allow confirm payment on order created & payment status will be
@@ -1349,6 +1401,40 @@ paths:
       summary: enroll to course
       tags:
       - Customer side(Video)
+  /user/enroll_to_study_material/:
+    post:
+      consumes:
+      - application/json
+      description: api to study materials
+      parameters:
+      - description: Document ID
+        in: body
+        name: doc_id
+        required: true
+        schema:
+          $ref: '#/definitions/user_views.EnrollToStudyMaterialReqStruct'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user_views.EnrollToStudyMaterialRespStruct'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: enroll to study materials
+      tags:
+      - Customer side(Study materials)
   /user/get_playlists/:
     get:
       consumes:

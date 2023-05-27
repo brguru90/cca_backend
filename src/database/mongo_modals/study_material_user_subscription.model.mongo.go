@@ -19,17 +19,17 @@ type SubsequentStudyMaterialUserSubscriptionStruct struct {
 }
 
 type StudyMaterialUserUserSubscriptionModal struct {
-	ID                      primitive.ObjectID                         `json:"_id,omitempty" bson:"_id,omitempty" swaggerignore:"true"`
-	UserID                  primitive.ObjectID                         `json:"user_id,omitempty" binding:"required" bson:"user_id,omitempty"`
-	SubscriptionPackageId   primitive.ObjectID                         `json:"subscription_package_id,omitempty" binding:"required" bson:"subscription_package_id,omitempty"`
-	StudyMaterialID         primitive.ObjectID                         `json:"study_material_id,omitempty" binding:"required" bson:"study_material_id,omitempty"`
-	Price                   int64                                      `json:"price,omitempty"  binding:"required" bson:"price,omitempty"`
-	InitialSubscriptionDate time.Time                                  `json:"initial_subscription_date"  binding:"required" bson:"initial_subscription_date"`
-	ExpireOn                time.Time                                  `json:"expired_on,omitempty" bson:"expired_on,omitempty"`
-	IsEnabled               bool                                       `json:"is_enabled,omitempty"  binding:"required" bson:"is_enabled,omitempty"`
-	Subscriptions           []SubsequentUserPlaylistSubscriptionStruct `json:"subscriptions,omitempty" binding:"required" bson:"subscriptions"`
-	CreatedAt               time.Time                                  `json:"createdAt,omitempty" bson:"CreatedAt" swaggerignore:"true"`
-	UpdatedAt               time.Time                                  `json:"updatedAt,omitempty" bson:"UpdatedAt" swaggerignore:"true"`
+	ID                      primitive.ObjectID                              `json:"_id,omitempty" bson:"_id,omitempty" swaggerignore:"true"`
+	UserID                  primitive.ObjectID                              `json:"user_id,omitempty" binding:"required" bson:"user_id,omitempty"`
+	SubscriptionPackageId   primitive.ObjectID                              `json:"subscription_package_id,omitempty" binding:"required" bson:"subscription_package_id,omitempty"`
+	StudyMaterialID         primitive.ObjectID                              `json:"study_material_id,omitempty" binding:"required" bson:"study_material_id,omitempty"`
+	Price                   int64                                           `json:"price,omitempty"  binding:"required" bson:"price,omitempty"`
+	InitialSubscriptionDate time.Time                                       `json:"initial_subscription_date"  binding:"required" bson:"initial_subscription_date"`
+	ExpireOn                time.Time                                       `json:"expired_on,omitempty" bson:"expired_on,omitempty"`
+	IsEnabled               bool                                            `json:"is_enabled,omitempty"  binding:"required" bson:"is_enabled,omitempty"`
+	Subscriptions           []SubsequentStudyMaterialUserSubscriptionStruct `json:"subscriptions,omitempty" binding:"required" bson:"subscriptions"`
+	CreatedAt               time.Time                                       `json:"createdAt,omitempty" bson:"CreatedAt" swaggerignore:"true"`
+	UpdatedAt               time.Time                                       `json:"updatedAt,omitempty" bson:"UpdatedAt" swaggerignore:"true"`
 }
 
 func InitStudyMaterialUserSubscriptionCollection() {

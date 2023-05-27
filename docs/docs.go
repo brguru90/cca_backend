@@ -1199,6 +1199,47 @@ const docTemplate = `{
                 }
             }
         },
+        "/user/confirm_payment_for_study_material_subscription/": {
+            "get": {
+                "description": "allow confirm payment on order created \u0026 payment status will be verified on server side",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customer side(Study materials)"
+                ],
+                "summary": "Confirm payment on Order for study material",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "order_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            }
+        },
         "/user/confirm_payment_for_subscription/": {
             "get": {
                 "description": "allow confirm payment on order created \u0026 payment status will be verified on server side",
@@ -1269,6 +1310,58 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/user_views.EnrollToCourseRespStruct"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/enroll_to_study_material/": {
+            "post": {
+                "description": "api to study materials",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customer side(Study materials)"
+                ],
+                "summary": "enroll to study materials",
+                "parameters": [
+                    {
+                        "description": "Document ID",
+                        "name": "doc_id",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/user_views.EnrollToStudyMaterialReqStruct"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/user_views.EnrollToStudyMaterialRespStruct"
                         }
                     },
                     "400": {
@@ -1905,6 +1998,9 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
+                "enroll_days": {
+                    "type": "integer"
+                },
                 "file_decryption_key": {
                     "type": "string"
                 },
@@ -2148,6 +2244,39 @@ const docTemplate = `{
             }
         },
         "user_views.EnrollToCourseRespStruct": {
+            "type": "object",
+            "required": [
+                "data",
+                "msg",
+                "status"
+            ],
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/mongo_modals.PaymentOrderModal"
+                },
+                "msg": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "user_views.EnrollToStudyMaterialReqStruct": {
+            "type": "object",
+            "required": [
+                "document_ids"
+            ],
+            "properties": {
+                "document_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "user_views.EnrollToStudyMaterialRespStruct": {
             "type": "object",
             "required": [
                 "data",

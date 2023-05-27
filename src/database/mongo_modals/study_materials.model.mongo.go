@@ -27,6 +27,7 @@ type StudyMaterialsModal struct {
 	LinkToBookCoverImage     string             `json:"link_to_book_cover_image,omitempty" bson:"link_to_book_cover_image,omitempty"`
 	LinkToDocFile            string             `json:"link_to_doc_file,omitempty" bson:"link_to_doc_file,omitempty"`
 	Price                    int64              `json:"price,omitempty"  binding:"required" bson:"price,omitempty"`
+	EnrollDays               int16              `json:"enroll_days,omitempty" bson:"enroll_days,omitempty"`
 	CreatedAt                time.Time          `json:"createdAt,omitempty" swaggerignore:"true"`
 	UpdatedAt                time.Time          `json:"updatedAt,omitempty" swaggerignore:"true"`
 }
