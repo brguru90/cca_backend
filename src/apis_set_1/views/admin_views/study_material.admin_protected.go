@@ -7,6 +7,7 @@ import (
 	"cca/src/database/mongo_modals"
 	"cca/src/my_modules"
 	"context"
+	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"io/ioutil"
@@ -35,6 +36,7 @@ type DocInfoReqStruct struct {
 	Author      string `form:"author" binding:"required"`
 	IsLive      bool   `form:"is_live"`
 	Price       int64  `form:"price"`
+	EnrollDays  int16  `form:"enroll_days"`
 }
 
 // @BasePath /api/
@@ -144,7 +146,7 @@ func UploadStudyMaterials(c *gin.Context) {
 		random_string = hex.EncodeToString(_rand)[0:16]
 	}
 	encrypted, blk_size := my_modules.EncryptBytesWithPKCS(random_string, fileBytes)
-	err = ioutil.WriteFile(dst_doc_file_path, encrypted, 0755)
+	err = ioutil.WriteFile(dst_doc_file_path, []byte(base64.URLEncoding.EncodeToString(encrypted)), 0755)
 	if err != nil {
 		log.Errorln(err)
 		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Failed to upload file", nil)
@@ -176,6 +178,7 @@ func UploadStudyMaterials(c *gin.Context) {
 		Price:                    infoForm.Price,
 		UploadedByUser:           _id,
 		FileDecryptionKey:        random_string,
+		EnrollDays:               infoForm.EnrollDays,
 		FileDecryptionKeyBlkSize: blk_size,
 		CreatedAt:                _time,
 		UpdatedAt:                _time,

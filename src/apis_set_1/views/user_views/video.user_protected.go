@@ -710,6 +710,7 @@ func GetUserPlaylistSubscriptionList(c *gin.Context) {
 	where := bson.M{
 		"is_enabled": true,
 		"user_id":    user_id,
+		"expired_on": bson.M{"$gt": time.Now()},
 	}
 	cursor, err := database_connections.MONGO_COLLECTIONS.VideoPlayListUserSubscription.Find(ctx, where)
 	if err != nil {

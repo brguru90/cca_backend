@@ -404,6 +404,13 @@ definitions:
     - msg
     - status
     type: object
+  user_views.GetDocumentKeyReqStruct:
+    properties:
+      app_id:
+        type: string
+    required:
+    - app_id
+    type: object
   user_views.GetUserStudyMaterialSubscriptionListRespPayload:
     properties:
       data:
@@ -950,6 +957,9 @@ paths:
         name: description
         type: string
       - in: formData
+        name: enroll_days
+        type: integer
+      - in: formData
         name: is_live
         type: boolean
       - in: formData
@@ -1433,6 +1443,45 @@ paths:
           schema:
             $ref: '#/definitions/my_modules.ResponseFormat'
       summary: enroll to study materials
+      tags:
+      - Customer side(Study materials)
+  /user/get_doc_key/:
+    post:
+      consumes:
+      - application/json
+      description: api to get document decode key
+      parameters:
+      - description: Additional info
+        in: body
+        name: additionalInfo
+        required: true
+        schema:
+          $ref: '#/definitions/user_views.GetDocumentKeyReqStruct'
+      - description: Document ID
+        in: query
+        name: doc_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: get document decode key
       tags:
       - Customer side(Study materials)
   /user/get_playlists/:

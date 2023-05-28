@@ -654,6 +654,11 @@ const docTemplate = `{
                         "in": "formData"
                     },
                     {
+                        "type": "integer",
+                        "name": "enroll_days",
+                        "in": "formData"
+                    },
+                    {
                         "type": "boolean",
                         "name": "is_live",
                         "in": "formData"
@@ -1362,6 +1367,65 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/user_views.EnrollToStudyMaterialRespStruct"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/get_doc_key/": {
+            "post": {
+                "description": "api to get document decode key",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customer side(Study materials)"
+                ],
+                "summary": "get document decode key",
+                "parameters": [
+                    {
+                        "description": "Additional info",
+                        "name": "additionalInfo",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/user_views.GetDocumentKeyReqStruct"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Document ID",
+                        "name": "doc_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
                         }
                     },
                     "400": {
@@ -2335,6 +2399,17 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "user_views.GetDocumentKeyReqStruct": {
+            "type": "object",
+            "required": [
+                "app_id"
+            ],
+            "properties": {
+                "app_id": {
                     "type": "string"
                 }
             }

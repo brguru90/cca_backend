@@ -107,6 +107,7 @@ func GetUserStudyMaterialSubscriptionList(c *gin.Context) {
 	where := bson.M{
 		"is_enabled": true,
 		"user_id":    user_id,
+		"expired_on": bson.M{"$gt": time.Now()},
 	}
 	cursor, err := database_connections.MONGO_COLLECTIONS.StudyMaterialUserSubscription.Find(ctx, where)
 	if err != nil {
@@ -383,4 +384,93 @@ func PaymentConfirmationForSubscriptionForStudyMaterials(c *gin.Context) {
 	}
 
 	my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "success", order_data)
+}
+
+type GetDocumentKeyReqStruct struct {
+	AppID string `json:"app_id" binding:"required"`
+}
+
+// @BasePath /api/
+// @Summary get document decode key
+// @Schemes
+// @Description api to get document decode key
+// @Tags Customer side(Study materials)
+// @Accept json
+// @Produce json
+// @Param additionalInfo body GetDocumentKeyReqStruct true "Additional info"
+// @Param doc_id query string true "Document ID"
+// @Success 200 {object} my_modules.ResponseFormat
+// @Failure 400 {object} my_modules.ResponseFormat
+// @Failure 403 {object} my_modules.ResponseFormat
+// @Failure 500 {object} my_modules.ResponseFormat
+// @Router /user/get_doc_key/ [post]
+func GetDocumentKey(c *gin.Context) {
+	ctx := c.Request.Context()
+	doc_id_str := c.Query("doc_id")
+	var docInfo GetDocumentKeyReqStruct
+	if err := c.ShouldBind(&docInfo); err != nil || doc_id_str == "" {
+		log.Errorln(err)
+		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Invalid payload", nil)
+		return
+	}
+
+	payload, ok := my_modules.ExtractTokenPayload(c)
+	if !ok {
+		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "Unable to get user info", nil)
+		return
+	}
+	user_id, _id_err := primitive.ObjectIDFromHex(payload.Data.ID)
+	if payload.Data.ID == "" || _id_err != nil {
+		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "UUID of user is not provided", _id_err)
+		return
+	}
+
+	docID, err := primitive.ObjectIDFromHex(doc_id_str)
+	if err != nil {
+		log.Errorln(err)
+		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Invalid key", nil)
+		return
+	}
+
+	var appBuildInfo mongo_modals.AppBuildRegistrationModal
+	err = database_connections.MONGO_COLLECTIONS.AppBuildRegistration.FindOne(ctx, bson.M{
+		"app_id": docInfo.AppID,
+	}).Decode(&appBuildInfo)
+	if err != nil {
+		my_modules.CreateAndSendResponse(c, http.StatusForbidden, "error", "Error in finding app id", nil)
+	}
+
+	var docData mongo_modals.StudyMaterialsModal
+	err = database_connections.MONGO_COLLECTIONS.StudyMaterial.FindOne(ctx, bson.M{
+		"_id": docID,
+	}).Decode(&docData)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			log.WithFields(log.Fields{
+				"Error": err,
+				"Email": docData.ID,
+			}).Warning("Error in finding user email")
+			my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "No Doc matched to specified key", nil)
+			return
+		}
+		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Error in finding video", nil)
+		return
+	}
+
+	var docsUserSubscriptions mongo_modals.StudyMaterialUserUserSubscriptionModal
+	err = database_connections.MONGO_COLLECTIONS.StudyMaterialUserSubscription.FindOne(ctx, bson.M{
+		"user_id":           user_id,
+		"study_material_id": docID,
+		"expired_on":        bson.M{"$gt": time.Now()},
+	}).Decode(&docsUserSubscriptions)
+	if err != nil {
+		my_modules.CreateAndSendResponse(c, http.StatusForbidden, "error", "Error in finding package in user subscription ", nil)
+		return
+	}
+
+	key, block_size := my_modules.EncryptWithPKCS(appBuildInfo.AppSecret, docData.FileDecryptionKey)
+	my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "found", map[string]interface{}{
+		"key":        key,
+		"block_size": block_size,
+	})
 }
