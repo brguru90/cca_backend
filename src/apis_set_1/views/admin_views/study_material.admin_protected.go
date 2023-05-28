@@ -145,8 +145,8 @@ func UploadStudyMaterials(c *gin.Context) {
 	} else {
 		random_string = hex.EncodeToString(_rand)[0:16]
 	}
-	encrypted, blk_size := my_modules.EncryptBytesWithPKCS(random_string, fileBytes)
-	err = ioutil.WriteFile(dst_doc_file_path, []byte(base64.URLEncoding.EncodeToString(encrypted)), 0755)
+	encrypted, blk_size := my_modules.EncryptWithPKCS(random_string, base64.URLEncoding.EncodeToString(fileBytes))
+	err = ioutil.WriteFile(dst_doc_file_path, []byte(encrypted), 0755)
 	if err != nil {
 		log.Errorln(err)
 		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Failed to upload file", nil)
