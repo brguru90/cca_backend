@@ -17,6 +17,7 @@ type StudyMaterialsModal struct {
 	Title                    string             `json:"title"  binding:"required" bson:"title"`
 	Description              string             `json:"description,omitempty" bson:"description,omitempty"`
 	Category                 string             `json:"category,omitempty" bson:"category,omitempty"`
+	CategoryId               primitive.ObjectID `json:"category_id,omitempty" bson:"category_id,omitempty"`
 	IsLive                   bool               `json:"is_live,omitempty" binding:"required" bson:"is_live"`
 	CreatedByUser            string             `json:"created_by_user,omitempty" bson:"created_by_user,omitempty"`
 	UploadedByUser           primitive.ObjectID `json:"uploaded_by_user,omitempty" bson:"uploaded_by_user,omitempty"`

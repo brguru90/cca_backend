@@ -19,9 +19,54 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+type GetStudyMaterialsCategoryRespStruct struct {
+	my_modules.ResponseFormat
+	Data []mongo_modals.StudyMaterialCategoryModal `json:"data"`
+}
+
+// @BasePath /api/
+// @Summary get categories for doc
+// @Schemes
+// @Description api to get all categories for doc
+// @Tags Customer side(Study materials)
+// @Produce json
+// @Success 200 {object} GetStudyMaterialsCategoryRespStruct
+// @Failure 400 {object} my_modules.ResponseFormat
+// @Failure 403 {object} my_modules.ResponseFormat
+// @Failure 500 {object} my_modules.ResponseFormat
+// @Router /user/study_materials_categories/ [get]
+func GetStudyMaterialsCategory(c *gin.Context) {
+	ctx := c.Request.Context()
+	var err error
+	var cursor *mongo.Cursor
+	cursor, err = database_connections.MONGO_COLLECTIONS.StudyMaterialCategory.Find(ctx, bson.M{})
+	if err != nil {
+		if err != context.Canceled {
+			log.WithFields(log.Fields{
+				"error": err,
+			}).Errorln("QueryRow failed ==>")
+		}
+		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "No record found", nil)
+		return
+	}
+	var catList []mongo_modals.StudyMaterialCategoryModal = []mongo_modals.StudyMaterialCategoryModal{}
+	if err = cursor.All(context.TODO(), &catList); err != nil {
+		log.Errorln(fmt.Sprintf("Scan failed: %v\n", err))
+		// continue
+		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Error in retrieving user data", nil)
+		return
+	}
+	my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "Record found", catList)
+}
+
+type StudyMaterialsModalsData struct {
+	Count    int64                              `json:"count"`
+	PageSize int64                              `json:"page_size"`
+	List     []mongo_modals.StudyMaterialsModal `json:"list"`
+}
 type GetAllUploadedStudyMaterialsRespStruct struct {
 	my_modules.ResponseFormat
-	Data []mongo_modals.StudyMaterialsModal `json:"data"`
+	Data StudyMaterialsModalsData `json:"data"`
 }
 
 // @BasePath /api/
@@ -30,8 +75,9 @@ type GetAllUploadedStudyMaterialsRespStruct struct {
 // @Description api to get all uploaded documents
 // @Tags Customer side(Study materials)
 // @Produce json
-// @Param search_title query string true "Search by doc title"
-// @Param page query string false "page"
+// @Param search_title query string false "Search by doc title"
+// @Param search_category query string false "Search by category"
+// @Param page query string false "page (number>=1)"
 // @Success 200 {object} GetAllUploadedStudyMaterialsRespStruct
 // @Failure 400 {object} my_modules.ResponseFormat
 // @Failure 403 {object} my_modules.ResponseFormat
@@ -43,22 +89,51 @@ func GetStudyMaterials(c *gin.Context) {
 	var err error
 	var cursor *mongo.Cursor
 
-	var _limit int64 = 20
+	var _limit int64 = 4
 	var _page int64 = 0
+	var searchByTitle string
+	var searchByCategory string
 
-	if c.Query("page") != "" {
-		_page, _ = strconv.ParseInt(c.Query("page"), 10, 64)
+	searchByTitle = c.Query("search_title")
+	searchByCategory = c.Query("search_category")
+
+	{
+		if c.Query("page") != "" {
+			_page, err = strconv.ParseInt(c.Query("page"), 10, 64)
+			if err != nil {
+				_page = 1
+			}
+		}
+		if _page < 1 {
+			_page = 1
+		}
 	}
-	if _page < 0 {
-		_page = 0
+
+	where := bson.M{
+		"is_live": true,
+	}
+	if searchByTitle != "" && searchByCategory != "" {
+		where = bson.M{
+			"is_live":  true,
+			"title":    bson.M{"$regex": searchByTitle},
+			"category": bson.M{"$regex": searchByCategory},
+		}
+	} else if searchByTitle != "" {
+		where = bson.M{
+			"is_live": true,
+			"title":   bson.M{"$regex": searchByTitle},
+		}
+	} else if searchByCategory != "" {
+		where = bson.M{
+			"is_live":  true,
+			"category": bson.M{"$regex": searchByCategory},
+		}
 	}
 
 	var _offset = _limit * (_page - 1)
 
 	cursor, err = database_connections.MONGO_COLLECTIONS.StudyMaterial.Find(ctx,
-		bson.M{
-			"is_live": true,
-		},
+		where,
 		&options.FindOptions{
 			Sort: bson.M{
 				"_id": 1,
@@ -76,6 +151,14 @@ func GetStudyMaterials(c *gin.Context) {
 		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "No record found", nil)
 		return
 	} else {
+		opts := options.Count().SetHint("_id_")
+		listCount, err := database_connections.MONGO_COLLECTIONS.StudyMaterial.CountDocuments(c.Request.Context(), where, opts)
+		if err != nil {
+			log.Errorln(fmt.Sprintf("Scan failed: %v\n", err))
+			// continue
+			my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Error in retrieving user data", nil)
+		}
+
 		defer cursor.Close(ctx)
 		var docsList []mongo_modals.StudyMaterialsModal = []mongo_modals.StudyMaterialsModal{}
 		for cursor.Next(c.Request.Context()) {
@@ -89,8 +172,10 @@ func GetStudyMaterials(c *gin.Context) {
 			docData.FileDecryptionKey = ""
 			docsList = append(docsList, docData)
 		}
-		my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "Record found", docsList)
+
+		my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "Record found", StudyMaterialsModalsData{Count: listCount, PageSize: _limit, List: docsList})
 	}
+
 }
 
 type GetUserStudyMaterialSubscriptionListStruct struct {

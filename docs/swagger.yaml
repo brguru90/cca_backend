@@ -156,9 +156,18 @@ definitions:
     - user_id
     - user_subscriptions_ids
     type: object
+  mongo_modals.StudyMaterialCategoryModal:
+    properties:
+      title:
+        type: string
+    required:
+    - title
+    type: object
   mongo_modals.StudyMaterialsModal:
     properties:
       category:
+        type: string
+      category_id:
         type: string
       created_by_user:
         type: string
@@ -392,9 +401,7 @@ definitions:
   user_views.GetAllUploadedStudyMaterialsRespStruct:
     properties:
       data:
-        items:
-          $ref: '#/definitions/mongo_modals.StudyMaterialsModal'
-        type: array
+        $ref: '#/definitions/user_views.StudyMaterialsModalsData'
       msg:
         type: string
       status:
@@ -410,6 +417,21 @@ definitions:
         type: string
     required:
     - app_id
+    type: object
+  user_views.GetStudyMaterialsCategoryRespStruct:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/mongo_modals.StudyMaterialCategoryModal'
+        type: array
+      msg:
+        type: string
+      status:
+        type: string
+    required:
+    - data
+    - msg
+    - status
     type: object
   user_views.GetUserStudyMaterialSubscriptionListRespPayload:
     properties:
@@ -478,6 +500,17 @@ definitions:
         type: string
     required:
     - idToken
+    type: object
+  user_views.StudyMaterialsModalsData:
+    properties:
+      count:
+        type: integer
+      list:
+        items:
+          $ref: '#/definitions/mongo_modals.StudyMaterialsModal'
+        type: array
+      page_size:
+        type: integer
     type: object
   user_views.UserCredentialReqStruct:
     properties:
@@ -1669,9 +1702,12 @@ paths:
       - description: Search by doc title
         in: query
         name: search_title
-        required: true
         type: string
-      - description: page
+      - description: Search by category
+        in: query
+        name: search_category
+        type: string
+      - description: page (number>=1)
         in: query
         name: page
         type: string
@@ -1695,6 +1731,31 @@ paths:
           schema:
             $ref: '#/definitions/my_modules.ResponseFormat'
       summary: get all uploaded documents
+      tags:
+      - Customer side(Study materials)
+  /user/study_materials_categories/:
+    get:
+      description: api to get all categories for doc
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user_views.GetStudyMaterialsCategoryRespStruct'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: get categories for doc
       tags:
       - Customer side(Study materials)
   /verify_social_auth:

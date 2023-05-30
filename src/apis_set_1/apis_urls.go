@@ -55,6 +55,7 @@ func InitApiTest(router *gin.RouterGroup) {
 		protected_router.GET("confirm_payment_for_subscription/", user_views.PaymentConfirmationForSubscription)
 		protected_router.GET("get_playlist_from_subscription/", user_views.GetPlaylistAvailableOnSubscription)
 
+		protected_router.GET("study_materials_categories/", user_views.GetStudyMaterialsCategory)
 		protected_router.GET("study_materials/", user_views.GetStudyMaterials)
 		protected_router.POST("get_doc_key/", user_views.GetDocumentKey)
 		protected_router.POST("enroll_to_study_material/", user_views.EnrollToStudyMaterial)
@@ -73,11 +74,12 @@ func InitApiTest(router *gin.RouterGroup) {
 	{
 		admin_router := router.Group("admin/", middlewares.ValidateToken(my_modules.AccessLevel.ADMIN))
 		admin_router.POST("upload_streaming_video/", admin_views.UploadVideo)
-		admin_router.POST("upload_study_material/", admin_views.UploadStudyMaterials)
 		admin_router.POST("generate_video_stream/", admin_views.GenerateVideoStream)
 		admin_router.GET("upload_list/", admin_views.GetAllUploadedVideos)
-		admin_router.GET("doc_upload_list/", admin_views.GetAllUploadedStudyMaterials)
 		admin_router.DELETE("delete_streaming_video/", admin_views.RemoveVideos)
+
+		admin_router.POST("upload_study_material/", admin_views.UploadStudyMaterials)
+		admin_router.GET("doc_upload_list/", admin_views.GetAllUploadedStudyMaterials)
 		admin_router.DELETE("delete_study_material/", admin_views.RemoveStudyMaterial)
 
 		// Todo, pending APIs

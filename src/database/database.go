@@ -20,4 +20,5 @@ func InitDataBases() {
 	mongo_modals.InitPaymentOrderCollection()
 	mongo_modals.InitStudyMaterialCollection()
 	mongo_modals.InitStudyMaterialUserSubscriptionCollection()
+	mongo_modals.InitStudyMaterialCategoryModalCollection()
 }

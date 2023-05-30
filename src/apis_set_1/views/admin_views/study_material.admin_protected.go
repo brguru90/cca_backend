@@ -164,12 +164,40 @@ func UploadStudyMaterials(c *gin.Context) {
 		return
 	}
 
+	var doc_category_rec mongo_modals.StudyMaterialCategoryModal
+	err = database_connections.MONGO_COLLECTIONS.StudyMaterialCategory.FindOne(context.Background(), bson.M{
+		"title": infoForm.Category,
+	}).Decode(&doc_category_rec)
+
+	if err != nil {
+		_time := time.Now()
+		doc_category, ins2_err := database_connections.MONGO_COLLECTIONS.StudyMaterialCategory.InsertOne(ctx, mongo_modals.StudyMaterialCategoryModal{
+			Title:     infoForm.Category,
+			CreatedAt: _time,
+			UpdatedAt: _time,
+		})
+
+		if ins2_err != nil {
+			os.Remove(dst_doc_file_path)
+			os.Remove(dst_preview_image_file_path)
+			resp_err, is_known := database_utils.GetDBErrorString(ins2_err)
+			if !is_known {
+				log.WithFields(log.Fields{
+					"ins_err": ins2_err,
+				}).Errorln("Error in inserting data to mongo users")
+			}
+			my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", resp_err, nil)
+			return
+		}
+		doc_category_rec.ID = doc_category.InsertedID.(primitive.ObjectID)
+	}
 	_time := time.Now()
 	_, ins_err := database_connections.MONGO_COLLECTIONS.StudyMaterial.InsertOne(ctx, mongo_modals.StudyMaterialsModal{
 		Title:                    infoForm.Title,
 		CreatedByUser:            infoForm.Author,
 		Description:              infoForm.Description,
 		Category:                 infoForm.Category,
+		CategoryId:               doc_category_rec.ID,
 		PathToBookCoverImage:     dst_preview_image_file_path,
 		PathToDocFile:            dst_doc_file_path,
 		LinkToBookCoverImage:     strings.Replace(dst_preview_image_file_path, UNPROTECTED_UPLOAD_PATH, CDN_PATH, 1),
@@ -195,6 +223,7 @@ func UploadStudyMaterials(c *gin.Context) {
 		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", resp_err, nil)
 		return
 	}
+
 	my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "success", nil)
 }
 

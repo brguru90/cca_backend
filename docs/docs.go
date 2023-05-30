@@ -1733,12 +1733,17 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Search by doc title",
                         "name": "search_title",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "page",
+                        "description": "Search by category",
+                        "name": "search_category",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "page (number\u003e=1)",
                         "name": "page",
                         "in": "query"
                     }
@@ -1748,6 +1753,44 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/user_views.GetAllUploadedStudyMaterialsRespStruct"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/study_materials_categories/": {
+            "get": {
+                "description": "api to get all categories for doc",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customer side(Study materials)"
+                ],
+                "summary": "get categories for doc",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/user_views.GetStudyMaterialsCategoryRespStruct"
                         }
                     },
                     "400": {
@@ -2058,6 +2101,17 @@ const docTemplate = `{
                 }
             }
         },
+        "mongo_modals.StudyMaterialCategoryModal": {
+            "type": "object",
+            "required": [
+                "title"
+            ],
+            "properties": {
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
         "mongo_modals.StudyMaterialsModal": {
             "type": "object",
             "required": [
@@ -2069,6 +2123,9 @@ const docTemplate = `{
             ],
             "properties": {
                 "category": {
+                    "type": "string"
+                },
+                "category_id": {
                     "type": "string"
                 },
                 "created_by_user": {
@@ -2405,10 +2462,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/mongo_modals.StudyMaterialsModal"
-                    }
+                    "$ref": "#/definitions/user_views.StudyMaterialsModalsData"
                 },
                 "msg": {
                     "type": "string"
@@ -2425,6 +2479,28 @@ const docTemplate = `{
             ],
             "properties": {
                 "app_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "user_views.GetStudyMaterialsCategoryRespStruct": {
+            "type": "object",
+            "required": [
+                "data",
+                "msg",
+                "status"
+            ],
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/mongo_modals.StudyMaterialCategoryModal"
+                    }
+                },
+                "msg": {
+                    "type": "string"
+                },
+                "status": {
                     "type": "string"
                 }
             }
@@ -2529,6 +2605,23 @@ const docTemplate = `{
                 },
                 "password": {
                     "type": "string"
+                }
+            }
+        },
+        "user_views.StudyMaterialsModalsData": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/mongo_modals.StudyMaterialsModal"
+                    }
+                },
+                "page_size": {
+                    "type": "integer"
                 }
             }
         },
