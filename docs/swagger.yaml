@@ -1665,6 +1665,16 @@ paths:
   /user/study_materials/:
     get:
       description: api to get all uploaded documents
+      parameters:
+      - description: Search by doc title
+        in: query
+        name: search_title
+        required: true
+        type: string
+      - description: page
+        in: query
+        name: page
+        type: string
       produces:
       - application/json
       responses:

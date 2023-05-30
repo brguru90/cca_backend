@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type GetAllUploadedStudyMaterialsRespStruct struct {
@@ -28,6 +30,8 @@ type GetAllUploadedStudyMaterialsRespStruct struct {
 // @Description api to get all uploaded documents
 // @Tags Customer side(Study materials)
 // @Produce json
+// @Param search_title query string true "Search by doc title"
+// @Param page query string false "page"
 // @Success 200 {object} GetAllUploadedStudyMaterialsRespStruct
 // @Failure 400 {object} my_modules.ResponseFormat
 // @Failure 403 {object} my_modules.ResponseFormat
@@ -38,9 +42,31 @@ func GetStudyMaterials(c *gin.Context) {
 
 	var err error
 	var cursor *mongo.Cursor
-	cursor, err = database_connections.MONGO_COLLECTIONS.StudyMaterial.Find(ctx, bson.M{
-		"is_live": true,
-	})
+
+	var _limit int64 = 20
+	var _page int64 = 0
+
+	if c.Query("page") != "" {
+		_page, _ = strconv.ParseInt(c.Query("page"), 10, 64)
+	}
+	if _page < 0 {
+		_page = 0
+	}
+
+	var _offset = _limit * (_page - 1)
+
+	cursor, err = database_connections.MONGO_COLLECTIONS.StudyMaterial.Find(ctx,
+		bson.M{
+			"is_live": true,
+		},
+		&options.FindOptions{
+			Sort: bson.M{
+				"_id": 1,
+			},
+			Skip:  &_offset,
+			Limit: &_limit,
+		},
+	)
 	if err != nil {
 		if err != context.Canceled {
 			log.WithFields(log.Fields{

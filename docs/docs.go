@@ -1728,6 +1728,21 @@ const docTemplate = `{
                     "Customer side(Study materials)"
                 ],
                 "summary": "get all uploaded documents",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search by doc title",
+                        "name": "search_title",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "page",
+                        "name": "page",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
