@@ -2327,6 +2327,7 @@ const docTemplate = `{
             "required": [
                 "display_order",
                 "link_to_video_preview_image",
+                "link_to_video_stream",
                 "title",
                 "video_id"
             ],
@@ -2335,6 +2336,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "link_to_video_preview_image": {
+                    "type": "string"
+                },
+                "link_to_video_stream": {
                     "type": "string"
                 },
                 "title": {
