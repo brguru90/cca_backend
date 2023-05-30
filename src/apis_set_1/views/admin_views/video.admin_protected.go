@@ -20,6 +20,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type VideoUploadReqStruct struct {
@@ -418,6 +419,18 @@ func RemoveVideos(c *gin.Context) {
 
 	if payload.Data.AccessLevel == "super_admin" {
 		where = bson.M{"_id": bson.M{"$in": videos_doc_id}}
+	}
+
+	opts := options.Count().SetHint("_id_")
+	listCount, _ := database_connections.MONGO_COLLECTIONS.VideoPlayList.CountDocuments(c.Request.Context(),
+		bson.M{
+			"videos_ids.video_id": bson.M{"$in": videos_doc_id},
+		},
+		opts)
+
+	if listCount > 0 {
+		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "Remove video from playlist first", nil)
+		return
 	}
 
 	var response_data = make(map[string]interface{})
