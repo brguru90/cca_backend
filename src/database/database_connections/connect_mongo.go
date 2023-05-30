@@ -23,6 +23,12 @@ type MongoCollections struct {
 	VideoUploads                     *mongo.Collection
 	VideoPlayListSubscriptionPackage *mongo.Collection
 	VideoPlayListUserSubscription    *mongo.Collection
+	StudyMaterialUserSubscription    *mongo.Collection
+	AppBuildRegistration             *mongo.Collection
+	PaymentOrder                     *mongo.Collection
+	StudyMaterial                    *mongo.Collection
+	StudyMaterialCategory            *mongo.Collection
+	VideoStreamGenerationQ           *mongo.Collection
 }
 
 var MONGO_COLLECTIONS MongoCollections
@@ -59,11 +65,16 @@ func InitMongoDB() {
 	MONGO_DATABASE = MONGO_DB_CONNECTION.Database(DATABASE)
 	MONGO_COLLECTIONS.Users = MONGO_DATABASE.Collection("users")
 	MONGO_COLLECTIONS.ActiveSessions = MONGO_DATABASE.Collection("active_sessions")
+	MONGO_COLLECTIONS.AppBuildRegistration = MONGO_DATABASE.Collection("app_build_registration")
 	MONGO_COLLECTIONS.VideoUploads = MONGO_DATABASE.Collection("video_uploads")
 	MONGO_COLLECTIONS.VideoPlayList = MONGO_DATABASE.Collection("video_playlist")
 	MONGO_COLLECTIONS.VideoPlayListSubscriptionPackage = MONGO_DATABASE.Collection("video_playlist_subscription_package")
 	MONGO_COLLECTIONS.VideoPlayListUserSubscription = MONGO_DATABASE.Collection("video_playlist_user_subscription")
-
+	MONGO_COLLECTIONS.StudyMaterialUserSubscription = MONGO_DATABASE.Collection("study_material_user_subscription")
+	MONGO_COLLECTIONS.PaymentOrder = MONGO_DATABASE.Collection("payment_order")
+	MONGO_COLLECTIONS.StudyMaterial = MONGO_DATABASE.Collection("study_material")
+	MONGO_COLLECTIONS.StudyMaterialCategory = MONGO_DATABASE.Collection("study_material_category")
+	MONGO_COLLECTIONS.VideoStreamGenerationQ = MONGO_DATABASE.Collection("video_stream_generation_queue")
 	createSampleCollection()
 }
 

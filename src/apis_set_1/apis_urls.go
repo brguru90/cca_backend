@@ -33,6 +33,8 @@ func InitApiTest(router *gin.RouterGroup) {
 	router.GET("login_status/", user_views.LoginStatus)
 	router.GET("all_users/", user_views.GetAllUserData)
 
+	router.POST("register_build/", user_views.RegisterBuild)
+
 	{
 		protected_router := router.Group("user/", middlewares.ValidateToken(my_modules.AccessLevel.CUSTOMER))
 		protected_router.GET("", my_modules.GetCachedResponse(user_views.GetUserData, "users", CACHE_TTL_DURATION, api_modules.ForUserPagination))
@@ -44,11 +46,21 @@ func InitApiTest(router *gin.RouterGroup) {
 
 		// Todo, pending APIs
 
+		protected_router.GET("get_playlists/", user_views.GetAvailablePlaylist)
+		protected_router.POST("get_videos/", user_views.GetVideos)
+		protected_router.POST("get_stream_key/", user_views.GetStreamKey)
+		protected_router.GET("get_user_subscriptions/", user_views.GetUserPlaylistSubscriptionList)
 		protected_router.GET("get_subscriptions/", user_views.GetAvailableSubscriptionPackages)
-		protected_router.GET("enroll_to_subscription/", user_views.EnrollToSubscriptionPackage)
+		protected_router.POST("enroll_to_course/", user_views.EnrollToCourse)
 		protected_router.GET("confirm_payment_for_subscription/", user_views.PaymentConfirmationForSubscription)
 		protected_router.GET("get_playlist_from_subscription/", user_views.GetPlaylistAvailableOnSubscription)
-		protected_router.GET("get_videos_from_playlist/", user_views.GetPlaylistVideos)
+
+		protected_router.GET("study_materials_categories/", user_views.GetStudyMaterialsCategory)
+		protected_router.GET("study_materials/", user_views.GetStudyMaterials)
+		protected_router.POST("get_doc_key/", user_views.GetDocumentKey)
+		protected_router.POST("enroll_to_study_material/", user_views.EnrollToStudyMaterial)
+		protected_router.GET("confirm_payment_for_study_material_subscription/", user_views.PaymentConfirmationForSubscriptionForStudyMaterials)
+		protected_router.GET("get_user_study_material_subscriptions/", user_views.GetUserStudyMaterialSubscriptionList)
 	}
 
 	{
@@ -65,7 +77,10 @@ func InitApiTest(router *gin.RouterGroup) {
 		admin_router.POST("generate_video_stream/", admin_views.GenerateVideoStream)
 		admin_router.GET("upload_list/", admin_views.GetAllUploadedVideos)
 		admin_router.DELETE("delete_streaming_video/", admin_views.RemoveVideos)
-		admin_router.POST("get_stream_key/", admin_views.GetStreamKey)
+
+		admin_router.POST("upload_study_material/", admin_views.UploadStudyMaterials)
+		admin_router.GET("doc_upload_list/", admin_views.GetAllUploadedStudyMaterials)
+		admin_router.DELETE("delete_study_material/", admin_views.RemoveStudyMaterial)
 
 		// Todo, pending APIs
 		admin_router.GET("playlist/", admin_views.GetAllPlayLists)
@@ -73,6 +88,7 @@ func InitApiTest(router *gin.RouterGroup) {
 		admin_router.PUT("playlist/", admin_views.UpdatePlayList)
 		admin_router.DELETE("playlist/", admin_views.RemovePlayList)
 
+		// lets use this in future to provide discounts/offer for playlist bundles
 		admin_router.GET("subscription_package/", admin_views.GetAllSubscriptionPackages)
 		admin_router.POST("subscription_package/", admin_views.CreateSubscriptionPackage)
 		admin_router.PUT("subscription_package/", admin_views.UpdateSubscriptionPackage)

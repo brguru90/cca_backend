@@ -1,9 +1,11 @@
 package my_modules
 
 import (
+	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"os/exec"
 	"strings"
@@ -30,15 +32,17 @@ func CreateHLS(video_id string, inputFile string, outputDir string, segmentDurat
 	// Create the HLS playlist and segment the video using ffmpeg
 
 	var random_string string
-	if _rand, r_err := randomBytes(16); r_err != nil {
+	if _rand, r_err := RandomBytes(16); r_err != nil {
 		return UploadedVideoInfoStruct{}, r_err
 	} else {
-		random_string = hex.EncodeToString(_rand)
+		random_string = hex.EncodeToString(_rand)[0:16]
 	}
 
 	key_file_path := fmt.Sprintf("%s/key.txt", outputDir)
 	key_info_file_path := fmt.Sprintf("%s/key_info.txt", outputDir)
-	key_info := fmt.Sprintf("/api/get_video_key?video_id=%s\n%s", video_id, key_file_path)
+	key_info := fmt.Sprintf("/api/user/get_stream_key/?video_id=%s", video_id)
+	key_info = fmt.Sprintf("http://127.0.0.1:8898/forward?url=%s\n%s", url.QueryEscape(base64.StdEncoding.EncodeToString([]byte(key_info))), key_file_path)
+
 	if err := ioutil.WriteFile(key_file_path, []byte(random_string), 0755); err != nil {
 		return UploadedVideoInfoStruct{}, err
 	}
@@ -127,7 +131,7 @@ func CreateHLS(video_id string, inputFile string, outputDir string, segmentDurat
 	}
 	log.Debugf("failed to create HLS: %v\nOutput: %s", err, string(output))
 	return UploadedVideoInfoStruct{
-		StreamGeneratedLocation: fmt.Sprintf("%s/manifest.m3u8", outputDir),
+		StreamGeneratedLocation: fmt.Sprintf("%s/playlist.m3u8", outputDir),
 		DecryptionKey:           random_string,
 		OutputDir:               outputDir,
 	}, err

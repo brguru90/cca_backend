@@ -68,9 +68,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/admin/generate_video_stream/": {
-            "post": {
-                "description": "api to get the list of all the videos uploaded by the logged user",
+        "/admin/delete_study_material/": {
+            "delete": {
+                "description": "api delete a document from study material",
                 "consumes": [
                     "application/json"
                 ],
@@ -78,17 +78,17 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Manage Videos"
+                    "Manage Study material"
                 ],
-                "summary": "Generate video stream",
+                "summary": "Delete study material",
                 "parameters": [
                     {
-                        "description": "Video IDs",
-                        "name": "video_ids",
+                        "description": "Remove documents",
+                        "name": "docs_ids",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/admin_views.VideoStreamReqStruct"
+                            "$ref": "#/definitions/admin_views.StudyMaterialIDs"
                         }
                     }
                 ],
@@ -120,9 +120,47 @@ const docTemplate = `{
                 }
             }
         },
-        "/admin/get_stream_key/": {
+        "/admin/doc_upload_list/": {
+            "get": {
+                "description": "api to get all uploaded documents",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Manage Study material"
+                ],
+                "summary": "get all uploaded documents",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/admin_views.GetAllUploadedStudyMaterialsRespStruct"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/generate_video_stream/": {
             "post": {
-                "description": "api to get video decryption key for hls stream",
+                "description": "api to get the list of all the videos uploaded by the logged user",
                 "consumes": [
                     "application/json"
                 ],
@@ -132,15 +170,15 @@ const docTemplate = `{
                 "tags": [
                     "Manage Videos"
                 ],
-                "summary": "get video decode key",
+                "summary": "Generate video stream",
                 "parameters": [
                     {
-                        "description": "Video ID",
-                        "name": "video_id",
+                        "description": "Video IDs",
+                        "name": "video_ids",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/admin_views.VideoStreamKeyReqStruct"
+                            "$ref": "#/definitions/admin_views.VideoStreamReqStruct"
                         }
                     }
                 ],
@@ -571,6 +609,100 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/upload_study_material/": {
+            "post": {
+                "description": "api Upload study material",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Manage Study material"
+                ],
+                "summary": "Upload study material",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Document file",
+                        "name": "doc_file",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Preview image file",
+                        "name": "preview_image_file",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "author",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "category",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "name": "description",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "enroll_days",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "boolean",
+                        "name": "is_live",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "price",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "name": "title",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            }
+        },
         "/login": {
             "post": {
                 "description": "allow people to login into their account",
@@ -715,6 +847,61 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            }
+        },
+        "/register_build": {
+            "post": {
+                "description": "Register app",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "App Build"
+                ],
+                "summary": "url to Register app",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "app_id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "app_secret",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "auth_key",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/my_modules.ResponseFormat"
                         }
@@ -1017,6 +1204,479 @@ const docTemplate = `{
                 }
             }
         },
+        "/user/confirm_payment_for_study_material_subscription/": {
+            "get": {
+                "description": "allow confirm payment on order created \u0026 payment status will be verified on server side",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customer side(Study materials)"
+                ],
+                "summary": "Confirm payment on Order for study material",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "order_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/confirm_payment_for_subscription/": {
+            "get": {
+                "description": "allow confirm payment on order created \u0026 payment status will be verified on server side",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customer side(Video)"
+                ],
+                "summary": "Confirm payment on Order",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "order_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/enroll_to_course/": {
+            "post": {
+                "description": "api to enroll playlist/subscription",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customer side(Video)"
+                ],
+                "summary": "enroll to course",
+                "parameters": [
+                    {
+                        "description": "Video ID",
+                        "name": "video_id",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/user_views.EnrollToCourseReqStruct"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/user_views.EnrollToCourseRespStruct"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/enroll_to_study_material/": {
+            "post": {
+                "description": "api to study materials",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customer side(Study materials)"
+                ],
+                "summary": "enroll to study materials",
+                "parameters": [
+                    {
+                        "description": "Document ID",
+                        "name": "doc_id",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/user_views.EnrollToStudyMaterialReqStruct"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/user_views.EnrollToStudyMaterialRespStruct"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/get_doc_key/": {
+            "post": {
+                "description": "api to get document decode key",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customer side(Study materials)"
+                ],
+                "summary": "get document decode key",
+                "parameters": [
+                    {
+                        "description": "Additional info",
+                        "name": "additionalInfo",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/user_views.GetDocumentKeyReqStruct"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Document ID",
+                        "name": "doc_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/get_playlists/": {
+            "get": {
+                "description": "api to fetch existing playlist",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customer side(Video)"
+                ],
+                "summary": "Get list of playlist",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/user_views.GetAllPlayListsRespStruct"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/get_stream_key/": {
+            "post": {
+                "description": "api to get video decryption key for hls stream",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customer side(Video)"
+                ],
+                "summary": "get video decode key",
+                "parameters": [
+                    {
+                        "description": "Additional info",
+                        "name": "additionalInfo",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/user_views.VideoStreamKeyReqStruct"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Video ID",
+                        "name": "video_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/get_user_study_material_subscriptions/": {
+            "get": {
+                "description": "api to get  user subscriptions for study material",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customer side(Study materials)"
+                ],
+                "summary": "Get user subscriptions for study material",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/user_views.GetUserStudyMaterialSubscriptionListRespPayload"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/get_user_subscriptions/": {
+            "get": {
+                "description": "api to get user subscriptions",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customer side(Video)"
+                ],
+                "summary": "Get user subscriptions",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/user_views.GetUserSubscriptionListRespPayload"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/get_videos/": {
+            "post": {
+                "description": "api to fetch videos by providing ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customer side(Video)"
+                ],
+                "summary": "Get list of videos",
+                "parameters": [
+                    {
+                        "description": "Videos IDS",
+                        "name": "videos",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/user_views.GetVideosReqStruct"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/user_views.GetAllPlayListsRespStruct"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            }
+        },
         "/user/logout/": {
             "get": {
                 "description": "API allow user to logout, which delete the cookie which stores token",
@@ -1035,6 +1695,102 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/study_materials/": {
+            "get": {
+                "description": "api to get all uploaded documents",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customer side(Study materials)"
+                ],
+                "summary": "get all uploaded documents",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search by doc title",
+                        "name": "search_title",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by category",
+                        "name": "search_category",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "page (number\u003e=1)",
+                        "name": "page",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/user_views.GetAllUploadedStudyMaterialsRespStruct"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/study_materials_categories/": {
+            "get": {
+                "description": "api to get all categories for doc",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customer side(Study materials)"
+                ],
+                "summary": "get categories for doc",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/user_views.GetStudyMaterialsCategoryRespStruct"
                         }
                     },
                     "400": {
@@ -1175,6 +1931,28 @@ const docTemplate = `{
                 }
             }
         },
+        "admin_views.GetAllUploadedStudyMaterialsRespStruct": {
+            "type": "object",
+            "required": [
+                "data",
+                "msg",
+                "status"
+            ],
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/mongo_modals.StudyMaterialsModal"
+                    }
+                },
+                "msg": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
         "admin_views.GetAllUploadedVideosRespStruct": {
             "type": "object",
             "required": [
@@ -1210,6 +1988,20 @@ const docTemplate = `{
                 "videos_ids": {
                     "type": "array",
                     "items": {
+                        "$ref": "#/definitions/mongo_modals.VideosInOrder"
+                    }
+                }
+            }
+        },
+        "admin_views.StudyMaterialIDs": {
+            "type": "object",
+            "required": [
+                "docs_ids"
+            ],
+            "properties": {
+                "docs_ids": {
+                    "type": "array",
+                    "items": {
                         "type": "string"
                     }
                 }
@@ -1229,17 +2021,6 @@ const docTemplate = `{
                     }
                 },
                 "subscription_package_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "admin_views.VideoStreamKeyReqStruct": {
-            "type": "object",
-            "required": [
-                "video_id"
-            ],
-            "properties": {
-                "video_id": {
                     "type": "string"
                 }
             }
@@ -1286,6 +2067,104 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "mongo_modals.PaymentOrderModal": {
+            "type": "object",
+            "required": [
+                "amount",
+                "order_id",
+                "payment_status",
+                "user_id",
+                "user_subscriptions_ids"
+            ],
+            "properties": {
+                "amount": {
+                    "type": "integer"
+                },
+                "order_id": {
+                    "type": "string"
+                },
+                "payment_status": {
+                    "type": "boolean"
+                },
+                "user_id": {
+                    "type": "string"
+                },
+                "user_subscriptions_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "mongo_modals.StudyMaterialCategoryModal": {
+            "type": "object",
+            "required": [
+                "title"
+            ],
+            "properties": {
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "mongo_modals.StudyMaterialsModal": {
+            "type": "object",
+            "required": [
+                "is_live",
+                "path_to_cover_image",
+                "path_to_doc_file",
+                "price",
+                "title"
+            ],
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "category_id": {
+                    "type": "string"
+                },
+                "created_by_user": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "enroll_days": {
+                    "type": "integer"
+                },
+                "file_decryption_key": {
+                    "type": "string"
+                },
+                "file_decryption_key_blk_size": {
+                    "type": "integer"
+                },
+                "is_live": {
+                    "type": "boolean"
+                },
+                "link_to_book_cover_image": {
+                    "type": "string"
+                },
+                "link_to_doc_file": {
+                    "type": "string"
+                },
+                "path_to_cover_image": {
+                    "type": "string"
+                },
+                "path_to_doc_file": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "uploaded_by_user": {
                     "type": "string"
                 }
             }
@@ -1342,6 +2221,9 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
+                "enroll_days": {
+                    "type": "integer"
+                },
                 "is_live": {
                     "type": "boolean"
                 },
@@ -1352,9 +2234,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "videos_ids": {
+                    "description": "VideosIDs     []primitive.ObjectID ` + "`" + `json:\"videos_ids,omitempty\" binding:\"required\"  bson:\"videos_ids,omitempty\"` + "`" + `",
                     "type": "array",
                     "items": {
-                        "type": "string"
+                        "$ref": "#/definitions/mongo_modals.VideosInOrder"
                     }
                 }
             }
@@ -1396,6 +2279,8 @@ const docTemplate = `{
             "required": [
                 "duration",
                 "is_live",
+                "path_to_original_video",
+                "path_to_video_preview_image",
                 "title"
             ],
             "properties": {
@@ -1411,8 +2296,44 @@ const docTemplate = `{
                 "is_live": {
                     "type": "boolean"
                 },
-                "link_to_original_video": {
+                "link_to_video_preview_image": {
                     "type": "string"
+                },
+                "link_to_video_stream": {
+                    "type": "string"
+                },
+                "path_to_original_video": {
+                    "type": "string"
+                },
+                "path_to_video_preview_image": {
+                    "type": "string"
+                },
+                "path_to_video_stream": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "uploaded_by_user": {
+                    "type": "string"
+                },
+                "video_decryption_key": {
+                    "type": "string"
+                }
+            }
+        },
+        "mongo_modals.VideosInOrder": {
+            "type": "object",
+            "required": [
+                "display_order",
+                "link_to_video_preview_image",
+                "link_to_video_stream",
+                "title",
+                "video_id"
+            ],
+            "properties": {
+                "display_order": {
+                    "type": "integer"
                 },
                 "link_to_video_preview_image": {
                     "type": "string"
@@ -1423,10 +2344,7 @@ const docTemplate = `{
                 "title": {
                     "type": "string"
                 },
-                "uploaded_by_user": {
-                    "type": "string"
-                },
-                "video_decryption_key": {
+                "video_id": {
                     "type": "string"
                 }
             }
@@ -1448,6 +2366,235 @@ const docTemplate = `{
                 }
             }
         },
+        "user_views.EnrollToCourseReqStruct": {
+            "type": "object",
+            "required": [
+                "playlist_ids"
+            ],
+            "properties": {
+                "playlist_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "subscription_package_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "user_views.EnrollToCourseRespStruct": {
+            "type": "object",
+            "required": [
+                "data",
+                "msg",
+                "status"
+            ],
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/mongo_modals.PaymentOrderModal"
+                },
+                "msg": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "user_views.EnrollToStudyMaterialReqStruct": {
+            "type": "object",
+            "required": [
+                "document_ids"
+            ],
+            "properties": {
+                "document_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "user_views.EnrollToStudyMaterialRespStruct": {
+            "type": "object",
+            "required": [
+                "data",
+                "msg",
+                "status"
+            ],
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/mongo_modals.PaymentOrderModal"
+                },
+                "msg": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "user_views.GetAllPlayListsRespStruct": {
+            "type": "object",
+            "required": [
+                "data",
+                "msg",
+                "status"
+            ],
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/user_views.VideoPlayListModal"
+                    }
+                },
+                "msg": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "user_views.GetAllUploadedStudyMaterialsRespStruct": {
+            "type": "object",
+            "required": [
+                "data",
+                "msg",
+                "status"
+            ],
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/user_views.StudyMaterialsModalsData"
+                },
+                "msg": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "user_views.GetDocumentKeyReqStruct": {
+            "type": "object",
+            "required": [
+                "app_id"
+            ],
+            "properties": {
+                "app_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "user_views.GetStudyMaterialsCategoryRespStruct": {
+            "type": "object",
+            "required": [
+                "data",
+                "msg",
+                "status"
+            ],
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/mongo_modals.StudyMaterialCategoryModal"
+                    }
+                },
+                "msg": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "user_views.GetUserStudyMaterialSubscriptionListRespPayload": {
+            "type": "object",
+            "required": [
+                "data",
+                "msg",
+                "status"
+            ],
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/user_views.GetUserStudyMaterialSubscriptionListStruct"
+                },
+                "msg": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "user_views.GetUserStudyMaterialSubscriptionListStruct": {
+            "type": "object",
+            "properties": {
+                "_id": {
+                    "type": "string"
+                },
+                "expired_on": {
+                    "type": "string"
+                },
+                "study_material_id": {
+                    "type": "string"
+                },
+                "subscription_package_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "user_views.GetUserSubscriptionListRespPayload": {
+            "type": "object",
+            "required": [
+                "data",
+                "msg",
+                "status"
+            ],
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/user_views.GetUserSubscriptionListStruct"
+                },
+                "msg": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "user_views.GetUserSubscriptionListStruct": {
+            "type": "object",
+            "properties": {
+                "_id": {
+                    "type": "string"
+                },
+                "expired_on": {
+                    "type": "string"
+                },
+                "playlist_id": {
+                    "type": "string"
+                },
+                "subscription_package_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "user_views.GetVideosReqStruct": {
+            "type": "object",
+            "required": [
+                "video_ids"
+            ],
+            "properties": {
+                "video_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "user_views.SocialAuthReqStruct": {
             "type": "object",
             "required": [
@@ -1462,6 +2609,23 @@ const docTemplate = `{
                 },
                 "password": {
                     "type": "string"
+                }
+            }
+        },
+        "user_views.StudyMaterialsModalsData": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/mongo_modals.StudyMaterialsModal"
+                    }
+                },
+                "page_size": {
+                    "type": "integer"
                 }
             }
         },
@@ -1494,6 +2658,57 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "user_views.VideoPlayListModal": {
+            "type": "object",
+            "required": [
+                "is_live",
+                "paid",
+                "price",
+                "title",
+                "videos_ids"
+            ],
+            "properties": {
+                "created_by_user": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "enroll_days": {
+                    "type": "integer"
+                },
+                "is_live": {
+                    "type": "boolean"
+                },
+                "paid": {
+                    "type": "boolean"
+                },
+                "price": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "videos_ids": {
+                    "description": "VideosIDs     []primitive.ObjectID ` + "`" + `json:\"videos_ids,omitempty\" binding:\"required\"  bson:\"videos_ids,omitempty\"` + "`" + `",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/mongo_modals.VideosInOrder"
+                    }
+                }
+            }
+        },
+        "user_views.VideoStreamKeyReqStruct": {
+            "type": "object",
+            "required": [
+                "app_id"
+            ],
+            "properties": {
+                "app_id": {
                     "type": "string"
                 }
             }

@@ -42,6 +42,21 @@ definitions:
     - msg
     - status
     type: object
+  admin_views.GetAllUploadedStudyMaterialsRespStruct:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/mongo_modals.StudyMaterialsModal'
+        type: array
+      msg:
+        type: string
+      status:
+        type: string
+    required:
+    - data
+    - msg
+    - status
+    type: object
   admin_views.GetAllUploadedVideosRespStruct:
     properties:
       data:
@@ -63,11 +78,20 @@ definitions:
         type: string
       videos_ids:
         items:
-          type: string
+          $ref: '#/definitions/mongo_modals.VideosInOrder'
         type: array
     required:
     - playlist_id
     - videos_ids
+    type: object
+  admin_views.StudyMaterialIDs:
+    properties:
+      docs_ids:
+        items:
+          type: string
+        type: array
+    required:
+    - docs_ids
     type: object
   admin_views.VideoPlayListSubscriptionPackageModalReqStruct:
     properties:
@@ -80,13 +104,6 @@ definitions:
     required:
     - playlists_ids
     - subscription_package_id
-    type: object
-  admin_views.VideoStreamKeyReqStruct:
-    properties:
-      video_id:
-        type: string
-    required:
-    - video_id
     type: object
   admin_views.VideoStreamReqStruct:
     properties:
@@ -117,6 +134,73 @@ definitions:
         type: string
       user_id:
         type: string
+    type: object
+  mongo_modals.PaymentOrderModal:
+    properties:
+      amount:
+        type: integer
+      order_id:
+        type: string
+      payment_status:
+        type: boolean
+      user_id:
+        type: string
+      user_subscriptions_ids:
+        items:
+          type: string
+        type: array
+    required:
+    - amount
+    - order_id
+    - payment_status
+    - user_id
+    - user_subscriptions_ids
+    type: object
+  mongo_modals.StudyMaterialCategoryModal:
+    properties:
+      title:
+        type: string
+    required:
+    - title
+    type: object
+  mongo_modals.StudyMaterialsModal:
+    properties:
+      category:
+        type: string
+      category_id:
+        type: string
+      created_by_user:
+        type: string
+      description:
+        type: string
+      enroll_days:
+        type: integer
+      file_decryption_key:
+        type: string
+      file_decryption_key_blk_size:
+        type: integer
+      is_live:
+        type: boolean
+      link_to_book_cover_image:
+        type: string
+      link_to_doc_file:
+        type: string
+      path_to_cover_image:
+        type: string
+      path_to_doc_file:
+        type: string
+      price:
+        type: integer
+      title:
+        type: string
+      uploaded_by_user:
+        type: string
+    required:
+    - is_live
+    - path_to_cover_image
+    - path_to_doc_file
+    - price
+    - title
     type: object
   mongo_modals.UsersModel:
     properties:
@@ -150,6 +234,8 @@ definitions:
         type: string
       description:
         type: string
+      enroll_days:
+        type: integer
       is_live:
         type: boolean
       price:
@@ -157,8 +243,10 @@ definitions:
       title:
         type: string
       videos_ids:
+        description: VideosIDs     []primitive.ObjectID `json:"videos_ids,omitempty"
+          binding:"required"  bson:"videos_ids,omitempty"`
         items:
-          type: string
+          $ref: '#/definitions/mongo_modals.VideosInOrder'
         type: array
     required:
     - is_live
@@ -198,11 +286,15 @@ definitions:
         type: integer
       is_live:
         type: boolean
-      link_to_original_video:
-        type: string
       link_to_video_preview_image:
         type: string
       link_to_video_stream:
+        type: string
+      path_to_original_video:
+        type: string
+      path_to_video_preview_image:
+        type: string
+      path_to_video_stream:
         type: string
       title:
         type: string
@@ -213,7 +305,28 @@ definitions:
     required:
     - duration
     - is_live
+    - path_to_original_video
+    - path_to_video_preview_image
     - title
+    type: object
+  mongo_modals.VideosInOrder:
+    properties:
+      display_order:
+        type: integer
+      link_to_video_preview_image:
+        type: string
+      link_to_video_stream:
+        type: string
+      title:
+        type: string
+      video_id:
+        type: string
+    required:
+    - display_order
+    - link_to_video_preview_image
+    - link_to_video_stream
+    - title
+    - video_id
     type: object
   my_modules.ResponseFormat:
     properties:
@@ -227,6 +340,159 @@ definitions:
     - msg
     - status
     type: object
+  user_views.EnrollToCourseReqStruct:
+    properties:
+      playlist_ids:
+        items:
+          type: string
+        type: array
+      subscription_package_id:
+        type: string
+    required:
+    - playlist_ids
+    type: object
+  user_views.EnrollToCourseRespStruct:
+    properties:
+      data:
+        $ref: '#/definitions/mongo_modals.PaymentOrderModal'
+      msg:
+        type: string
+      status:
+        type: string
+    required:
+    - data
+    - msg
+    - status
+    type: object
+  user_views.EnrollToStudyMaterialReqStruct:
+    properties:
+      document_ids:
+        items:
+          type: string
+        type: array
+    required:
+    - document_ids
+    type: object
+  user_views.EnrollToStudyMaterialRespStruct:
+    properties:
+      data:
+        $ref: '#/definitions/mongo_modals.PaymentOrderModal'
+      msg:
+        type: string
+      status:
+        type: string
+    required:
+    - data
+    - msg
+    - status
+    type: object
+  user_views.GetAllPlayListsRespStruct:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/user_views.VideoPlayListModal'
+        type: array
+      msg:
+        type: string
+      status:
+        type: string
+    required:
+    - data
+    - msg
+    - status
+    type: object
+  user_views.GetAllUploadedStudyMaterialsRespStruct:
+    properties:
+      data:
+        $ref: '#/definitions/user_views.StudyMaterialsModalsData'
+      msg:
+        type: string
+      status:
+        type: string
+    required:
+    - data
+    - msg
+    - status
+    type: object
+  user_views.GetDocumentKeyReqStruct:
+    properties:
+      app_id:
+        type: string
+    required:
+    - app_id
+    type: object
+  user_views.GetStudyMaterialsCategoryRespStruct:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/mongo_modals.StudyMaterialCategoryModal'
+        type: array
+      msg:
+        type: string
+      status:
+        type: string
+    required:
+    - data
+    - msg
+    - status
+    type: object
+  user_views.GetUserStudyMaterialSubscriptionListRespPayload:
+    properties:
+      data:
+        $ref: '#/definitions/user_views.GetUserStudyMaterialSubscriptionListStruct'
+      msg:
+        type: string
+      status:
+        type: string
+    required:
+    - data
+    - msg
+    - status
+    type: object
+  user_views.GetUserStudyMaterialSubscriptionListStruct:
+    properties:
+      _id:
+        type: string
+      expired_on:
+        type: string
+      study_material_id:
+        type: string
+      subscription_package_id:
+        type: string
+    type: object
+  user_views.GetUserSubscriptionListRespPayload:
+    properties:
+      data:
+        $ref: '#/definitions/user_views.GetUserSubscriptionListStruct'
+      msg:
+        type: string
+      status:
+        type: string
+    required:
+    - data
+    - msg
+    - status
+    type: object
+  user_views.GetUserSubscriptionListStruct:
+    properties:
+      _id:
+        type: string
+      expired_on:
+        type: string
+      playlist_id:
+        type: string
+      subscription_package_id:
+        type: string
+    type: object
+  user_views.GetVideosReqStruct:
+    properties:
+      video_ids:
+        items:
+          type: string
+        type: array
+    required:
+    - video_ids
+    type: object
   user_views.SocialAuthReqStruct:
     properties:
       idToken:
@@ -237,6 +503,17 @@ definitions:
         type: string
     required:
     - idToken
+    type: object
+  user_views.StudyMaterialsModalsData:
+    properties:
+      count:
+        type: integer
+      list:
+        items:
+          $ref: '#/definitions/mongo_modals.StudyMaterialsModal'
+        type: array
+      page_size:
+        type: integer
     type: object
   user_views.UserCredentialReqStruct:
     properties:
@@ -259,6 +536,42 @@ definitions:
     required:
     - mobile
     - password
+    type: object
+  user_views.VideoPlayListModal:
+    properties:
+      created_by_user:
+        type: string
+      description:
+        type: string
+      enroll_days:
+        type: integer
+      is_live:
+        type: boolean
+      paid:
+        type: boolean
+      price:
+        type: integer
+      title:
+        type: string
+      videos_ids:
+        description: VideosIDs     []primitive.ObjectID `json:"videos_ids,omitempty"
+          binding:"required"  bson:"videos_ids,omitempty"`
+        items:
+          $ref: '#/definitions/mongo_modals.VideosInOrder'
+        type: array
+    required:
+    - is_live
+    - paid
+    - price
+    - title
+    - videos_ids
+    type: object
+  user_views.VideoStreamKeyReqStruct:
+    properties:
+      app_id:
+        type: string
+    required:
+    - app_id
     type: object
 info:
   contact: {}
@@ -297,6 +610,65 @@ paths:
       summary: Delete videos
       tags:
       - Manage Videos
+  /admin/delete_study_material/:
+    delete:
+      consumes:
+      - application/json
+      description: api delete a document from study material
+      parameters:
+      - description: Remove documents
+        in: body
+        name: docs_ids
+        required: true
+        schema:
+          $ref: '#/definitions/admin_views.StudyMaterialIDs'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: Delete study material
+      tags:
+      - Manage Study material
+  /admin/doc_upload_list/:
+    get:
+      description: api to get all uploaded documents
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/admin_views.GetAllUploadedStudyMaterialsRespStruct'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: get all uploaded documents
+      tags:
+      - Manage Study material
   /admin/generate_video_stream/:
     post:
       consumes:
@@ -329,40 +701,6 @@ paths:
           schema:
             $ref: '#/definitions/my_modules.ResponseFormat'
       summary: Generate video stream
-      tags:
-      - Manage Videos
-  /admin/get_stream_key/:
-    post:
-      consumes:
-      - application/json
-      description: api to get video decryption key for hls stream
-      parameters:
-      - description: Video ID
-        in: body
-        name: video_id
-        required: true
-        schema:
-          $ref: '#/definitions/admin_views.VideoStreamKeyReqStruct'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/my_modules.ResponseFormat'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/my_modules.ResponseFormat'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/my_modules.ResponseFormat'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/my_modules.ResponseFormat'
-      summary: get video decode key
       tags:
       - Manage Videos
   /admin/playlist/:
@@ -628,6 +966,67 @@ paths:
       summary: video upload
       tags:
       - Manage Videos
+  /admin/upload_study_material/:
+    post:
+      consumes:
+      - multipart/form-data
+      description: api Upload study material
+      parameters:
+      - description: Document file
+        in: formData
+        name: doc_file
+        required: true
+        type: file
+      - description: Preview image file
+        in: formData
+        name: preview_image_file
+        required: true
+        type: file
+      - in: formData
+        name: author
+        required: true
+        type: string
+      - in: formData
+        name: category
+        type: string
+      - in: formData
+        name: description
+        type: string
+      - in: formData
+        name: enroll_days
+        type: integer
+      - in: formData
+        name: is_live
+        type: boolean
+      - in: formData
+        name: price
+        type: integer
+      - in: formData
+        name: title
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: Upload study material
+      tags:
+      - Manage Study material
   /login:
     post:
       consumes:
@@ -736,6 +1135,42 @@ paths:
       summary: Login status
       tags:
       - Account
+  /register_build:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Register app
+      parameters:
+      - in: formData
+        name: app_id
+        required: true
+        type: string
+      - in: formData
+        name: app_secret
+        required: true
+        type: string
+      - in: formData
+        name: auth_key
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: url to Register app
+      tags:
+      - App Build
   /sign_up:
     post:
       consumes:
@@ -922,6 +1357,319 @@ paths:
       summary: Block specified session
       tags:
       - Session
+  /user/confirm_payment_for_study_material_subscription/:
+    get:
+      description: allow confirm payment on order created & payment status will be
+        verified on server side
+      parameters:
+      - description: Order ID
+        in: query
+        name: order_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: Confirm payment on Order for study material
+      tags:
+      - Customer side(Study materials)
+  /user/confirm_payment_for_subscription/:
+    get:
+      description: allow confirm payment on order created & payment status will be
+        verified on server side
+      parameters:
+      - description: Order ID
+        in: query
+        name: order_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: Confirm payment on Order
+      tags:
+      - Customer side(Video)
+  /user/enroll_to_course/:
+    post:
+      consumes:
+      - application/json
+      description: api to enroll playlist/subscription
+      parameters:
+      - description: Video ID
+        in: body
+        name: video_id
+        required: true
+        schema:
+          $ref: '#/definitions/user_views.EnrollToCourseReqStruct'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user_views.EnrollToCourseRespStruct'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: enroll to course
+      tags:
+      - Customer side(Video)
+  /user/enroll_to_study_material/:
+    post:
+      consumes:
+      - application/json
+      description: api to study materials
+      parameters:
+      - description: Document ID
+        in: body
+        name: doc_id
+        required: true
+        schema:
+          $ref: '#/definitions/user_views.EnrollToStudyMaterialReqStruct'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user_views.EnrollToStudyMaterialRespStruct'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: enroll to study materials
+      tags:
+      - Customer side(Study materials)
+  /user/get_doc_key/:
+    post:
+      consumes:
+      - application/json
+      description: api to get document decode key
+      parameters:
+      - description: Additional info
+        in: body
+        name: additionalInfo
+        required: true
+        schema:
+          $ref: '#/definitions/user_views.GetDocumentKeyReqStruct'
+      - description: Document ID
+        in: query
+        name: doc_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: get document decode key
+      tags:
+      - Customer side(Study materials)
+  /user/get_playlists/:
+    get:
+      consumes:
+      - application/json
+      description: api to fetch existing playlist
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user_views.GetAllPlayListsRespStruct'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: Get list of playlist
+      tags:
+      - Customer side(Video)
+  /user/get_stream_key/:
+    post:
+      consumes:
+      - application/json
+      description: api to get video decryption key for hls stream
+      parameters:
+      - description: Additional info
+        in: body
+        name: additionalInfo
+        required: true
+        schema:
+          $ref: '#/definitions/user_views.VideoStreamKeyReqStruct'
+      - description: Video ID
+        in: query
+        name: video_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: get video decode key
+      tags:
+      - Customer side(Video)
+  /user/get_user_study_material_subscriptions/:
+    get:
+      description: api to get  user subscriptions for study material
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user_views.GetUserStudyMaterialSubscriptionListRespPayload'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: Get user subscriptions for study material
+      tags:
+      - Customer side(Study materials)
+  /user/get_user_subscriptions/:
+    get:
+      description: api to get user subscriptions
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user_views.GetUserSubscriptionListRespPayload'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: Get user subscriptions
+      tags:
+      - Customer side(Video)
+  /user/get_videos/:
+    post:
+      consumes:
+      - application/json
+      description: api to fetch videos by providing ID
+      parameters:
+      - description: Videos IDS
+        in: body
+        name: videos
+        required: true
+        schema:
+          $ref: '#/definitions/user_views.GetVideosReqStruct'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user_views.GetAllPlayListsRespStruct'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: Get list of videos
+      tags:
+      - Customer side(Video)
   /user/logout/:
     get:
       consumes:
@@ -950,6 +1698,69 @@ paths:
       summary: allow user to logout
       tags:
       - Session
+  /user/study_materials/:
+    get:
+      description: api to get all uploaded documents
+      parameters:
+      - description: Search by doc title
+        in: query
+        name: search_title
+        type: string
+      - description: Search by category
+        in: query
+        name: search_category
+        type: string
+      - description: page (number>=1)
+        in: query
+        name: page
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user_views.GetAllUploadedStudyMaterialsRespStruct'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: get all uploaded documents
+      tags:
+      - Customer side(Study materials)
+  /user/study_materials_categories/:
+    get:
+      description: api to get all categories for doc
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user_views.GetStudyMaterialsCategoryRespStruct'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: get categories for doc
+      tags:
+      - Customer side(Study materials)
   /verify_social_auth:
     post:
       consumes:

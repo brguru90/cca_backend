@@ -2,11 +2,13 @@ package main
 
 import (
 	"cca/src/apis_set_1"
+	"cca/src/app_cron_jobs"
 	"cca/src/configs"
 	"cca/src/database"
 	"cca/src/database/triggers"
 	"cca/src/middlewares"
 	"cca/src/my_modules"
+	"flag"
 	"fmt"
 	"net/http"
 	"time"
@@ -25,12 +27,31 @@ import (
 var SERVER_PORT string = "8000"
 
 func main() {
+	micro_service := flag.String("micro_service", "all", "Micro service ro run")
+	flag.Parse()
+
+	fmt.Println(*micro_service)
 	configs.InitEnv()
+	configs.EnvConfigs.MICRO_SERVICE_NAME = *micro_service
 	my_modules.InitLogger()
 	database.InitDataBases()
 	my_modules.InitFirebase()
-	go triggers.TriggerForUsersModification()
-	go my_modules.InitCronJobs()
+
+	{
+		switch *micro_service {
+		case "cron_job":
+			log.Infoln("Running only cron jobs")
+			go triggers.TriggerForUsersModification()
+			app_cron_jobs.InitCronJobs()
+			return
+		case "api_server":
+			break
+		default:
+			// it will run cron service along with api service
+			go triggers.TriggerForUsersModification()
+			go app_cron_jobs.InitCronJobs()
+		}
+	}
 
 	// init with default middlewares
 	var all_router *gin.Engine = gin.Default()
@@ -54,7 +75,7 @@ func main() {
 	file_upload_size_mb := 1024 * 2
 	all_router.MaxMultipartMemory = int64(file_upload_size_mb) << 20
 	all_router.Use(static.Serve("/", static.LocalFile("../frontend/build", true)))
-	all_router.StaticFS("/cdn", http.Dir("./uploads/public/"))
+	all_router.StaticFS(configs.EnvConfigs.UNPROTECTED_UPLOAD_PATH_ROUTE, http.Dir(configs.EnvConfigs.UNPROTECTED_UPLOAD_PATH))
 	if configs.EnvConfigs.GIN_MODE != "release" {
 		all_router.Use(cors.Default())
 	}

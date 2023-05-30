@@ -20,9 +20,11 @@ type VideoUploadModal struct {
 	IsLive                  bool               `json:"is_live,omitempty" binding:"required" bson:"is_live"`
 	CreatedByUser           string             `json:"created_by_user,omitempty" bson:"created_by_user,omitempty"`
 	UploadedByUser          primitive.ObjectID `json:"uploaded_by_user,omitempty" bson:"uploaded_by_user,omitempty"`
-	LinkToOriginalVideo     string             `json:"link_to_original_video,omitempty" bson:"link_to_original_video,omitempty"`
-	LinkToVideoStream       string             `json:"link_to_video_stream,omitempty" bson:"link_to_video_stream,omitempty"`
+	PathToVideoPreviewImage string             `json:"path_to_video_preview_image,omitempty" binding:"required" bson:"path_to_video_preview_image,omitempty"`
+	PathToOriginalVideo     string             `json:"path_to_original_video,omitempty" binding:"required" bson:"path_to_original_video,omitempty"`
+	PathToVideoStream       string             `json:"path_to_video_stream,omitempty" bson:"path_to_video_stream,omitempty"`
 	VideoDecryptionKey      string             `json:"video_decryption_key,omitempty" bson:"video_decryption_key,omitempty"`
+	LinkToVideoStream       string             `json:"link_to_video_stream,omitempty" bson:"link_to_video_stream,omitempty"`
 	LinkToVideoPreviewImage string             `json:"link_to_video_preview_image,omitempty" bson:"link_to_video_preview_image,omitempty"`
 	CreatedAt               time.Time          `json:"createdAt,omitempty" swaggerignore:"true"`
 	UpdatedAt               time.Time          `json:"updatedAt,omitempty" swaggerignore:"true"`
@@ -45,7 +47,7 @@ func InitVideoUploadCollection() {
 					Value: 1,
 				},
 				{
-					Key:   "link_to_original_video",
+					Key:   "path_to_original_video",
 					Value: 1,
 				},
 			},
@@ -59,7 +61,7 @@ func InitVideoUploadCollection() {
 					Value: 1,
 				},
 				{
-					Key:   "link_to_video_stream",
+					Key:   "path_to_video_stream",
 					Value: 1,
 				},
 			},
