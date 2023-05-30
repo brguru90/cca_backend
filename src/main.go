@@ -2,6 +2,7 @@ package main
 
 import (
 	"cca/src/apis_set_1"
+	"cca/src/app_cron_jobs"
 	"cca/src/configs"
 	"cca/src/database"
 	"cca/src/database/triggers"
@@ -26,27 +27,29 @@ import (
 var SERVER_PORT string = "8000"
 
 func main() {
-	micro_service := flag.String("micro_service", "api_server", "Micro service ro run")
+	micro_service := flag.String("micro_service", "all", "Micro service ro run")
 	flag.Parse()
-	fmt.Println(*micro_service)
 
+	fmt.Println(*micro_service)
 	configs.InitEnv()
+	configs.EnvConfigs.MICRO_SERVICE_NAME = *micro_service
 	my_modules.InitLogger()
 	database.InitDataBases()
 	my_modules.InitFirebase()
-	go triggers.TriggerForUsersModification()
 
 	{
 		switch *micro_service {
 		case "cron_job":
 			log.Infoln("Running only cron jobs")
-			my_modules.InitCronJobs()
+			go triggers.TriggerForUsersModification()
+			app_cron_jobs.InitCronJobs()
 			return
 		case "api_server":
 			break
 		default:
 			// it will run cron service along with api service
-			go my_modules.InitCronJobs()
+			go triggers.TriggerForUsersModification()
+			go app_cron_jobs.InitCronJobs()
 		}
 	}
 

@@ -1,8 +1,6 @@
-package my_modules
+package app_cron_jobs
 
 import (
-	"cca/src/app_cron_jobs"
-
 	"github.com/robfig/cron/v3"
 )
 
@@ -10,6 +8,7 @@ var CRON_JOBS *cron.Cron
 
 func InitCronJobs() {
 	CRON_JOBS = cron.New()
-	CRON_JOBS.AddFunc("*/15 * * * *", app_cron_jobs.ClearExpiredToken)
+	CRON_JOBS.AddFunc("*/15 * * * *", ClearExpiredToken)
+	CRON_JOBS.AddFunc("*/1 * * * *", VideoStreamGeneration)
 	CRON_JOBS.Start()
 }

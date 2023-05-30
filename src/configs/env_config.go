@@ -10,6 +10,7 @@ import (
 
 type ENV_CONFIGS struct {
 	SERVER_PORT                   int64
+	MICRO_SERVICE_NAME            string
 	MONGO_DB_USER                 string
 	MONGO_DB_PASSWORD             string
 	MONGO_DB_HOST                 string

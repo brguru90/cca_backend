@@ -203,142 +203,109 @@ func GenerateVideoStream(c *gin.Context) {
 		return
 	}
 
-	stream_generation_status := make(map[primitive.ObjectID]string)
+	if _, err := database_connections.REDIS_DB_CONNECTION.Get(ctx, "video_stream_generation_in_progress").Result(); err == nil {
+		my_modules.CreateAndSendResponse(c, http.StatusOK, "warning", "Process is already running", nil)
+		return
+	}
+
+	var videos_doc_id []primitive.ObjectID
 	for i := 0; i < len(videoStreamInfo.Id); i++ {
 		objID, err := primitive.ObjectIDFromHex(videoStreamInfo.Id[i])
 		if err == nil {
-			var streamQ mongo_modals.VideoStreamGenerationQModel
-			err = database_connections.MONGO_COLLECTIONS.VideoStreamGenerationQ.FindOne(ctx, bson.M{
-				"video_id": objID,
-			}).Decode(&streamQ)
-			if err == nil {
-				stream_generation_status[objID] = "in_progress"
-			} else if err == mongo.ErrNoDocuments {
-
-				where := bson.M{"_id": objID, "uploaded_by_user": user_id}
-
-				if payload.Data.AccessLevel == "super_admin" {
-					where = bson.M{"_id": objID}
-				}
-
-				var videoData mongo_modals.VideoUploadModal
-				err := database_connections.MONGO_COLLECTIONS.VideoUploads.FindOne(ctx, where).Decode(&videoData)
-				if err != nil {
-					stream_generation_status[objID] = "not started"
-					continue
-				}
-
-				_time := time.Now()
-				_, ins_err := database_connections.MONGO_COLLECTIONS.VideoStreamGenerationQ.InsertOne(ctx, mongo_modals.VideoStreamGenerationQModel{
-					VideoID:   objID,
-					Started:   false,
-					CreatedAt: _time,
-					UpdatedAt: _time,
-				})
-				if ins_err == nil {
-					stream_generation_status[objID] = "started"
-				} else {
-					stream_generation_status[objID] = "unknown_error"
-				}
-
-			} else {
-				stream_generation_status[objID] = "unknown_error"
-			}
+			videos_doc_id = append(videos_doc_id, objID)
 		}
 	}
+	UNPROTECTED_UPLOAD_PATH := configs.EnvConfigs.UNPROTECTED_UPLOAD_PATH
+	if strings.HasSuffix(UNPROTECTED_UPLOAD_PATH, "/") {
+		UNPROTECTED_UPLOAD_PATH = UNPROTECTED_UPLOAD_PATH[:len(UNPROTECTED_UPLOAD_PATH)-1]
+	}
+	CDN_PATH := "/" + configs.EnvConfigs.UNPROTECTED_UPLOAD_PATH_ROUTE
+	unprotected_video := fmt.Sprintf("%s/video", UNPROTECTED_UPLOAD_PATH)
 
-	my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "Started", stream_generation_status)
-	// UNPROTECTED_UPLOAD_PATH := configs.EnvConfigs.UNPROTECTED_UPLOAD_PATH
-	// if strings.HasSuffix(UNPROTECTED_UPLOAD_PATH, "/") {
-	// 	UNPROTECTED_UPLOAD_PATH = UNPROTECTED_UPLOAD_PATH[:len(UNPROTECTED_UPLOAD_PATH)-1]
-	// }
-	// CDN_PATH := "/" + configs.EnvConfigs.UNPROTECTED_UPLOAD_PATH_ROUTE
-	// unprotected_video := fmt.Sprintf("%s/video", UNPROTECTED_UPLOAD_PATH)
+	where := bson.M{"_id": bson.M{"$in": videos_doc_id}, "uploaded_by_user": user_id}
 
-	// where := bson.M{"_id": bson.M{"$in": videos_doc_id}, "uploaded_by_user": user_id}
+	if payload.Data.AccessLevel == "super_admin" {
+		where = bson.M{"_id": bson.M{"$in": videos_doc_id}}
+	}
 
-	// if payload.Data.AccessLevel == "super_admin" {
-	// 	where = bson.M{"_id": bson.M{"$in": videos_doc_id}}
-	// }
+	var err error
+	var cursor *mongo.Cursor
+	defer cursor.Close(ctx)
+	cursor, err = database_connections.MONGO_COLLECTIONS.VideoUploads.Find(ctx, where)
+	if err != nil {
+		if err != context.Canceled {
+			log.WithFields(log.Fields{
+				"error": err,
+			}).Errorln("QueryRow failed ==>")
+		}
+		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "No record found", nil)
+	} else {
+		my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "Started video stream creation", nil)
+		// c.Abort()
+		// conn, _, err := c.Writer.Hijack()
+		// if err == nil {
+		// 	conn.Close()
+		// }
+		go func(ids []primitive.ObjectID) {
+			ctx, _ := context.WithTimeout(context.Background(), time.Hour*1)
+			cursor, err := database_connections.MONGO_COLLECTIONS.VideoUploads.Find(ctx, bson.M{"_id": bson.M{"$in": ids}})
+			if err == nil {
+				defer cursor.Close(ctx)
+			}
+			if err := database_connections.RedisPoolSet("video_stream_generation_in_progress", "value", 60*time.Minute); err != nil {
+				log.WithFields(log.Fields{
+					"Error": err,
+				}).Panic("Unable to write into redis pool")
+			}
+			defer func() {
+				if err := database_connections.RedisPoolDel("video_stream_generation_in_progress"); err != nil {
+					log.WithFields(log.Fields{
+						"Error": err,
+					}).Errorln("Unable to write into redis pool")
+				}
+			}()
+			for cursor.Next(ctx) {
+				var videoData mongo_modals.VideoUploadModal
+				if err = cursor.Decode(&videoData); err != nil {
+					log.Errorln(fmt.Sprintf("Scan failed: %v\n", err))
+					return
+				}
+				path_split := strings.Split(videoData.PathToOriginalVideo, "/")
+				file_full_name := strings.Split(path_split[len(path_split)-1], ".")
+				file_name := strings.Join(file_full_name[:len(file_full_name)-1], "_")
+				path_to_video_stream := ""
+				video_decryption_key := ""
+				var data my_modules.UploadedVideoInfoStruct
+				if data, err = my_modules.UploadVideoForStream(videoData.ID.Hex(), unprotected_video, file_name, videoData.PathToOriginalVideo); err == nil {
+					path_to_video_stream = data.StreamGeneratedLocation
+					video_decryption_key = data.DecryptionKey
+				} else {
+					os.Remove(data.OutputDir)
+				}
 
-	// var err error
-	// var cursor *mongo.Cursor
-	// defer cursor.Close(ctx)
-	// cursor, err = database_connections.MONGO_COLLECTIONS.VideoUploads.Find(ctx, where)
-	// if err != nil {
-	// 	if err != context.Canceled {
-	// 		log.WithFields(log.Fields{
-	// 			"error": err,
-	// 		}).Errorln("QueryRow failed ==>")
-	// 	}
-	// 	my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "No record found", nil)
-	// } else {
-	// 	my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "Started video stream creation", nil)
-	// 	// c.Abort()
-	// 	// conn, _, err := c.Writer.Hijack()
-	// 	// if err == nil {
-	// 	// 	conn.Close()
-	// 	// }
-	// 	go func(ids []primitive.ObjectID) {
-	// 		ctx, _ := context.WithTimeout(context.Background(), time.Hour*1)
-	// 		cursor, err := database_connections.MONGO_COLLECTIONS.VideoUploads.Find(ctx, bson.M{"_id": bson.M{"$in": ids}})
-	// 		if err == nil {
-	// 			defer cursor.Close(ctx)
-	// 		}
-	// 		if err := database_connections.RedisPoolSet("video_stream_generation_in_progress", "value", 60*time.Minute); err != nil {
-	// 			log.WithFields(log.Fields{
-	// 				"Error": err,
-	// 			}).Panic("Unable to write into redis pool")
-	// 		}
-	// 		defer func() {
-	// 			if err := database_connections.RedisPoolDel("video_stream_generation_in_progress"); err != nil {
-	// 				log.WithFields(log.Fields{
-	// 					"Error": err,
-	// 				}).Errorln("Unable to write into redis pool")
-	// 			}
-	// 		}()
-	// 		for cursor.Next(ctx) {
-	// 			var videoData mongo_modals.VideoUploadModal
-	// 			if err = cursor.Decode(&videoData); err != nil {
-	// 				log.Errorln(fmt.Sprintf("Scan failed: %v\n", err))
-	// 				return
-	// 			}
-	// 			path_split := strings.Split(videoData.PathToOriginalVideo, "/")
-	// 			file_full_name := strings.Split(path_split[len(path_split)-1], ".")
-	// 			file_name := strings.Join(file_full_name[:len(file_full_name)-1], "_")
-	// 			path_to_video_stream := ""
-	// 			video_decryption_key := ""
-	// 			var data my_modules.UploadedVideoInfoStruct
-	// 			if data, err = my_modules.UploadVideoForStream(videoData.ID.Hex(), unprotected_video, file_name, videoData.PathToOriginalVideo); err == nil {
-	// 				path_to_video_stream = data.StreamGeneratedLocation
-	// 				video_decryption_key = data.DecryptionKey
-	// 			} else {
-	// 				os.Remove(data.OutputDir)
-	// 			}
+				log.WithFields(log.Fields{
+					"path_to_video_stream": path_to_video_stream,
+					"link_to_video_stream": strings.Replace(path_to_video_stream, UNPROTECTED_UPLOAD_PATH, CDN_PATH, 1),
+					"video_decryption_key": video_decryption_key,
+				}).Debugln("Unable to write into redis pool")
 
-	// 			log.WithFields(log.Fields{
-	// 				"path_to_video_stream": path_to_video_stream,
-	// 				"link_to_video_stream": strings.Replace(path_to_video_stream, UNPROTECTED_UPLOAD_PATH, CDN_PATH, 1),
-	// 				"video_decryption_key": video_decryption_key,
-	// 			}).Debugln("Unable to write into redis pool")
-
-	// 			database_connections.MONGO_COLLECTIONS.VideoUploads.UpdateOne(
-	// 				context.Background(),
-	// 				bson.M{
-	// 					"_id": videoData.ID,
-	// 				},
-	// 				bson.M{
-	// 					"$set": bson.M{
-	// 						"path_to_video_stream": path_to_video_stream,
-	// 						"link_to_video_stream": strings.Replace(path_to_video_stream, UNPROTECTED_UPLOAD_PATH, CDN_PATH, 1),
-	// 						"video_decryption_key": video_decryption_key,
-	// 						"is_live":              true,
-	// 					},
-	// 				},
-	// 			)
-	// 		}
-	// 	}(videos_doc_id)
-	// }
+				database_connections.MONGO_COLLECTIONS.VideoUploads.UpdateOne(
+					context.Background(),
+					bson.M{
+						"_id": videoData.ID,
+					},
+					bson.M{
+						"$set": bson.M{
+							"path_to_video_stream": path_to_video_stream,
+							"link_to_video_stream": strings.Replace(path_to_video_stream, UNPROTECTED_UPLOAD_PATH, CDN_PATH, 1),
+							"video_decryption_key": video_decryption_key,
+							"is_live":              true,
+						},
+					},
+				)
+			}
+		}(videos_doc_id)
+	}
 
 }
 
