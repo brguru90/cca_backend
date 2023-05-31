@@ -17,6 +17,7 @@ type VideosInOrder struct {
 	DisplayOrder            int                `json:"display_order" binding:"required"  bson:"display_order"`
 	Title                   string             `json:"title"  binding:"required" bson:"title"`
 	LinkToVideoPreviewImage string             `json:"link_to_video_preview_image,omitempty"  binding:"required" bson:"link_to_video_preview_image,omitempty"`
+	LinkToVideoStream       string             `json:"link_to_video_stream,omitempty" binding:"required"  bson:"link_to_video_stream,omitempty"`
 }
 
 type VideoPlayListModal struct {
