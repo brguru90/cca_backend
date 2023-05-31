@@ -31,7 +31,7 @@ func InitApiTest(router *gin.RouterGroup) {
 	router.POST("login_mobile/", user_views.LoginWithMobile)
 	router.POST("verify_social_auth/", user_views.VerifySocialAuth)
 	router.GET("login_status/", user_views.LoginStatus)
-	router.GET("all_users/", user_views.GetAllUserData)
+	// router.GET("all_users/", user_views.GetAllUserData)
 
 	router.POST("register_build/", user_views.RegisterBuild)
 
@@ -64,10 +64,10 @@ func InitApiTest(router *gin.RouterGroup) {
 
 	{
 		super_admin := router.Group("super_admin/", middlewares.ValidateToken(my_modules.AccessLevel.SUPER_ADMIN))
-		super_admin.GET("", super_admin_views.GetUsers)
-		super_admin.POST("", super_admin_views.AddAdminUsers)
-		super_admin.PUT("", super_admin_views.UpdateAdminUsers)
-		super_admin.DELETE("", super_admin_views.RemoveAdminUsers)
+		super_admin.GET("user", super_admin_views.GetUsers)
+		super_admin.POST("user", super_admin_views.AddAdminUsers)
+		super_admin.PUT("user", super_admin_views.UpdateAdminUsersCredentials)
+		super_admin.DELETE("user", super_admin_views.RemoveAdminUsers)
 	}
 
 	{

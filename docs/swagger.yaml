@@ -328,6 +328,61 @@ definitions:
     - msg
     - status
     type: object
+  super_admin_views.AddAdminUsersReqStruct:
+    properties:
+      email:
+        type: string
+      is_super_admin:
+        type: boolean
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
+  super_admin_views.AddAdminUsersRespStruct:
+    properties:
+      data:
+        $ref: '#/definitions/mongo_modals.UsersModel'
+      msg:
+        type: string
+      status:
+        type: string
+    required:
+    - data
+    - msg
+    - status
+    type: object
+  super_admin_views.GetUsersRespStruct:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/mongo_modals.UsersModel'
+        type: array
+      msg:
+        type: string
+      status:
+        type: string
+    required:
+    - data
+    - msg
+    - status
+    type: object
+  super_admin_views.UpdateAdminUsersCredentialsReqStruct:
+    properties:
+      is_super_admin:
+        type: boolean
+      password:
+        type: string
+      user_id:
+        type: string
+    required:
+    - password
+    - user_id
+    type: object
   user_views.EnrollToCourseReqStruct:
     properties:
       playlist_ids:
@@ -1169,6 +1224,129 @@ paths:
       summary: url to signup
       tags:
       - Account
+  /super_admin/user:
+    delete:
+      consumes:
+      - application/json
+      description: allow admin to delete admin user
+      parameters:
+      - description: User ID
+        in: query
+        name: user_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/super_admin_views.AddAdminUsersRespStruct'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: url to delete user
+      tags:
+      - Super Admin (Account)
+    get:
+      description: api to fetch list of users
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/super_admin_views.GetUsersRespStruct'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: Get list of user
+      tags:
+      - Super Admin (Account)
+    post:
+      consumes:
+      - application/json
+      description: allow admin to add new admin/super_admin users
+      parameters:
+      - description: Add user
+        in: body
+        name: new_user
+        required: true
+        schema:
+          $ref: '#/definitions/super_admin_views.AddAdminUsersReqStruct'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/super_admin_views.AddAdminUsersRespStruct'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: url to add user
+      tags:
+      - Super Admin (Account)
+    put:
+      consumes:
+      - application/json
+      description: allow admin to update admin/super_admin users credentials
+      parameters:
+      - description: Data to update
+        in: body
+        name: update_data
+        required: true
+        schema:
+          $ref: '#/definitions/super_admin_views.UpdateAdminUsersCredentialsReqStruct'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: url to update user data
+      tags:
+      - Super Admin (Account)
   /user/:
     delete:
       consumes:
