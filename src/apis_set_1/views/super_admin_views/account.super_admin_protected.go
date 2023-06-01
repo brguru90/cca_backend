@@ -68,6 +68,7 @@ func GetUsers(c *gin.Context) {
 				my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Error in retriving user data", nil)
 				return
 			}
+			userData.Password = ""
 			usersData = append(usersData, userData)
 		}
 
@@ -216,7 +217,7 @@ func RemoveAdminUsers(c *gin.Context) {
 
 type UpdateAdminUsersCredentialsReqStruct struct {
 	ID           primitive.ObjectID `json:"user_id" binding:"required"`
-	Password     string             `json:"password" binding:"required"`
+	Password     string             `json:"password"`
 	IsSuperAdmin bool               `json:"is_super_admin"`
 }
 
