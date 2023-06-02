@@ -26,9 +26,12 @@ ENV RAZORPAY_KEY_ID=rzp_test_H8OTCJN1OWNZcp
 ENV RAZORPAY_KEY_SECRET=EBYdW8qGNmCDrInXgTf4yfOm
 ENV CGO_ENABLED=0
 ENV GOOS=linux
+# ENV GO111MODULE=off
+# RUN go env -w GO111MODULE=off
 
 ENV BUILDKIT_PROGRESS=plain
 ENV SERVER_PATH=/web_app/
+
 
 
 RUN echo $SERVER_PATH
@@ -39,8 +42,10 @@ RUN mkdir -p $SERVER_PATH
 WORKDIR $SERVER_PATH
 
 COPY ./src ./src
+COPY ./go.mod ./go.mod
 
 
+RUN ls -lh ./
 RUN ls -lh ./src
 
 RUN pwd
@@ -49,13 +54,15 @@ RUN echo "---------"
 RUN ls $SERVER_PATH/src
 
 
-RUN go mod init cca
-RUN go get ./src
+
+RUN go mod tidy
+# RUN go get ./src
 RUN go get -u github.com/razorpay/razorpay-go
 RUN go install github.com/razorpay/razorpay-go
 RUN go get -u github.com/swaggo/swag/cmd/swag
 RUN go install github.com/swaggo/swag/cmd/swag
-RUN ~/go/bin/swag init --dir src
+
+RUN /go/bin/swag init --dir src
 RUN go build -v -o go_server src/main.go
 
 EXPOSE $SERVER_PORT
