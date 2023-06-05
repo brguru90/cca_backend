@@ -2618,7 +2618,6 @@ const docTemplate = `{
         "super_admin_views.UpdateAdminUsersCredentialsReqStruct": {
             "type": "object",
             "required": [
-                "password",
                 "user_id"
             ],
             "properties": {
