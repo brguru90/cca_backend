@@ -1,4 +1,5 @@
-sudo mount -t gcsfuse -o rw,allow_other ccast "/home/sathyanitsme/cdn"
-sudo mount -t gcsfuse -o rw,allow_other cca-private "/home/sathyanitsme/storage"
-npm run build
+sudo -E bash -c "gcsfuse  ccast /home/sathyanitsme/cdn"
+sudo -E bash -c "gcsfuse  cca-private /home/sathyanitsme/storage"
 ./go_server
+
+sudo mount -t gcsfuse -o rw,allow_other  ccast "/home/sathyanitsme/cdn"
