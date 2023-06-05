@@ -47,7 +47,7 @@
     "remove_autostart_prod": "pm2 unstartup",
     "pm2_save": "pm2 save",
 
-    "enable_prod": "npm-run-all --serial swag install_prod  autostart_prod pm2_save pm2_list",
+    "enable_prod": "npm-run-all --serial install_prod  autostart_prod pm2_save pm2_list",
     "disable_prod": "npm-run-all --serial uninstall_prod' remove_autostart_prod pm2_save pm2_list",
     "restart_prod": "npm-run-all --serial disable_prod enable_prod",
     "pm2_list": "pm2 list"
