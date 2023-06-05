@@ -113,5 +113,8 @@ func main() {
 
 	log.Debugf("http://127.0.0.1:%d", configs.EnvConfigs.SERVER_PORT)
 	log.Debugf("http://127.0.0.1:%d/api/swagger", configs.EnvConfigs.SERVER_PORT)
-	srv.ListenAndServe()
+	err := srv.ListenAndServe()
+	if err != nil {
+		log.Panic(err)
+	}
 }
