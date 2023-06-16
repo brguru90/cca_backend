@@ -112,16 +112,18 @@ func VideoStreamGeneration() {
 			video_decryption_key := ""
 			var data my_modules.UploadedVideoInfoStruct
 			log.WithFields(log.Fields{
-				"path_to_video_stream": path_to_video_stream,
-				"link_to_video_stream": strings.Replace(path_to_video_stream, UNPROTECTED_UPLOAD_PATH, CDN_PATH, 1),
-				"video_decryption_key": video_decryption_key,
-				"title":                videoData.Title,
-				"id":                   videoData.ID,
+				"title": videoData.Title,
+				"id":    videoData.ID,
 			}).Debugln("ffmpeg process started")
 			if data, err = my_modules.UploadVideoForStream(videoData.ID.Hex(), unprotected_video, file_name, videoData.PathToOriginalVideo); err == nil {
 				path_to_video_stream = data.StreamGeneratedLocation
 				video_decryption_key = data.DecryptionKey
 			} else {
+				log.WithFields(log.Fields{
+					"title": videoData.Title,
+					"id":    videoData.ID,
+					"err":   err,
+				}).Errorln("ffmpeg process failed")
 				os.Remove(data.OutputDir)
 			}
 
