@@ -103,6 +103,7 @@ func CreateHLS(video_id string, inputFile string, outputDir string, segmentDurat
 		output, err := ffprobeCmd.CombinedOutput()
 
 		if err != nil {
+			log.Debugf("failed to get info of video: %v\nOutput: %s", err, string(output))
 			return UploadedVideoInfoStruct{}, err
 		}
 		if err == nil && !strings.Contains(string(output), "Stream #0:1") {
