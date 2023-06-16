@@ -409,6 +409,8 @@ func VerifySocialAuth(c *gin.Context) {
 			updateUserData.AuthProvider = newUserData.AuthProvider
 			updateUserData.Mobile = newUserData.Mobile
 			updateUserData.Username = socialAuth.Name
+			updateUserData.AccessLevel = my_modules.AccessLevel.CUSTOMER.Label
+			updateUserData.AccessLevelWeight = my_modules.AccessLevel.CUSTOMER.Weight
 			updateUserData.Password = hex.EncodeToString(ph[:])
 			if updateWith, bsonParseErr := my_modules.StructToBsonD(updateUserData); bsonParseErr == nil {
 				updateRes, update_err := database_connections.MONGO_COLLECTIONS.Users.UpdateOne(ctx,
