@@ -74,7 +74,7 @@ func main() {
 	// all_router = gin.New()
 	file_upload_size_mb := 1024 * 2
 	all_router.MaxMultipartMemory = int64(file_upload_size_mb) << 20
-	all_router.Use(static.Serve("/", static.LocalFile("../frontend/build", true)))
+	all_router.Use(static.Serve("/", static.LocalFile("./frontend/build", true)))
 	all_router.StaticFS(configs.EnvConfigs.UNPROTECTED_UPLOAD_PATH_ROUTE, http.Dir(configs.EnvConfigs.UNPROTECTED_UPLOAD_PATH))
 	if configs.EnvConfigs.GIN_MODE != "release" {
 		all_router.Use(cors.Default())
@@ -113,5 +113,8 @@ func main() {
 
 	log.Debugf("http://127.0.0.1:%d", configs.EnvConfigs.SERVER_PORT)
 	log.Debugf("http://127.0.0.1:%d/api/swagger", configs.EnvConfigs.SERVER_PORT)
-	srv.ListenAndServe()
+	err := srv.ListenAndServe()
+	if err != nil {
+		log.Panic(err)
+	}
 }

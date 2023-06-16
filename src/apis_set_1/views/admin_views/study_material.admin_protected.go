@@ -85,10 +85,12 @@ func UploadStudyMaterials(c *gin.Context) {
 	unprotected_image := fmt.Sprintf("%s/image", UNPROTECTED_UPLOAD_PATH)
 	upload_path := fmt.Sprintf("%s/docs", UNPROTECTED_UPLOAD_PATH)
 	if err := os.MkdirAll(upload_path, 0755); err != nil {
+		log.Warnln(err)
 		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Error creating directory", nil)
 		return
 	}
 	if err := os.MkdirAll(unprotected_image, 0755); err != nil {
+		log.Warnln(err)
 		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Error creating directory", nil)
 		return
 	}

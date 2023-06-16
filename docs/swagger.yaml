@@ -392,7 +392,6 @@ definitions:
       user_id:
         type: string
     required:
-    - password
     - user_id
     type: object
   user_views.EnrollToCourseReqStruct:

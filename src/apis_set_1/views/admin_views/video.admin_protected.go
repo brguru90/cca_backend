@@ -81,10 +81,12 @@ func UploadVideo(c *gin.Context) {
 	protected_video := fmt.Sprintf("%s/video", PROTECTED_UPLOAD_PATH)
 	upload_path := fmt.Sprintf("%s/original_video", protected_video)
 	if err := os.MkdirAll(upload_path, 0755); err != nil {
+		log.Warnln(err)
 		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Error creating directory", nil)
 		return
 	}
 	if err := os.MkdirAll(unprotected_image, 0755); err != nil {
+		log.Warnln(err)
 		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Error creating directory", nil)
 		return
 	}
