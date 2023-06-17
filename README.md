@@ -30,6 +30,11 @@ ccast    /home/sathyanitsme/cdn gcsfuse rw,allow_other,x-systemd.requires=networ
 cca-private /home/sathyanitsme/storage gcsfuse rw,allow_other,x-systemd.requires=network-online.target,uid=0,gid=1002,file_mode=0777,dir_mode=0777
 ```
 
+# -- add below to crontab (command crontab -e) to make sure the drive mounted --
+```
+@reboot sleep 60 && sudo systemctl daemon-reload && sudo systemctl restart local-fs.target
+```
+
 # -- run below command to restart file service --
 
 ```
