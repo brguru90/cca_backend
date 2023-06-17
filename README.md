@@ -41,6 +41,6 @@ cca-private /home/sathyanitsme/storage gcsfuse rw,allow_other,x-systemd.requires
 umount /home/sathyanitsme/cdn
 umount /home/sathyanitsme/storage
 systemctl daemon-reload
-sudo systemctl restart local-fs.target
+systemctl restart local-fs.target
 ```
 
