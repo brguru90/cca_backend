@@ -723,8 +723,65 @@ func UpdatePlayList(c *gin.Context) {
 
 }
 
-func RemovePlayList(c *gin.Context) {
+type RemovePlayListReqStruct struct {
+	PlaylistId string `json:"playlist_id" binding:"required"`
+}
 
+// @BasePath /api/
+// @Summary Delete playlist
+// @Schemes
+// @Description api to Delete playlist
+// @Tags Playlist
+// @Accept json
+// @Produce json
+// @Param playlists body RemovePlayListReqStruct true "Playlist id"
+// @Success 200 {object} my_modules.ResponseFormat
+// @Failure 400 {object} my_modules.ResponseFormat
+// @Failure 403 {object} my_modules.ResponseFormat
+// @Failure 500 {object} my_modules.ResponseFormat
+// @Router /admin/playlist/ [delete]
+func RemovePlayList(c *gin.Context) {
+	ctx := c.Request.Context()
+	var playlists RemovePlayListReqStruct
+	if err := c.ShouldBind(&playlists); err != nil {
+		log.Errorln(err)
+		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Invalid playlist payload", nil)
+		return
+	}
+	payload, ok := my_modules.ExtractTokenPayload(c)
+	if !ok {
+		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "Unable to get user info", nil)
+		return
+	}
+
+	_id, _id_err := primitive.ObjectIDFromHex(payload.Data.ID)
+	if payload.Data.ID == "" || _id_err != nil {
+		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "UUID of user is not provided", _id_err)
+		return
+	}
+
+	playlist_id, _id_err := primitive.ObjectIDFromHex(playlists.PlaylistId)
+	if playlists.PlaylistId == "" || _id_err != nil {
+		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "UUID of user is not provided", _id_err)
+		return
+	}
+
+	where := bson.M{
+		"_id":             playlist_id,
+		"created_by_user": _id,
+	}
+	if payload.Data.AccessLevel == "super_admin" {
+		where = bson.M{"_id": playlist_id}
+	}
+
+	if _, err := database_connections.MONGO_COLLECTIONS.VideoPlayList.DeleteOne(ctx, where); err != nil {
+		log.WithFields(log.Fields{
+			"Error": err,
+		}).Errorln("delete playlists")
+		my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Failed to delete playlist", nil)
+		return
+	}
+	my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "Deleted successfully", nil)
 }
 
 type GetAllSubscriptionPackagesStruct struct {

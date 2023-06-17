@@ -84,6 +84,13 @@ definitions:
     - playlist_id
     - videos_ids
     type: object
+  admin_views.RemovePlayListReqStruct:
+    properties:
+      playlist_id:
+        type: string
+    required:
+    - playlist_id
+    type: object
   admin_views.StudyMaterialIDs:
     properties:
       docs_ids:
@@ -758,6 +765,39 @@ paths:
       tags:
       - Manage Videos
   /admin/playlist/:
+    delete:
+      consumes:
+      - application/json
+      description: api to Delete playlist
+      parameters:
+      - description: Playlist id
+        in: body
+        name: playlists
+        required: true
+        schema:
+          $ref: '#/definitions/admin_views.RemovePlayListReqStruct'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: Delete playlist
+      tags:
+      - Playlist
     get:
       consumes:
       - application/json

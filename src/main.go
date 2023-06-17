@@ -72,7 +72,7 @@ func main() {
 	// https://github.com/gin-gonic/gin
 
 	// all_router = gin.New()
-	file_upload_size_mb := 1024 * 2
+	file_upload_size_mb := 1024 * 10
 	all_router.MaxMultipartMemory = int64(file_upload_size_mb) << 20
 	all_router.Use(static.Serve("/", static.LocalFile("./frontend/build", true)))
 	all_router.StaticFS(configs.EnvConfigs.UNPROTECTED_UPLOAD_PATH_ROUTE, http.Dir(configs.EnvConfigs.UNPROTECTED_UPLOAD_PATH))

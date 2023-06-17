@@ -349,6 +349,56 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "delete": {
+                "description": "api to Delete playlist",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Playlist"
+                ],
+                "summary": "Delete playlist",
+                "parameters": [
+                    {
+                        "description": "Playlist id",
+                        "name": "playlists",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/admin_views.RemovePlayListReqStruct"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/my_modules.ResponseFormat"
+                        }
+                    }
+                }
             }
         },
         "/admin/subscription_package/": {
@@ -2176,6 +2226,17 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/mongo_modals.VideosInOrder"
                     }
+                }
+            }
+        },
+        "admin_views.RemovePlayListReqStruct": {
+            "type": "object",
+            "required": [
+                "playlist_id"
+            ],
+            "properties": {
+                "playlist_id": {
+                    "type": "string"
                 }
             }
         },
