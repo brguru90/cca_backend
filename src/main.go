@@ -106,8 +106,8 @@ func main() {
 	srv := &http.Server{
 		Addr:           bind_to_host,
 		Handler:        all_router,
-		ReadTimeout:    5 * time.Minute,
-		WriteTimeout:   200 * time.Second,
+		ReadTimeout:    30 * time.Minute,
+		WriteTimeout:   5 * time.Minute,
 		MaxHeaderBytes: file_upload_size_mb << 20,
 	}
 
