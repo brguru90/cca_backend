@@ -58,7 +58,8 @@ func VideoStreamGeneration() {
 	if err := database_connections.RedisPoolSet("video_stream_generation_in_progress", "value", 60*time.Minute); err != nil {
 		log.WithFields(log.Fields{
 			"Error": err,
-		}).Panic("Unable to write into redis pool")
+		}).Errorln("Unable to write into redis pool")
+		return
 	}
 
 	go func() {
