@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -24,6 +25,9 @@ func UploadVideoForStream(video_id string, base_path string, video_title string,
 }
 
 func CreateHLS(video_id string, inputFile string, outputDir string, segmentDuration int) (UploadedVideoInfoStruct, error) {
+	cpu_count := runtime.NumCPU()
+	log.Debugf("cpu count=%d", cpu_count)
+	// https://trac.ffmpeg.org/wiki/Encode/H.264
 	// Create the output directory if it does not exist
 	if err := os.MkdirAll(outputDir, 0755); err != nil {
 		return UploadedVideoInfoStruct{}, err
@@ -62,17 +66,18 @@ func CreateHLS(video_id string, inputFile string, outputDir string, segmentDurat
 	// 	"-f", "hls",
 	// 	fmt.Sprintf("%s/playlist.m3u8", outputDir),
 	// )
-
+	// -threads 4 -filter_complex_threads 4 -vsync 1
 	// -vf pad="width=ceil(iw/2)*2:height=ceil(ih/2)*2"
 	ffmpegCmd := exec.Command(
 		"ffmpeg",
 		"-i", inputFile,
 		"-hls_key_info_file", key_info_file_path,
+		"-tune", "zerolatency",
 		"-filter_complex", `[0:v]split=4[v1][v2][v3][v4]; [v1]copy[v1out]; [v2]scale='trunc(min(1,min(1920/iw,1024/ih))*iw/2)*2':'trunc(min(1,min(1920/iw,1024/ih))*ih/2)*2'[v2out]; [v3]scale='trunc(min(1,min(640/iw,360/ih))*iw/2)*2':'trunc(min(1,min(640/iw,360/ih))*ih/2)*2'[v3out]; [v4]scale='trunc(min(1,min(360/iw,128/ih))*iw/2)*2':'trunc(min(1,min(360/iw,128/ih))*ih/2)*2'[v4out]`,
-		"-map", "[v1out]", "-c:v:0", "libx264", "-b:v:0", "10M", "-maxrate:v:0", "10M", "-bufsize:v:0", "15M", "-preset", "medium", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
-		"-map", "[v2out]", "-c:v:1", "libx264", "-b:v:1", "3M", "-maxrate:v:1", "3M", "-bufsize:v:1", "3M", "-preset", "medium", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
-		"-map", "[v3out]", "-c:v:2", "libx264", "-b:v:2", "1M", "-maxrate:v:2", "1M", "-bufsize:v:2", "1M", "-preset", "medium", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
-		"-map", "[v4out]", "-c:v:3", "libx264", "-b:v:3", "0.5M", "-maxrate:v:3", "0.5M", "-bufsize:v:3", "0.5M", "-preset", "medium", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
+		"-map", "[v1out]", "-c:v:0", "libx264", "-b:v:0", "10M", "-maxrate:v:0", "10M", "-bufsize:v:0", "15M", "-preset", "ultrafast", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
+		"-map", "[v2out]", "-c:v:1", "libx264", "-b:v:1", "3M", "-maxrate:v:1", "3M", "-bufsize:v:1", "3M", "-preset", "ultrafast", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
+		"-map", "[v3out]", "-c:v:2", "libx264", "-b:v:2", "1M", "-maxrate:v:2", "1M", "-bufsize:v:2", "1M", "-preset", "ultrafast", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
+		"-map", "[v4out]", "-c:v:3", "libx264", "-b:v:3", "0.5M", "-maxrate:v:3", "0.5M", "-bufsize:v:3", "0.5M", "-preset", "veryslow", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
 		"-map", "a:0", "-c:a:0", "aac", "-b:a:0", "128k", "-ac", "2",
 		"-map", "a:0", "-c:a:1", "aac", "-b:a:1", "96k", "-ac", "2",
 		"-map", "a:0", "-c:a:2", "aac", "-b:a:2", "48k", "-ac", "2",
@@ -111,11 +116,12 @@ func CreateHLS(video_id string, inputFile string, outputDir string, segmentDurat
 				"ffmpeg",
 				"-i", inputFile,
 				"-hls_key_info_file", key_info_file_path,
+				"-tune", "zerolatency",
 				"-filter_complex", `[0:v]split=4[v1][v2][v3][v4]; [v1]copy[v1out]; [v2]scale='trunc(min(1,min(1920/iw,1024/ih))*iw/2)*2':'trunc(min(1,min(1920/iw,1024/ih))*ih/2)*2'[v2out]; [v3]scale='trunc(min(1,min(640/iw,360/ih))*iw/2)*2':'trunc(min(1,min(640/iw,360/ih))*ih/2)*2'[v3out]; [v4]scale='trunc(min(1,min(360/iw,128/ih))*iw/2)*2':'trunc(min(1,min(360/iw,128/ih))*ih/2)*2'[v4out]`,
-				"-map", "[v1out]", "-c:v:0", "libx264", "-b:v:0", "10M", "-maxrate:v:0", "10M", "-bufsize:v:0", "15M", "-preset", "medium", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
-				"-map", "[v2out]", "-c:v:1", "libx264", "-b:v:1", "3M", "-maxrate:v:1", "3M", "-bufsize:v:1", "3M", "-preset", "medium", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
-				"-map", "[v3out]", "-c:v:2", "libx264", "-b:v:2", "1M", "-maxrate:v:2", "1M", "-bufsize:v:2", "1M", "-preset", "medium", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
-				"-map", "[v4out]", "-c:v:3", "libx264", "-b:v:3", "0.5M", "-maxrate:v:3", "0.5M", "-bufsize:v:3", "0.5M", "-preset", "medium", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
+				"-map", "[v1out]", "-c:v:0", "libx264", "-b:v:0", "10M", "-maxrate:v:0", "10M", "-bufsize:v:0", "15M", "-preset", "ultrafast", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
+				"-map", "[v2out]", "-c:v:1", "libx264", "-b:v:1", "3M", "-maxrate:v:1", "3M", "-bufsize:v:1", "3M", "-preset", "ultrafast", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
+				"-map", "[v3out]", "-c:v:2", "libx264", "-b:v:2", "1M", "-maxrate:v:2", "1M", "-bufsize:v:2", "1M", "-preset", "ultrafast", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
+				"-map", "[v4out]", "-c:v:3", "libx264", "-b:v:3", "0.5M", "-maxrate:v:3", "0.5M", "-bufsize:v:3", "0.5M", "-preset", "veryslow", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
 				"-f", "hls", "-hls_time", "2", "-hls_playlist_type", "vod",
 				"-hls_flags", "independent_segments", "-hls_segment_type", "mpegts",
 				"-hls_segment_filename", fmt.Sprintf("%s/playlist_%%v/data%%02d.ts", outputDir),
