@@ -2,9 +2,11 @@ package my_modules
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"time"
 
+	"github.com/shirou/gopsutil/v3/process"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -39,4 +41,21 @@ func CopyFile(src string, dst string) error {
 	// Write data to dst
 	err = ioutil.WriteFile(dst, data, 0777)
 	return err
+}
+
+func KillProcess(name string) error {
+	processes, err := process.Processes()
+	if err != nil {
+		return err
+	}
+	for _, p := range processes {
+		n, err := p.Name()
+		if err != nil {
+			return err
+		}
+		if n == name {
+			return p.Kill()
+		}
+	}
+	return fmt.Errorf("process not found")
 }
