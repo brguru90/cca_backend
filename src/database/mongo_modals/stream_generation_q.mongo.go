@@ -11,14 +11,15 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/x/bsonx"
 )
 
 type VideoStreamGenerationQModel struct {
 	ID        primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	VideoID   primitive.ObjectID `json:"video_id,omitempty" bson:"video_id,omitempty"`
 	Started   bool               `json:"started" bson:"started"`
-	CreatedAt time.Time          `json:"createdAt,omitempty"`
-	UpdatedAt time.Time          `json:"updatedAt,omitempty"`
+	CreatedAt time.Time          `json:"createdAt,omitempty" bson:"createdAt,omitempty"`
+	UpdatedAt time.Time          `json:"updatedAt,omitempty" bson:"updatedAt,omitempty"`
 }
 
 func InitVideoStreamGenerationQCollection() {
@@ -27,6 +28,10 @@ func InitVideoStreamGenerationQCollection() {
 			Keys: bson.M{
 				"video_id": 1,
 			},
+		},
+		{
+			Keys:    bsonx.Doc{{Key: "createdAt", Value: bsonx.Int32(1)}},
+			Options: options.Index().SetExpireAfterSeconds(60 * 60 * 6), // delete video stream generation entry after 6 hour
 		},
 	}
 

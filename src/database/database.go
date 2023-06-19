@@ -21,4 +21,5 @@ func InitDataBases() {
 	mongo_modals.InitStudyMaterialCollection()
 	mongo_modals.InitStudyMaterialUserSubscriptionCollection()
 	mongo_modals.InitStudyMaterialCategoryModalCollection()
+	mongo_modals.InitVideoStreamGenerationQCollection()
 }

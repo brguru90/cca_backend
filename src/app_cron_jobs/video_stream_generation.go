@@ -25,14 +25,11 @@ func VideoStreamGeneration() {
 
 	ctx := context.Background()
 
-	if _, err := database_connections.REDIS_DB_CONNECTION.Get(ctx, "video_stream_generation_in_progress").Result(); err == nil {
-		log.Warning("Stream generation in progress")
-		return
-	}
-
 	var err error
 	var cursor *mongo.Cursor
-	cursor, err = database_connections.MONGO_COLLECTIONS.VideoStreamGenerationQ.Find(ctx, bson.M{})
+	cursor, err = database_connections.MONGO_COLLECTIONS.VideoStreamGenerationQ.Find(ctx, bson.M{
+		"started": false,
+	})
 	if err != nil {
 		if err != context.Canceled {
 			log.WithFields(log.Fields{
@@ -53,12 +50,6 @@ func VideoStreamGeneration() {
 
 	if len(videos_ids) == 0 {
 		return
-	}
-
-	if err := database_connections.RedisPoolSet("video_stream_generation_in_progress", "value", 60*time.Minute); err != nil {
-		log.WithFields(log.Fields{
-			"Error": err,
-		}).Panic("Unable to write into redis pool")
 	}
 
 	go func() {
@@ -90,14 +81,6 @@ func VideoStreamGeneration() {
 		}
 		CDN_PATH := "/" + configs.EnvConfigs.UNPROTECTED_UPLOAD_PATH_ROUTE
 		unprotected_video := fmt.Sprintf("%s/video", UNPROTECTED_UPLOAD_PATH)
-
-		defer func() {
-			if err := database_connections.RedisPoolDel("video_stream_generation_in_progress"); err != nil {
-				log.WithFields(log.Fields{
-					"Error": err,
-				}).Errorln("Unable to delete in redis pool")
-			}
-		}()
 
 		for cursor.Next(ctx) {
 			var videoData mongo_modals.VideoUploadModal

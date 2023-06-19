@@ -50,6 +50,9 @@ func CreateHLS(video_id string, inputFile string, outputDir string, segmentDurat
 		return UploadedVideoInfoStruct{}, err
 	}
 
+	t := exec.Command("killall -9 ffmpeg")
+	t.CombinedOutput()
+
 	// ffmpegCmd := exec.Command(
 	// 	"ffmpeg",
 	// 	"-i", inputFile,
