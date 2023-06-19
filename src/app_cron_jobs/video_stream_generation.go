@@ -16,6 +16,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func VideoStreamGeneration() {
@@ -25,13 +26,13 @@ func VideoStreamGeneration() {
 
 	ctx := context.Background()
 
-	// opts := options.Count().SetHint("_id_")
-	// listCount, count_err := database_connections.MONGO_COLLECTIONS.StudyMaterial.CountDocuments(ctx, bson.M{
-	// 	"started": true,
-	// }, opts)
-	// if count_err == nil && listCount > 0 {
-	// 	return
-	// }
+	opts := options.Count().SetHint("_id_")
+	listCount, count_err := database_connections.MONGO_COLLECTIONS.StudyMaterial.CountDocuments(ctx, bson.M{
+		"started": true,
+	}, opts)
+	if count_err == nil && listCount > 0 {
+		return
+	}
 
 	var err error
 	var cursor *mongo.Cursor
