@@ -18,6 +18,7 @@ type VideoStreamGenerationQModel struct {
 	ID        primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	VideoID   primitive.ObjectID `json:"video_id,omitempty" bson:"video_id,omitempty"`
 	Started   bool               `json:"started" bson:"started"`
+	StartedAt time.Time          `json:"startedAt,omitempty" bson:"startedAt,omitempty"`
 	CreatedAt time.Time          `json:"createdAt,omitempty" bson:"createdAt,omitempty"`
 	UpdatedAt time.Time          `json:"updatedAt,omitempty" bson:"updatedAt,omitempty"`
 }
@@ -30,8 +31,8 @@ func InitVideoStreamGenerationQCollection() {
 			},
 		},
 		{
-			Keys:    bsonx.Doc{{Key: "createdAt", Value: bsonx.Int32(1)}},
-			Options: options.Index().SetExpireAfterSeconds(60 * 60 * 6), // delete video stream generation entry after 6 hour
+			Keys:    bsonx.Doc{{Key: "startedAt", Value: bsonx.Int32(1)}},
+			Options: options.Index().SetExpireAfterSeconds(60 * 60 * 6), // delete video stream generation entry after 6 hour from process start
 		},
 	}
 

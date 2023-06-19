@@ -70,7 +70,8 @@ func VideoStreamGeneration() {
 			bson.M{"video_id": bson.M{"$in": videos_ids}},
 			bson.M{
 				"$set": bson.M{
-					"started": true,
+					"started":   true,
+					"startedAt": time.Now(),
 				},
 			},
 		)
