@@ -56,9 +56,8 @@ func CreateHLS(video_id string, inputFile string, outputDir string, segmentDurat
 
 	{
 		err := KillProcess("ffmpeg")
-		if err != nil {
-			log.Errorf("failed to kill existing ffmpeg process: %v\n", err)
-			return UploadedVideoInfoStruct{}, err
+		if err == nil {
+			log.Warnln("killed on going ffmpeg process")
 		}
 	}
 
