@@ -1,0 +1,30 @@
+export PATH=$PATH:/usr/local/go/bin
+
+
+export  SERVER_PORT=80
+export  MONGO_DATABASE=cca
+export  MONGO_DB_PORT=27017
+export  MONGO_DB_USER=root
+export  MONGO_DB_PASSWORD=root
+export  MONGO_DB_HOST=localhost
+export  MONGO_CUSTOM_URL="mongodb+srv://nmbiradar:Passme%40123@cluster0.kwd0t.mongodb.net/?retryWrites=true&w=majority"
+export  REDIS_ADDR=127.0.0.1:6379
+export  JWT_SECRET_KEY=default_dev_jwt_key_1234
+export  JWT_TOKEN_EXPIRE_IN_MINS=60
+export  ENABLE_REDIS_CACHE=true
+export  RESPONSE_CACHE_TTL_IN_SECS=300
+export  APP_export=development
+export  NODE_export=development
+export  GIN_MODE=debug
+export  DISABLE_COLOR=false
+export  FIREBASE_PUBLIC_API_KEY=AIzaSyAJwqFWjDt45O1kJVqRNt2SYt7aZZZsTFI
+export  FIREBASE_AUTH_DOMAIN=crud-eb4cc.firebaseapp.com
+export  FIREBASE_PROJECT_ID=crud-eb4cc
+export  PROTECTED_UPLOAD_PATH=/home/sathyanitsme/storage
+export  PROTECTED_UPLOAD_PATH_ROUTE=private
+export  UNPROTECTED_UPLOAD_PATH=/home/sathyanitsme/cdn/public
+export  UNPROTECTED_UPLOAD_PATH_ROUTE=public
+export  RAZORPAY_KEY_ID=rzp_test_H8OTCJN1OWNZcp
+export  RAZORPAY_KEY_SECRET=EBYdW8qGNmCDrInXgTf4yfOm
+export  CGO_ENABLED=0
+export  GOOS=linux

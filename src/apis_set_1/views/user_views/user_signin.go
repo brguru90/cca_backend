@@ -401,7 +401,7 @@ func VerifySocialAuth(c *gin.Context) {
 			}
 		}
 
-		if token.Firebase.SignInProvider == "phone" {
+		if login && token.Firebase.SignInProvider == "phone" {
 			ph := sha1.Sum([]byte(socialAuth.Password))
 			var updateUserData mongo_modals.UsersModel
 			// updateUserData := newUserData
@@ -428,6 +428,12 @@ func VerifySocialAuth(c *gin.Context) {
 					}).Error("Password update failed for mobile login,due to mismatch of credential")
 				} else if updateRes.ModifiedCount > 0 {
 					newUserData = updateUserData
+				}
+				if updateRes.MatchedCount != 0 {
+					err := database_connections.MONGO_COLLECTIONS.Users.FindOne(ctx, filter).Decode(&newUserData)
+					if err != nil {
+						newUserData = updateUserData
+					}
 				}
 			} else {
 				log.WithFields(log.Fields{

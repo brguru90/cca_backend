@@ -82,7 +82,6 @@ func InitApiTest(router *gin.RouterGroup) {
 		admin_router.GET("doc_upload_list/", admin_views.GetAllUploadedStudyMaterials)
 		admin_router.DELETE("delete_study_material/", admin_views.RemoveStudyMaterial)
 
-		// Todo, pending APIs
 		admin_router.GET("playlist/", admin_views.GetAllPlayLists)
 		admin_router.POST("playlist/", admin_views.CreatePlayList)
 		admin_router.PUT("playlist/", admin_views.UpdatePlayList)

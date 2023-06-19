@@ -28,7 +28,7 @@ func ConnectRedis() {
 		Addr:     configs.EnvConfigs.REDIS_ADDR,
 		Password: "", // no password set
 		DB:       0,  // use default DB,
-		PoolSize: 1000,
+		PoolSize: 200,
 	})
 
 	_ping := REDIS_DB_CONNECTION.Ping(ctx)
@@ -60,7 +60,7 @@ func InitRedisPool() {
 	// https://github.com/gomodule/redigo/
 	REDIS_DB_CONNECTION_POOL = &redispool.Pool{
 		MaxIdle:   100,
-		MaxActive: 1500,
+		MaxActive: 600,
 		Wait:      true,
 		Dial: func() (redispool.Conn, error) {
 			conn, err := redispool.Dial("tcp", configs.EnvConfigs.REDIS_ADDR)
