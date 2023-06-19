@@ -102,7 +102,7 @@ func VideoStreamGeneration() {
 			file_full_name := strings.Split(path_split[len(path_split)-1], ".")
 			file_name := strings.Join(file_full_name[:len(file_full_name)-1], "_")
 			// create new unique path
-			file_name = fmt.Sprintf("%s_timestamp%d", file_name, time.Now().UnixNano())
+			file_name = fmt.Sprintf("%s_timestamp_%duns", file_name, time.Now().UnixNano())
 			path_to_video_stream := ""
 			video_decryption_key := ""
 			var data my_modules.UploadedVideoInfoStruct

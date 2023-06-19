@@ -29,7 +29,7 @@ func CreateHLS(video_id string, inputFile string, outputDir string, segmentDurat
 	log.Debugf("cpu count=%d", cpu_count)
 	// https://trac.ffmpeg.org/wiki/Encode/H.264
 	// Create the output directory if it does not exist
-	if err := os.MkdirAll(outputDir, 0755); err != nil {
+	if err := os.MkdirAll(outputDir, 0775); err != nil {
 		return UploadedVideoInfoStruct{}, err
 	}
 
@@ -92,7 +92,7 @@ func CreateHLS(video_id string, inputFile string, outputDir string, segmentDurat
 		"-map", "a:0", "-c:a:3", "aac", "-b:a:3", "28k", "-ac", "2",
 		"-f", "hls", "-hls_time", "6", "-hls_playlist_type", "vod",
 		"-hls_flags", "independent_segments", "-hls_segment_type", "mpegts",
-		"-hls_segment_filename", fmt.Sprintf("%s/playlist_%%v/data%%02d.ts", outputDir),
+		"-hls_segment_filename", fmt.Sprintf("%s/playlist_%%v/data%%05d.ts", outputDir),
 		"-master_pl_name", "playlist.m3u8",
 		"-var_stream_map", "v:0,a:0 v:1,a:1 v:2,a:2 v:3,a:3",
 		fmt.Sprintf("%s/playlist_%%v/manifest.m3u8", outputDir),
@@ -133,7 +133,7 @@ func CreateHLS(video_id string, inputFile string, outputDir string, segmentDurat
 				"-map", "[v4out]", "-c:v:3", "libx264", "-b:v:3", "0.5M", "-maxrate:v:3", "0.5M", "-bufsize:v:3", "0.5M", "-preset", "veryslow", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
 				"-f", "hls", "-hls_time", "6", "-hls_playlist_type", "vod",
 				"-hls_flags", "independent_segments", "-hls_segment_type", "mpegts",
-				"-hls_segment_filename", fmt.Sprintf("%s/playlist_%%v/data%%02d.ts", outputDir),
+				"-hls_segment_filename", fmt.Sprintf("%s/playlist_%%v/data%%05d.ts", outputDir),
 				"-master_pl_name", "playlist.m3u8",
 				"-var_stream_map", "v:0 v:1 v:2 v:3",
 				fmt.Sprintf("%s/playlist_%%v/manifest.m3u8", outputDir),
