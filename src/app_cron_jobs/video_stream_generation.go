@@ -101,6 +101,8 @@ func VideoStreamGeneration() {
 			path_split := strings.Split(videoData.PathToOriginalVideo, "/")
 			file_full_name := strings.Split(path_split[len(path_split)-1], ".")
 			file_name := strings.Join(file_full_name[:len(file_full_name)-1], "_")
+			// create new unique path
+			file_name = fmt.Sprintf("%s_timestamp%d", file_name, time.Now().UnixNano())
 			path_to_video_stream := ""
 			video_decryption_key := ""
 			var data my_modules.UploadedVideoInfoStruct
@@ -109,8 +111,14 @@ func VideoStreamGeneration() {
 				"id":    videoData.ID,
 			}).Debugln("ffmpeg process started")
 			if data, err = my_modules.UploadVideoForStream(videoData.ID.Hex(), unprotected_video, file_name, videoData.PathToOriginalVideo); err == nil {
+				// to update new file path
 				path_to_video_stream = data.StreamGeneratedLocation
 				video_decryption_key = data.DecryptionKey
+				// remove old files
+				video_stream_path := strings.Split(videoData.PathToVideoStream, "/")
+				video_stream_path = video_stream_path[:len(video_stream_path)-1]
+				os.Remove(videoData.PathToOriginalVideo)
+				os.RemoveAll(strings.Join(video_stream_path, "/"))
 			} else {
 				log.WithFields(log.Fields{
 					"title": videoData.Title,
