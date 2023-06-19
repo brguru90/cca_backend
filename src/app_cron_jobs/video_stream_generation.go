@@ -98,11 +98,15 @@ func VideoStreamGeneration() {
 				log.Errorln(fmt.Sprintf("Scan failed: %v\n", err))
 				return
 			}
+			// remove old files
+			video_stream_path := strings.Split(videoData.PathToVideoStream, "/")
+			video_stream_path = video_stream_path[:len(video_stream_path)-1]
+			os.Remove(videoData.PathToOriginalVideo)
+			os.RemoveAll(strings.Join(video_stream_path, "/"))
+
 			path_split := strings.Split(videoData.PathToOriginalVideo, "/")
 			file_full_name := strings.Split(path_split[len(path_split)-1], ".")
 			file_name := strings.Join(file_full_name[:len(file_full_name)-1], "_")
-			// create new unique path
-			file_name = fmt.Sprintf("%s_timestamp_%duns", file_name, time.Now().UnixNano())
 			path_to_video_stream := ""
 			video_decryption_key := ""
 			var data my_modules.UploadedVideoInfoStruct
@@ -114,11 +118,6 @@ func VideoStreamGeneration() {
 				// to update new file path
 				path_to_video_stream = data.StreamGeneratedLocation
 				video_decryption_key = data.DecryptionKey
-				// remove old files
-				video_stream_path := strings.Split(videoData.PathToVideoStream, "/")
-				video_stream_path = video_stream_path[:len(video_stream_path)-1]
-				os.Remove(videoData.PathToOriginalVideo)
-				os.RemoveAll(strings.Join(video_stream_path, "/"))
 			} else {
 				log.WithFields(log.Fields{
 					"title": videoData.Title,
@@ -144,7 +143,7 @@ func VideoStreamGeneration() {
 						"path_to_video_stream": path_to_video_stream,
 						"link_to_video_stream": strings.Replace(path_to_video_stream, UNPROTECTED_UPLOAD_PATH, CDN_PATH, 1),
 						"video_decryption_key": video_decryption_key,
-						"is_live":              true,
+						"is_live":              err == nil,
 					},
 				},
 			)
