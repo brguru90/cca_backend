@@ -101,7 +101,6 @@ func VideoStreamGeneration() {
 			// remove old files
 			video_stream_path := strings.Split(videoData.PathToVideoStream, "/")
 			video_stream_path = video_stream_path[:len(video_stream_path)-1]
-			os.Remove(videoData.PathToOriginalVideo)
 			os.RemoveAll(strings.Join(video_stream_path, "/"))
 
 			path_split := strings.Split(videoData.PathToOriginalVideo, "/")
