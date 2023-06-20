@@ -26,8 +26,8 @@ gcloud auth login
 
 # -- add below in /etc/fstab ---
 ```
-ccast    /home/sathyanitsme/cdn gcsfuse rw,allow_other,x-systemd.requires=network-online.target,uid=0,gid=1002,file_mode=0777,dir_mode=0777
-cca-private /home/sathyanitsme/storage gcsfuse rw,allow_other,x-systemd.requires=network-online.target,uid=0,gid=1002,file_mode=0777,dir_mode=0777
+cca-public-india    /home/sathyanitsme/cdn gcsfuse rw,allow_other,x-systemd.requires=network-online.target,uid=0,gid=1002,file_mode=0777,dir_mode=0777
+cca-private-india /home/sathyanitsme/storage gcsfuse rw,allow_other,x-systemd.requires=network-online.target,uid=0,gid=1002,file_mode=0777,dir_mode=0777
 ```
 
 # -- add below to crontab (command crontab -e) to make sure the drive mounted --
