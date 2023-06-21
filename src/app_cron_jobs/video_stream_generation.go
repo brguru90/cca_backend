@@ -22,7 +22,7 @@ import (
 func VideoStreamGeneration() {
 	log.WithFields(log.Fields{
 		"time": time.Now(),
-	}).Debug(" -- VideoStreamGeneration Cron job started -- ")
+	}).Infoln(" -- VideoStreamGeneration Cron job started -- ")
 
 	ctx := context.Background()
 
@@ -112,7 +112,7 @@ func VideoStreamGeneration() {
 			log.WithFields(log.Fields{
 				"title": videoData.Title,
 				"id":    videoData.ID,
-			}).Debugln("ffmpeg process started")
+			}).Infoln("ffmpeg process started")
 			if data, err = my_modules.UploadVideoForStream(videoData.ID.Hex(), unprotected_video, file_name, videoData.PathToOriginalVideo); err == nil {
 				// to update new file path
 				path_to_video_stream = data.StreamGeneratedLocation
@@ -130,7 +130,7 @@ func VideoStreamGeneration() {
 				"path_to_video_stream": path_to_video_stream,
 				"link_to_video_stream": strings.Replace(path_to_video_stream, UNPROTECTED_UPLOAD_PATH, CDN_PATH, 1),
 				"video_decryption_key": video_decryption_key,
-			}).Debugln("ffmpeg process done")
+			}).Infoln("ffmpeg process done")
 
 			database_connections.MONGO_COLLECTIONS.VideoUploads.UpdateOne(
 				context.Background(),
