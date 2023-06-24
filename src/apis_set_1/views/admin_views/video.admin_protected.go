@@ -650,6 +650,8 @@ func CreatePlayList(c *gin.Context) {
 
 type PlaylistVideoReqStruct struct {
 	PlaylistId string                       `json:"playlist_id" binding:"required"`
+	EnrollDays int16                        `json:"enroll_days,omitempty" binding:"required" bson:"enroll_days,omitempty"`
+	Price      int64                        `json:"price,omitempty"  binding:"required" bson:"price,omitempty"`
 	Ids        []mongo_modals.VideosInOrder `json:"videos_ids" binding:"required"`
 }
 
@@ -704,8 +706,10 @@ func UpdatePlayList(c *gin.Context) {
 		where,
 		bson.M{
 			"$set": bson.M{
-				"videos_ids": videos_info.Ids,
-				"updatedAt":  time.Now(),
+				"videos_ids":  videos_info.Ids,
+				"updatedAt":   time.Now(),
+				"price":       videos_info.Price,
+				"enroll_days": videos_info.EnrollDays,
 			},
 		},
 	)
@@ -1000,4 +1004,130 @@ func UpdateSubscriptionPackage(c *gin.Context) {
 
 func RemoveSubscriptionPackage(c *gin.Context) {
 
+}
+
+type VideoPlayListUserSubscriptionList struct {
+	ID                      primitive.ObjectID                                    `json:"_id,omitempty" bson:"_id,omitempty" swaggerignore:"true"`
+	UserID                  primitive.ObjectID                                    `json:"user_id,omitempty" binding:"required" bson:"user_id,omitempty"`
+	Username                string                                                `json:"username,omitempty" binding:"required" bson:"username,omitempty"`
+	PlaylistID              primitive.ObjectID                                    `json:"playlist_id,omitempty" binding:"required" bson:"playlist_id,omitempty"`
+	Price                   int64                                                 `json:"price,omitempty"  binding:"required" bson:"price,omitempty"`
+	InitialSubscriptionDate time.Time                                             `json:"initial_subscription_date"  binding:"required" bson:"initial_subscription_date"`
+	ExpireOn                time.Time                                             `json:"expired_on,omitempty" bson:"expired_on,omitempty"`
+	IsEnabled               bool                                                  `json:"is_enabled,omitempty"  binding:"required" bson:"is_enabled,omitempty"`
+	Subscriptions           mongo_modals.SubsequentUserPlaylistSubscriptionStruct `json:"subscriptions,omitempty" binding:"required" bson:"subscriptions"`
+	CreatedAt               time.Time                                             `json:"createdAt,omitempty" bson:"CreatedAt" swaggerignore:"true"`
+	UpdatedAt               time.Time                                             `json:"updatedAt,omitempty" bson:"UpdatedAt" swaggerignore:"true"`
+}
+
+type GetUserPlaylistSubscriptionsRespStruct struct {
+	my_modules.ResponseFormat
+	Data []VideoPlayListUserSubscriptionList `json:"data"`
+}
+
+// @BasePath /api/
+// @Summary Get video subscriptions for all user
+// @Schemes
+// @Description api to fetch video subscriptions for all user
+// @Tags User paid subscriptions
+// @Accept json
+// @Produce json
+// @Success 200 {object} GetUserPlaylistSubscriptionsRespStruct
+// @Failure 400 {object} my_modules.ResponseFormat
+// @Failure 403 {object} my_modules.ResponseFormat
+// @Failure 500 {object} my_modules.ResponseFormat
+// @Router /admin/user_subscriptions/playlist/ [get]
+func GetUserPlaylistSubscriptions(c *gin.Context) {
+
+	unwindStage := bson.D{
+		{"$unwind", "$subscriptions"},
+	}
+	sortStage := bson.D{{"$sort", bson.D{{"subscriptions.subscribed_on", 1}}}}
+	var err error
+	var cursor *mongo.Cursor
+	cursor, err = database_connections.MONGO_COLLECTIONS.VideoPlayListUserSubscription.Aggregate(c.Request.Context(), mongo.Pipeline{unwindStage, sortStage})
+	if err != nil {
+		if err != context.Canceled {
+			log.WithFields(log.Fields{
+				"error": err,
+			}).Errorln("QueryRow failed ==>")
+		}
+		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "No record found", nil)
+		return
+	}
+	var subscriptionsData []VideoPlayListUserSubscriptionList = []VideoPlayListUserSubscriptionList{}
+	for cursor.Next(c.Request.Context()) {
+		var subscriptionData VideoPlayListUserSubscriptionList
+		if err = cursor.Decode(&subscriptionData); err != nil {
+			log.Errorln(fmt.Sprintf("Scan failed: %v\n", err))
+			// continue
+			my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Error in retriving user data", nil)
+			return
+		}
+		subscriptionsData = append(subscriptionsData, subscriptionData)
+	}
+	my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "Record found", subscriptionsData)
+}
+
+type StudyMaterialUserUserSubscriptionList struct {
+	ID                      primitive.ObjectID                                         `json:"_id,omitempty" bson:"_id,omitempty" swaggerignore:"true"`
+	UserID                  primitive.ObjectID                                         `json:"user_id,omitempty" binding:"required" bson:"user_id,omitempty"`
+	Username                string                                                     `json:"username,omitempty" binding:"required" bson:"username,omitempty"`
+	SubscriptionPackageId   primitive.ObjectID                                         `json:"subscription_package_id,omitempty" binding:"required" bson:"subscription_package_id,omitempty"`
+	StudyMaterialID         primitive.ObjectID                                         `json:"study_material_id,omitempty" binding:"required" bson:"study_material_id,omitempty"`
+	Price                   int64                                                      `json:"price,omitempty"  binding:"required" bson:"price,omitempty"`
+	InitialSubscriptionDate time.Time                                                  `json:"initial_subscription_date"  binding:"required" bson:"initial_subscription_date"`
+	ExpireOn                time.Time                                                  `json:"expired_on,omitempty" bson:"expired_on,omitempty"`
+	IsEnabled               bool                                                       `json:"is_enabled,omitempty"  binding:"required" bson:"is_enabled,omitempty"`
+	Subscriptions           mongo_modals.SubsequentStudyMaterialUserSubscriptionStruct `json:"subscriptions,omitempty" binding:"required" bson:"subscriptions"`
+	CreatedAt               time.Time                                                  `json:"createdAt,omitempty" bson:"CreatedAt" swaggerignore:"true"`
+	UpdatedAt               time.Time                                                  `json:"updatedAt,omitempty" bson:"UpdatedAt" swaggerignore:"true"`
+}
+
+type GetUserDocSubscriptionsRespStruct struct {
+	my_modules.ResponseFormat
+	Data []StudyMaterialUserUserSubscriptionList `json:"data"`
+}
+
+// @BasePath /api/
+// @Summary Get document subscriptions for all user
+// @Schemes
+// @Description api to fetch document subscriptions for all user
+// @Tags User paid subscriptions
+// @Accept json
+// @Produce json
+// @Success 200 {object} GetUserDocSubscriptionsRespStruct
+// @Failure 400 {object} my_modules.ResponseFormat
+// @Failure 403 {object} my_modules.ResponseFormat
+// @Failure 500 {object} my_modules.ResponseFormat
+// @Router /admin/user_subscriptions/doc/ [get]
+func GetUserDocSubscriptions(c *gin.Context) {
+	unwindStage := bson.D{
+		{"$unwind", "$subscriptions"},
+	}
+	sortStage := bson.D{{"$sort", bson.D{{"subscriptions.subscribed_on", 1}}}}
+	var err error
+	var cursor *mongo.Cursor
+	cursor, err = database_connections.MONGO_COLLECTIONS.StudyMaterialUserSubscription.Aggregate(c.Request.Context(), mongo.Pipeline{unwindStage, sortStage})
+	if err != nil {
+		if err != context.Canceled {
+			log.WithFields(log.Fields{
+				"error": err,
+			}).Errorln("QueryRow failed ==>")
+		}
+		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "No record found", nil)
+		return
+	}
+	var subscriptionsData []StudyMaterialUserUserSubscriptionList = []StudyMaterialUserUserSubscriptionList{}
+	for cursor.Next(c.Request.Context()) {
+		var subscriptionData StudyMaterialUserUserSubscriptionList
+		if err = cursor.Decode(&subscriptionData); err != nil {
+			log.Errorln(fmt.Sprintf("Scan failed: %v\n", err))
+			// continue
+			my_modules.CreateAndSendResponse(c, http.StatusInternalServerError, "error", "Error in retriving user data", nil)
+			return
+		}
+		subscriptionsData = append(subscriptionsData, subscriptionData)
+	}
+	my_modules.CreateAndSendResponse(c, http.StatusOK, "success", "Record found", subscriptionsData)
 }

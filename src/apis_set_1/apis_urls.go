@@ -93,6 +93,12 @@ func InitApiTest(router *gin.RouterGroup) {
 		admin_router.PUT("subscription_package/", admin_views.UpdateSubscriptionPackage)
 		admin_router.DELETE("subscription_package/", admin_views.RemoveSubscriptionPackage)
 
+		{
+			admin_sub_router := admin_router.Group("user_subscriptions/")
+			admin_sub_router.GET("playlist/", admin_views.GetUserPlaylistSubscriptions)
+			admin_sub_router.GET("doc/", admin_views.GetUserDocSubscriptions)
+		}
+
 	}
 
 }

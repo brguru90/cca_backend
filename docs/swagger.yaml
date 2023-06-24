@@ -72,16 +72,52 @@ definitions:
     - msg
     - status
     type: object
+  admin_views.GetUserDocSubscriptionsRespStruct:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/admin_views.StudyMaterialUserUserSubscriptionList'
+        type: array
+      msg:
+        type: string
+      status:
+        type: string
+    required:
+    - data
+    - msg
+    - status
+    type: object
+  admin_views.GetUserPlaylistSubscriptionsRespStruct:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/admin_views.VideoPlayListUserSubscriptionList'
+        type: array
+      msg:
+        type: string
+      status:
+        type: string
+    required:
+    - data
+    - msg
+    - status
+    type: object
   admin_views.PlaylistVideoReqStruct:
     properties:
+      enroll_days:
+        type: integer
       playlist_id:
         type: string
+      price:
+        type: integer
       videos_ids:
         items:
           $ref: '#/definitions/mongo_modals.VideosInOrder'
         type: array
     required:
+    - enroll_days
     - playlist_id
+    - price
     - videos_ids
     type: object
   admin_views.RemovePlayListReqStruct:
@@ -100,6 +136,36 @@ definitions:
     required:
     - docs_ids
     type: object
+  admin_views.StudyMaterialUserUserSubscriptionList:
+    properties:
+      expired_on:
+        type: string
+      initial_subscription_date:
+        type: string
+      is_enabled:
+        type: boolean
+      price:
+        type: integer
+      study_material_id:
+        type: string
+      subscription_package_id:
+        type: string
+      subscriptions:
+        $ref: '#/definitions/mongo_modals.SubsequentStudyMaterialUserSubscriptionStruct'
+      user_id:
+        type: string
+      username:
+        type: string
+    required:
+    - initial_subscription_date
+    - is_enabled
+    - price
+    - study_material_id
+    - subscription_package_id
+    - subscriptions
+    - user_id
+    - username
+    type: object
   admin_views.VideoPlayListSubscriptionPackageModalReqStruct:
     properties:
       playlists_ids:
@@ -111,6 +177,33 @@ definitions:
     required:
     - playlists_ids
     - subscription_package_id
+    type: object
+  admin_views.VideoPlayListUserSubscriptionList:
+    properties:
+      expired_on:
+        type: string
+      initial_subscription_date:
+        type: string
+      is_enabled:
+        type: boolean
+      playlist_id:
+        type: string
+      price:
+        type: integer
+      subscriptions:
+        $ref: '#/definitions/mongo_modals.SubsequentUserPlaylistSubscriptionStruct'
+      user_id:
+        type: string
+      username:
+        type: string
+    required:
+    - initial_subscription_date
+    - is_enabled
+    - playlist_id
+    - price
+    - subscriptions
+    - user_id
+    - username
     type: object
   admin_views.VideoStreamReqStruct:
     properties:
@@ -208,6 +301,30 @@ definitions:
     - path_to_doc_file
     - price
     - title
+    type: object
+  mongo_modals.SubsequentStudyMaterialUserSubscriptionStruct:
+    properties:
+      amount_paid:
+        type: integer
+      duration_in_days:
+        type: integer
+      subscribed_on:
+        type: string
+    required:
+    - duration_in_days
+    - subscribed_on
+    type: object
+  mongo_modals.SubsequentUserPlaylistSubscriptionStruct:
+    properties:
+      amount_paid:
+        type: integer
+      duration_in_days:
+        type: integer
+      subscribed_on:
+        type: string
+    required:
+    - duration_in_days
+    - subscribed_on
     type: object
   mongo_modals.UsersModel:
     properties:
@@ -1121,6 +1238,60 @@ paths:
       summary: Upload study material
       tags:
       - Manage Study material
+  /admin/user_subscriptions/doc/:
+    get:
+      consumes:
+      - application/json
+      description: api to fetch document subscriptions for all user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/admin_views.GetUserDocSubscriptionsRespStruct'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: Get document subscriptions for all user
+      tags:
+      - User paid subscriptions
+  /admin/user_subscriptions/playlist/:
+    get:
+      consumes:
+      - application/json
+      description: api to fetch video subscriptions for all user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/admin_views.GetUserPlaylistSubscriptionsRespStruct'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/my_modules.ResponseFormat'
+      summary: Get video subscriptions for all user
+      tags:
+      - User paid subscriptions
   /login:
     post:
       consumes:

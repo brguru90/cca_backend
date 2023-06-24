@@ -21,6 +21,7 @@ type SubsequentStudyMaterialUserSubscriptionStruct struct {
 type StudyMaterialUserUserSubscriptionModal struct {
 	ID                      primitive.ObjectID                              `json:"_id,omitempty" bson:"_id,omitempty" swaggerignore:"true"`
 	UserID                  primitive.ObjectID                              `json:"user_id,omitempty" binding:"required" bson:"user_id,omitempty"`
+	Username                string                                          `json:"username,omitempty" binding:"required" bson:"username,omitempty"`
 	SubscriptionPackageId   primitive.ObjectID                              `json:"subscription_package_id,omitempty" binding:"required" bson:"subscription_package_id,omitempty"`
 	StudyMaterialID         primitive.ObjectID                              `json:"study_material_id,omitempty" binding:"required" bson:"study_material_id,omitempty"`
 	Price                   int64                                           `json:"price,omitempty"  binding:"required" bson:"price,omitempty"`

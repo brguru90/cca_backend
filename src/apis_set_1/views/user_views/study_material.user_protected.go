@@ -368,6 +368,7 @@ func EnrollToStudyMaterial(c *gin.Context) {
 			} else {
 				user_sub_tbl, ins_err := database_connections.MONGO_COLLECTIONS.StudyMaterialUserSubscription.InsertOne(context.Background(), mongo_modals.StudyMaterialUserUserSubscriptionModal{
 					UserID:                  user_id,
+					Username:                payload.Data.Username,
 					StudyMaterialID:         study_material_id,
 					InitialSubscriptionDate: _time,
 					IsEnabled:               false,

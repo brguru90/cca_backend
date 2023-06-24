@@ -32,6 +32,7 @@ type SubsequentUserPlaylistSubscriptionStruct struct {
 type VideoPlayListUserSubscriptionModal struct {
 	ID                      primitive.ObjectID                         `json:"_id,omitempty" bson:"_id,omitempty" swaggerignore:"true"`
 	UserID                  primitive.ObjectID                         `json:"user_id,omitempty" binding:"required" bson:"user_id,omitempty"`
+	Username                string                                     `json:"username,omitempty" binding:"required" bson:"username,omitempty"`
 	SubscriptionPackageId   primitive.ObjectID                         `json:"subscription_package_id,omitempty" binding:"required" bson:"subscription_package_id,omitempty"`
 	PlaylistID              primitive.ObjectID                         `json:"playlist_id,omitempty" binding:"required" bson:"playlist_id,omitempty"`
 	Price                   int64                                      `json:"price,omitempty"  binding:"required" bson:"price,omitempty"`

@@ -540,6 +540,7 @@ func EnrollToCourse(c *gin.Context) {
 			} else {
 				user_sub_tbl, ins_err := database_connections.MONGO_COLLECTIONS.VideoPlayListUserSubscription.InsertOne(context.Background(), mongo_modals.VideoPlayListUserSubscriptionModal{
 					UserID:                  user_id,
+					Username:                payload.Data.Username,
 					PlaylistID:              playlis_id,
 					InitialSubscriptionDate: _time,
 					IsEnabled:               false,
