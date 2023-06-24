@@ -11,6 +11,7 @@ require (
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/gomodule/redigo v1.8.8
 	github.com/robfig/cron/v3 v3.0.1
+	github.com/shirou/gopsutil/v3 v3.23.5
 	github.com/sirupsen/logrus v1.8.1
 	github.com/swaggo/files v0.0.0-20210815190702-a29dd2bc99b2
 	github.com/swaggo/gin-swagger v1.4.3
@@ -31,7 +32,6 @@ require (
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
 	github.com/power-devops/perfstat v0.0.0-20210106213030-5aafc221ea8c // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
-	github.com/shirou/gopsutil/v3 v3.23.5 // indirect
 	github.com/shoenig/go-m1cpu v0.1.6 // indirect
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.11 // indirect
