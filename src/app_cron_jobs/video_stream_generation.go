@@ -143,6 +143,7 @@ func VideoStreamGeneration() {
 						"link_to_video_stream": strings.Replace(path_to_video_stream, UNPROTECTED_UPLOAD_PATH, CDN_PATH, 1),
 						"video_decryption_key": video_decryption_key,
 						"is_live":              err == nil,
+						"updatedat":            time.Now(),
 					},
 				},
 			)
