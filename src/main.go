@@ -107,7 +107,7 @@ func main() {
 		Addr:           bind_to_host,
 		Handler:        all_router,
 		ReadTimeout:    30 * time.Minute,
-		WriteTimeout:   30 * time.Minute,
+		WriteTimeout:   5 * time.Minute,
 		MaxHeaderBytes: file_upload_size_mb << 20,
 	}
 
