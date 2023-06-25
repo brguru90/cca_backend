@@ -10,3 +10,5 @@ src/__debug_bin
 uploads
 app
 frontend
+*.m3u8
+*.ts
