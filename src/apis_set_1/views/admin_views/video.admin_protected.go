@@ -50,8 +50,6 @@ type VideoInfoReqStruct struct {
 // @Failure 500 {object} my_modules.ResponseFormat
 // @Router /admin/upload_streaming_video/ [post]
 func UploadVideo(c *gin.Context) {
-	ctx := c.Request.Context()
-
 	payload, ok := my_modules.ExtractTokenPayload(c)
 	if !ok {
 		my_modules.CreateAndSendResponse(c, http.StatusBadRequest, "error", "Unable to get user info", nil)
@@ -132,7 +130,7 @@ func UploadVideo(c *gin.Context) {
 	}
 
 	_time := time.Now()
-	_, ins_err := database_connections.MONGO_COLLECTIONS.VideoUploads.InsertOne(ctx, mongo_modals.VideoUploadModal{
+	_, ins_err := database_connections.MONGO_COLLECTIONS.VideoUploads.InsertOne(context.Background(), mongo_modals.VideoUploadModal{
 		Title:                   infoForm.Title,
 		CreatedByUser:           infoForm.CreatedBy,
 		Description:             infoForm.Description,
