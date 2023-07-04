@@ -56,14 +56,14 @@ func VideoStreamGenerationCron() {
 }
 
 func stopVM() {
-	// if configs.EnvConfigs.APP_ENV != "development" {
-
-	// 	if err := my_modules.StopVMInstance(); err != nil {
-	// 		log.WithFields(log.Fields{
-	// 			"error": err,
-	// 		}).Errorln("StopVMInstance failed ==>")
-	// 	}
-	// }
+	if configs.EnvConfigs.APP_ENV != "development" {
+		log.Infoln(" -- StopVMInstance() -- ")
+		if err := my_modules.StopVMInstance(); err != nil {
+			log.WithFields(log.Fields{
+				"error": err,
+			}).Errorln("StopVMInstance failed ==>")
+		}
+	}
 }
 
 func VideoStreamGeneration(only_video_processing bool) {
