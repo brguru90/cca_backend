@@ -21,9 +21,19 @@ import (
 )
 
 func VideoStreamGenerationCron() {
+	log.WithFields(log.Fields{
+		"time": time.Now(),
+	}).Infoln(" -- VideoStreamGenerationCron  started -- ")
 
+	ctx := context.Background()
 	opts := options.Count().SetHint("_id_")
-	listCount, count_err := database_connections.MONGO_COLLECTIONS.VideoStreamGenerationQ.CountDocuments(context.Background(), bson.M{
+
+	listCount, count_err := database_connections.MONGO_COLLECTIONS.VideoStreamGenerationQ.CountDocuments(ctx, bson.M{}, opts)
+	if count_err == nil && listCount == 0 {
+		return
+	}
+
+	listCount, count_err = database_connections.MONGO_COLLECTIONS.VideoStreamGenerationQ.CountDocuments(ctx, bson.M{
 		"started": true,
 	}, opts)
 	if count_err == nil && listCount > 0 {
@@ -58,7 +68,7 @@ func stopVM() {
 func VideoStreamGeneration() {
 	log.WithFields(log.Fields{
 		"time": time.Now(),
-	}).Infoln(" -- VideoStreamGeneration Cron job started -- ")
+	}).Infoln(" -- VideoStreamGeneration process started -- ")
 
 	ctx := context.Background()
 
