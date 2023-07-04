@@ -4,6 +4,7 @@ import (
 	"cca/src/database/database_connections"
 	"cca/src/my_modules"
 	"context"
+	"os/exec"
 	"time"
 
 	"cca/src/configs"
@@ -65,6 +66,29 @@ func VideoStreamGeneration() {
 	var streamQ []mongo_modals.VideoStreamGenerationQModel = []mongo_modals.VideoStreamGenerationQModel{}
 	if err = cursor.All(context.TODO(), &streamQ); err != nil {
 		return
+	}
+
+	if configs.EnvConfigs.APP_ENV != "development" {
+		ffprobeCmd := exec.Command(
+			"umount", "/home/sathyanitsme/cdn",
+		)
+		ffprobeCmd.Run()
+
+		ffprobeCmd = exec.Command(
+			"umount", "/home/sathyanitsme/storage",
+		)
+		ffprobeCmd.Run()
+
+		ffprobeCmd = exec.Command(
+			"systemctl", "daemon-reload",
+		)
+		ffprobeCmd.Run()
+
+		ffprobeCmd = exec.Command(
+			"systemctl", "restart", "local-fs.target",
+		)
+		ffprobeCmd.Run()
+
 	}
 
 	videos_ids := []primitive.ObjectID{}
@@ -169,8 +193,8 @@ func VideoStreamGeneration() {
 			}
 		}
 
-		if configs.EnvConfigs.APP_ENV == "development" {
-			if err := my_modules.StartVMInstance(); err != nil {
+		if configs.EnvConfigs.APP_ENV != "development" {
+			if err := my_modules.StopVMInstance(); err != nil {
 				log.WithFields(log.Fields{
 					"error": err,
 				}).Errorln("QueryRow failed ==>")
