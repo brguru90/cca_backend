@@ -45,6 +45,7 @@ func main() {
 			app_cron_jobs.InitCronJobs()
 			return
 		case "video_processing":
+			log.Infoln("Running only video_processing")
 			app_cron_jobs.VideoStreamGeneration()
 			return
 		case "api_server":
