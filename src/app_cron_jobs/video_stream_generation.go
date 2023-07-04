@@ -31,6 +31,7 @@ func VideoStreamGenerationCron() {
 
 	listCount, count_err := database_connections.MONGO_COLLECTIONS.VideoStreamGenerationQ.CountDocuments(ctx, bson.M{}, opts)
 	if count_err == nil && listCount == 0 {
+		log.Infoln(" -- No videos to process -- ")
 		return
 	}
 
@@ -38,6 +39,7 @@ func VideoStreamGenerationCron() {
 		"started": true,
 	}, opts)
 	if count_err == nil && listCount > 0 {
+		log.Infoln(" -- Already a video process is running -- ")
 		return
 	}
 
