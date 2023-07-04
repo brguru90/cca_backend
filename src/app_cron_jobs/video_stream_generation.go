@@ -35,20 +35,22 @@ func VideoStreamGenerationCron() {
 		return
 	}
 
+	log.Infoln(" -- StartVMInstance() -- ")
 	if err := my_modules.StartVMInstance(); err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
-		}).Errorln("QueryRow failed ==>")
+		}).Errorln("StartVMInstance failed ==>")
 	}
 
 }
 
 func stopVM() {
 	if configs.EnvConfigs.APP_ENV != "development" {
+
 		if err := my_modules.StopVMInstance(); err != nil {
 			log.WithFields(log.Fields{
 				"error": err,
-			}).Errorln("QueryRow failed ==>")
+			}).Errorln("StopVMInstance failed ==>")
 		}
 	}
 }
