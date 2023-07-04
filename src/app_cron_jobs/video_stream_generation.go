@@ -43,6 +43,16 @@ func VideoStreamGenerationCron() {
 
 }
 
+func stopVM() {
+	if configs.EnvConfigs.APP_ENV != "development" {
+		if err := my_modules.StopVMInstance(); err != nil {
+			log.WithFields(log.Fields{
+				"error": err,
+			}).Errorln("QueryRow failed ==>")
+		}
+	}
+}
+
 func VideoStreamGeneration() {
 	log.WithFields(log.Fields{
 		"time": time.Now(),
@@ -61,10 +71,12 @@ func VideoStreamGeneration() {
 				"error": err,
 			}).Errorln("QueryRow failed ==>")
 		}
+		stopVM()
 		return
 	}
 	var streamQ []mongo_modals.VideoStreamGenerationQModel = []mongo_modals.VideoStreamGenerationQModel{}
 	if err = cursor.All(context.TODO(), &streamQ); err != nil {
+		stopVM()
 		return
 	}
 
@@ -97,6 +109,7 @@ func VideoStreamGeneration() {
 	}
 
 	if len(videos_ids) == 0 {
+		stopVM()
 		return
 	}
 
@@ -112,7 +125,10 @@ func VideoStreamGeneration() {
 			}
 			return
 		}
-		defer cursor.Close(ctx)
+		defer func() {
+			cursor.Close(ctx)
+			stopVM()
+		}()
 
 		database_connections.MONGO_COLLECTIONS.VideoStreamGenerationQ.UpdateMany(ctx,
 			bson.M{"video_id": bson.M{"$in": videos_ids}},
@@ -190,14 +206,6 @@ func VideoStreamGeneration() {
 				log.WithFields(log.Fields{
 					"Error": err,
 				}).Errorln("delete VideoStreamGenerationQ")
-			}
-		}
-
-		if configs.EnvConfigs.APP_ENV != "development" {
-			if err := my_modules.StopVMInstance(); err != nil {
-				log.WithFields(log.Fields{
-					"error": err,
-				}).Errorln("QueryRow failed ==>")
 			}
 		}
 
