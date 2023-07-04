@@ -19,6 +19,20 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+func VideoStreamGenerationCron() {
+	if configs.EnvConfigs.APP_ENV == "development" {
+		VideoStreamGeneration()
+		return
+	}
+
+	if err := my_modules.StartVMInstance(); err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Errorln("QueryRow failed ==>")
+	}
+
+}
+
 func VideoStreamGeneration() {
 	log.WithFields(log.Fields{
 		"time": time.Now(),
@@ -151,6 +165,14 @@ func VideoStreamGeneration() {
 				log.WithFields(log.Fields{
 					"Error": err,
 				}).Errorln("delete VideoStreamGenerationQ")
+			}
+		}
+
+		if configs.EnvConfigs.APP_ENV == "development" {
+			if err := my_modules.StartVMInstance(); err != nil {
+				log.WithFields(log.Fields{
+					"error": err,
+				}).Errorln("QueryRow failed ==>")
 			}
 		}
 

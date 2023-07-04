@@ -44,6 +44,9 @@ func main() {
 			go triggers.TriggerForUsersModification()
 			app_cron_jobs.InitCronJobs()
 			return
+		case "video_processing":
+			app_cron_jobs.VideoStreamGeneration()
+			return
 		case "api_server":
 			break
 		default:
