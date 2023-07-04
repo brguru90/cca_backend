@@ -129,8 +129,8 @@ func VideoStreamGeneration(only_video_processing bool) {
 	}
 
 	var wg sync.WaitGroup
+	wg.Add(1)
 	go func() {
-		wg.Add(1)
 		defer func() {
 			stopVM(only_video_processing)
 			wg.Done()
