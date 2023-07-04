@@ -40,12 +40,12 @@ func main() {
 	{
 		switch *micro_service {
 		case "cron_job":
-			log.Infoln("Running only cron jobs")
+			log.Warnln("Running only cron jobs")
 			go triggers.TriggerForUsersModification()
 			app_cron_jobs.InitCronJobs()
 			return
 		case "video_processing":
-			log.Infoln("Running only video_processing")
+			log.Warnln("Running only video_processing")
 			app_cron_jobs.VideoStreamGeneration()
 			return
 		case "api_server":
