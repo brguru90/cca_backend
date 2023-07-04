@@ -115,7 +115,6 @@ func VideoStreamGeneration(only_video_processing bool) {
 			"systemctl", "restart", "local-fs.target",
 		)
 		ffprobeCmd.Run()
-
 	}
 
 	videos_ids := []primitive.ObjectID{}
