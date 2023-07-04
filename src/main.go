@@ -46,7 +46,7 @@ func main() {
 			return
 		case "video_processing":
 			log.Warnln("Running only video_processing")
-			app_cron_jobs.VideoStreamGeneration()
+			app_cron_jobs.VideoStreamGeneration(true)
 			return
 		case "api_server":
 			break

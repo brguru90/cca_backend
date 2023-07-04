@@ -5,6 +5,7 @@ import (
 	"cca/src/my_modules"
 	"context"
 	"os/exec"
+	"sync"
 	"time"
 
 	"cca/src/configs"
@@ -41,7 +42,7 @@ func VideoStreamGenerationCron() {
 	}
 
 	if configs.EnvConfigs.APP_ENV == "development" {
-		VideoStreamGeneration()
+		VideoStreamGeneration(false)
 		return
 	}
 
@@ -65,7 +66,7 @@ func stopVM() {
 	}
 }
 
-func VideoStreamGeneration() {
+func VideoStreamGeneration(only_video_processing bool) {
 	log.WithFields(log.Fields{
 		"time": time.Now(),
 	}).Infoln(" -- VideoStreamGeneration process started -- ")
@@ -125,7 +126,13 @@ func VideoStreamGeneration() {
 		return
 	}
 
+	var wg sync.WaitGroup
 	go func() {
+		wg.Add(1)
+		defer func() {
+			stopVM()
+			wg.Done()
+		}()
 		var err error
 		var cursor *mongo.Cursor
 		cursor, err = database_connections.MONGO_COLLECTIONS.VideoUploads.Find(ctx, bson.M{"_id": bson.M{"$in": videos_ids}})
@@ -135,13 +142,9 @@ func VideoStreamGeneration() {
 					"error": err,
 				}).Panic("QueryRow failed ==>")
 			}
-			stopVM()
 			return
 		}
-		defer func() {
-			cursor.Close(ctx)
-			stopVM()
-		}()
+		defer cursor.Close(ctx)
 
 		database_connections.MONGO_COLLECTIONS.VideoStreamGenerationQ.UpdateMany(ctx,
 			bson.M{"video_id": bson.M{"$in": videos_ids}},
@@ -223,4 +226,8 @@ func VideoStreamGeneration() {
 		}
 
 	}()
+
+	if only_video_processing {
+		wg.Wait()
+	}
 }
