@@ -20,6 +20,15 @@ import (
 )
 
 func VideoStreamGenerationCron() {
+
+	opts := options.Count().SetHint("_id_")
+	listCount, count_err := database_connections.MONGO_COLLECTIONS.VideoStreamGenerationQ.CountDocuments(context.Background(), bson.M{
+		"started": true,
+	}, opts)
+	if count_err == nil && listCount > 0 {
+		return
+	}
+
 	if configs.EnvConfigs.APP_ENV == "development" {
 		VideoStreamGeneration()
 		return
@@ -39,14 +48,6 @@ func VideoStreamGeneration() {
 	}).Infoln(" -- VideoStreamGeneration Cron job started -- ")
 
 	ctx := context.Background()
-
-	opts := options.Count().SetHint("_id_")
-	listCount, count_err := database_connections.MONGO_COLLECTIONS.VideoStreamGenerationQ.CountDocuments(ctx, bson.M{
-		"started": true,
-	}, opts)
-	if count_err == nil && listCount > 0 {
-		return
-	}
 
 	var err error
 	var cursor *mongo.Cursor
