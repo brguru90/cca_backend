@@ -57,9 +57,9 @@ func VideoStreamGenerationCron() {
 
 }
 
-func stopVM() {
-	if configs.EnvConfigs.APP_ENV != "development" {
-		log.Infoln(" -- StopVMInstance() -- ")
+func stopVM(only_video_processing bool) {
+	log.Infoln(" -- StopVMInstance() -- ")
+	if only_video_processing {
 		if err := my_modules.StopVMInstance(); err != nil {
 			log.WithFields(log.Fields{
 				"error": err,
@@ -86,12 +86,12 @@ func VideoStreamGeneration(only_video_processing bool) {
 				"error": err,
 			}).Errorln("QueryRow failed ==>")
 		}
-		stopVM()
+		stopVM(only_video_processing)
 		return
 	}
 	var streamQ []mongo_modals.VideoStreamGenerationQModel = []mongo_modals.VideoStreamGenerationQModel{}
 	if err = cursor.All(context.TODO(), &streamQ); err != nil {
-		stopVM()
+		stopVM(only_video_processing)
 		return
 	}
 
@@ -124,7 +124,7 @@ func VideoStreamGeneration(only_video_processing bool) {
 	}
 
 	if len(videos_ids) == 0 {
-		stopVM()
+		stopVM(only_video_processing)
 		return
 	}
 
@@ -132,7 +132,7 @@ func VideoStreamGeneration(only_video_processing bool) {
 	go func() {
 		wg.Add(1)
 		defer func() {
-			stopVM()
+			stopVM(only_video_processing)
 			wg.Done()
 		}()
 		var err error
