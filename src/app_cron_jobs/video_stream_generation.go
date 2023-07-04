@@ -123,6 +123,7 @@ func VideoStreamGeneration() {
 					"error": err,
 				}).Panic("QueryRow failed ==>")
 			}
+			stopVM()
 			return
 		}
 		defer func() {
