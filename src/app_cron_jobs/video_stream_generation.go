@@ -239,8 +239,8 @@ func VideoStreamGeneration(only_video_processing bool) {
 				}
 			}(videoDataTemp)
 		}
-		close(task_pool)
 		wg2.Wait()
+		close(task_pool)
 	}()
 
 	if only_video_processing {
