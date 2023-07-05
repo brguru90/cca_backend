@@ -21,6 +21,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+var MAX_CONCURRENT_VIDEO_PROCESSING int = 2
+
 func VideoStreamGenerationCron() {
 	log.WithFields(log.Fields{
 		"time": time.Now(),
@@ -164,68 +166,75 @@ func VideoStreamGeneration(only_video_processing bool) {
 		CDN_PATH := "/" + configs.EnvConfigs.UNPROTECTED_UPLOAD_PATH_ROUTE
 		unprotected_video := fmt.Sprintf("%s/video", UNPROTECTED_UPLOAD_PATH)
 
+		task_pool := make(chan bool, MAX_CONCURRENT_VIDEO_PROCESSING)
+
 		for cursor.Next(ctx) {
-			var videoData mongo_modals.VideoUploadModal
-			if err = cursor.Decode(&videoData); err != nil {
+			var videoDataTemp mongo_modals.VideoUploadModal
+			if err = cursor.Decode(&videoDataTemp); err != nil {
 				log.Errorln(fmt.Sprintf("Scan failed: %v\n", err))
 				return
 			}
-			// remove old files
-			video_stream_path := strings.Split(videoData.PathToVideoStream, "/")
-			video_stream_path = video_stream_path[:len(video_stream_path)-1]
-			os.RemoveAll(strings.Join(video_stream_path, "/"))
+			task_pool <- true
+			go func(videoData mongo_modals.VideoUploadModal) {
+				defer func() {
+					<-task_pool
+				}()
+				video_stream_path := strings.Split(videoData.PathToVideoStream, "/")
+				video_stream_path = video_stream_path[:len(video_stream_path)-1]
+				os.RemoveAll(strings.Join(video_stream_path, "/"))
 
-			path_split := strings.Split(videoData.PathToOriginalVideo, "/")
-			file_full_name := strings.Split(path_split[len(path_split)-1], ".")
-			file_name := strings.Join(file_full_name[:len(file_full_name)-1], "_")
-			path_to_video_stream := ""
-			video_decryption_key := ""
-			var data my_modules.UploadedVideoInfoStruct
-			log.WithFields(log.Fields{
-				"title": videoData.Title,
-				"id":    videoData.ID,
-			}).Infoln("ffmpeg process started")
-			if data, err = my_modules.UploadVideoForStream(videoData.ID.Hex(), unprotected_video, file_name, videoData.PathToOriginalVideo); err == nil {
-				// to update new file path
-				path_to_video_stream = data.StreamGeneratedLocation
-				video_decryption_key = data.DecryptionKey
-			} else {
+				path_split := strings.Split(videoData.PathToOriginalVideo, "/")
+				file_full_name := strings.Split(path_split[len(path_split)-1], ".")
+				file_name := strings.Join(file_full_name[:len(file_full_name)-1], "_")
+				path_to_video_stream := ""
+				video_decryption_key := ""
+				var data my_modules.UploadedVideoInfoStruct
 				log.WithFields(log.Fields{
 					"title": videoData.Title,
 					"id":    videoData.ID,
-					"err":   err,
-				}).Errorln("ffmpeg process failed")
-				os.Remove(data.OutputDir)
-			}
+				}).Infoln("ffmpeg process started")
+				if data, err = my_modules.UploadVideoForStream(videoData.ID.Hex(), unprotected_video, file_name, videoData.PathToOriginalVideo); err == nil {
+					// to update new file path
+					path_to_video_stream = data.StreamGeneratedLocation
+					video_decryption_key = data.DecryptionKey
+				} else {
+					log.WithFields(log.Fields{
+						"title": videoData.Title,
+						"id":    videoData.ID,
+						"err":   err,
+					}).Errorln("ffmpeg process failed")
+					os.Remove(data.OutputDir)
+				}
 
-			log.WithFields(log.Fields{
-				"path_to_video_stream": path_to_video_stream,
-				"link_to_video_stream": strings.Replace(path_to_video_stream, UNPROTECTED_UPLOAD_PATH, CDN_PATH, 1),
-				"video_decryption_key": video_decryption_key,
-			}).Infoln("ffmpeg process done")
-
-			database_connections.MONGO_COLLECTIONS.VideoUploads.UpdateOne(
-				context.Background(),
-				bson.M{
-					"_id": videoData.ID,
-				},
-				bson.M{
-					"$set": bson.M{
-						"path_to_video_stream": path_to_video_stream,
-						"link_to_video_stream": strings.Replace(path_to_video_stream, UNPROTECTED_UPLOAD_PATH, CDN_PATH, 1),
-						"video_decryption_key": video_decryption_key,
-						"is_live":              err == nil,
-						"updatedat":            time.Now(),
-					},
-				},
-			)
-			if _, err := database_connections.MONGO_COLLECTIONS.VideoStreamGenerationQ.DeleteOne(ctx, bson.M{"video_id": videoData.ID}); err != nil {
 				log.WithFields(log.Fields{
-					"Error": err,
-				}).Errorln("delete VideoStreamGenerationQ")
-			}
-		}
+					"path_to_video_stream": path_to_video_stream,
+					"link_to_video_stream": strings.Replace(path_to_video_stream, UNPROTECTED_UPLOAD_PATH, CDN_PATH, 1),
+					"video_decryption_key": video_decryption_key,
+				}).Infoln("ffmpeg process done")
 
+				database_connections.MONGO_COLLECTIONS.VideoUploads.UpdateOne(
+					context.Background(),
+					bson.M{
+						"_id": videoData.ID,
+					},
+					bson.M{
+						"$set": bson.M{
+							"path_to_video_stream": path_to_video_stream,
+							"link_to_video_stream": strings.Replace(path_to_video_stream, UNPROTECTED_UPLOAD_PATH, CDN_PATH, 1),
+							"video_decryption_key": video_decryption_key,
+							"is_live":              err == nil,
+							"updatedat":            time.Now(),
+						},
+					},
+				)
+				if _, err := database_connections.MONGO_COLLECTIONS.VideoStreamGenerationQ.DeleteOne(ctx, bson.M{"video_id": videoData.ID}); err != nil {
+					log.WithFields(log.Fields{
+						"Error": err,
+					}).Errorln("delete VideoStreamGenerationQ")
+				}
+			}(videoDataTemp)
+		}
+		close(task_pool)
 	}()
 
 	if only_video_processing {
