@@ -175,9 +175,11 @@ func VideoStreamGeneration(only_video_processing bool) {
 				return
 			}
 			task_pool <- true
+			wg.Add(1)
 			go func(videoData mongo_modals.VideoUploadModal) {
 				defer func() {
 					<-task_pool
+					wg.Done()
 				}()
 				video_stream_path := strings.Split(videoData.PathToVideoStream, "/")
 				video_stream_path = video_stream_path[:len(video_stream_path)-1]
