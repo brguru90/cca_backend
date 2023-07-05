@@ -168,6 +168,9 @@ func VideoStreamGeneration(only_video_processing bool) {
 
 		task_pool := make(chan bool, MAX_CONCURRENT_VIDEO_PROCESSING)
 
+		var wg sync.WaitGroup
+		var wg2 sync.WaitGroup
+		wg.Add(1)
 		for cursor.Next(ctx) {
 			var videoDataTemp mongo_modals.VideoUploadModal
 			if err = cursor.Decode(&videoDataTemp); err != nil {
@@ -175,11 +178,11 @@ func VideoStreamGeneration(only_video_processing bool) {
 				return
 			}
 			task_pool <- true
-			wg.Add(1)
+			wg2.Add(1)
 			go func(videoData mongo_modals.VideoUploadModal) {
 				defer func() {
 					<-task_pool
-					wg.Done()
+					wg2.Done()
 				}()
 				video_stream_path := strings.Split(videoData.PathToVideoStream, "/")
 				video_stream_path = video_stream_path[:len(video_stream_path)-1]
@@ -237,6 +240,7 @@ func VideoStreamGeneration(only_video_processing bool) {
 			}(videoDataTemp)
 		}
 		close(task_pool)
+		wg2.Wait()
 	}()
 
 	if only_video_processing {
