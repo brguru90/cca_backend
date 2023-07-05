@@ -227,7 +227,7 @@ func VideoStreamGeneration(only_video_processing bool) {
 						},
 					},
 				)
-				if _, err := database_connections.MONGO_COLLECTIONS.VideoStreamGenerationQ.DeleteOne(ctx, bson.M{"video_id": videoData.ID}); err != nil {
+				if _, err := database_connections.MONGO_COLLECTIONS.VideoStreamGenerationQ.DeleteOne(context.Background(), bson.M{"video_id": videoData.ID}); err != nil {
 					log.WithFields(log.Fields{
 						"Error": err,
 					}).Errorln("delete VideoStreamGenerationQ")
