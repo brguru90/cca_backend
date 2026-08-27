@@ -1,0 +1,36 @@
+# Notifies brguru90/cca-infra to auto-deploy the `integration` environment
+# whenever this repo's main branch moves. See cca-infra's
+# IMPLEMENTATION_PLAN.md Sec 15 for the full design - uat/production are
+# never triggered by this; they stay manually triggered from cca-infra's
+# Actions tab.
+#
+# Requires a repository secret CCA_INFRA_DISPATCH_TOKEN: a GitHub Personal
+# Access Token with permission to create a repository_dispatch event on
+# brguru90/cca-infra (classic PAT: `repo` scope; fine-grained PAT: Contents
+# read/write scoped to just that one repository - see cca-infra's
+# docs/RUNBOOK.md for exact setup steps). The default GITHUB_TOKEN can't be
+# used here - it has no access outside this repo.
+
+name: Notify cca-infra
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch app-push to cca-infra
+        env:
+          GH_TOKEN: ${{ secrets.CCA_INFRA_DISPATCH_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${GH_TOKEN}" ]]; then
+            echo "::error::CCA_INFRA_DISPATCH_TOKEN secret is not set on this repo - cannot notify cca-infra. See brguru90/cca-infra's docs/RUNBOOK.md."
+            exit 1
+          fi
+          gh api repos/brguru90/cca-infra/dispatches \
+            -f event_type=app-push \
+            -f "client_payload[repo]=${{ github.event.repository.name }}" \
+            -f "client_payload[sha]=${{ github.sha }}"
